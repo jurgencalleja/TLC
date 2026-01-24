@@ -50,7 +50,7 @@
     <text class="text cyan" font-size="14" y="148" xml:space="preserve">     ╚═╝   ╚═════╝ ╚═════╝</text>
 
     <!-- Title and subtitle -->
-    <text class="text white" font-size="15" y="188">  <tspan class="white" font-weight="bold">TDD Workflow</tspan> <tspan class="dim">v0.2.0</tspan></text>
+    <text class="text white" font-size="15" y="188">  <tspan class="white" font-weight="bold">TDD Workflow</tspan> <tspan class="dim">v0.3.0</tspan></text>
     <text class="text white" font-size="15" y="212">  Test-Led Development for Claude Code</text>
     <text class="text dim" font-size="15" y="232">  Powered by GSD</text>
 

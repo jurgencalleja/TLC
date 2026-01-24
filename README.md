@@ -27,7 +27,9 @@ npx tdd-claude-code --local    # this project only
 You use `/tdd:*` commands for everything. Never touch `/gsd:*` directly.
 
 ```
-/tdd:new-project          Describe your idea, get test infrastructure
+/tdd:new-project          New project from scratch
+       OR
+/tdd:init                 Add TDD to existing codebase
     ↓
 /tdd:discuss 1            Shape how phase 1 gets built
 /tdd:plan 1               Create task plans
@@ -55,6 +57,7 @@ You run one command. Tests get written before code. Automatically.
 | Command | What It Does |
 |---------|--------------|
 | `/tdd:new-project` | Start project with test infrastructure |
+| `/tdd:init` | Add TDD to existing codebase |
 | `/tdd:discuss [N]` | Capture implementation preferences |
 | `/tdd:plan [N]` | Create task plans |
 | `/tdd:build <N>` | **Write tests → implement → verify** |
