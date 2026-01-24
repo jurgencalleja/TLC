@@ -10,6 +10,7 @@ TDD-first workflow powered by GSD. You use `/tdd:*` for everything — tests hap
 |---------|--------------|
 | `/tdd:new-project` | Start new project with test infrastructure |
 | `/tdd:init` | Add TDD to existing codebase |
+| `/tdd:coverage` | Analyze gaps, write tests for existing code |
 
 ### Core Workflow
 
@@ -47,6 +48,7 @@ TDD-first workflow powered by GSD. You use `/tdd:*` for everything — tests hap
 /tdd:new-project          New project from scratch
        OR
 /tdd:init                 Existing codebase
+/tdd:coverage             Analyze gaps, write retro tests (optional)
     ↓
 /tdd:discuss 1            Shape how phase 1 gets built
 /tdd:plan 1               Create task plans
@@ -90,6 +92,7 @@ TDD commands call GSD internally:
 |-------------|-------|
 | `/tdd:new-project` | `/gsd:new-project` + test setup |
 | `/tdd:init` | scan + test setup (no GSD call) |
+| `/tdd:coverage` | scan + write tests (no GSD call) |
 | `/tdd:discuss` | `/gsd:discuss-phase` |
 | `/tdd:plan` | `/gsd:plan-phase` |
 | `/tdd:build` | write tests + `/gsd:execute-phase` |

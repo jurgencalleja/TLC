@@ -1,6 +1,6 @@
 # /tdd:init - Initialize TDD in Existing Project
 
-Add TDD workflow to an existing codebase.
+Add TDD workflow to an existing codebase. Analyzes what you have, identifies gaps, and offers to write tests for existing code.
 
 ## When to Use
 
@@ -8,6 +8,12 @@ Add TDD workflow to an existing codebase.
 - You have existing code with some tests
 - You're joining a project mid-development
 - You want to adopt TDD on a "vibe coded" project
+
+This command will:
+1. Set up test infrastructure (if missing)
+2. **Analyze your existing code** to understand what it does
+3. **Identify untested modules** and critical paths
+4. **Ask if you want retrospective tests** written for existing code
 
 For brand new projects with no code, use `/tdd:new-project` instead.
 
@@ -87,7 +93,72 @@ Scan the codebase and generate summary:
 - Entry points (main files, API routes, etc.)
 - Dependencies and their roles
 
-### 7. Create or Update PROJECT.md
+### 7. Identify Untested Code
+
+Compare source files against test files to identify:
+- Modules/components with no corresponding tests
+- Key functions that lack test coverage
+- Critical paths (auth, payments, data mutations) without tests
+
+Present findings:
+```
+Code Coverage Analysis:
+
+Tested:
+  ✓ src/auth/login.ts (tests/auth/login.test.ts)
+  ✓ src/utils/format.ts (tests/utils/format.test.ts)
+
+Untested:
+  ✗ src/api/users.ts - CRUD operations, no tests
+  ✗ src/services/payment.ts - payment processing, no tests
+  ✗ src/components/Dashboard.tsx - main UI, no tests
+
+Critical paths without tests: 2 (auth, payments)
+```
+
+### 8. Offer Retrospective Test Writing
+
+Ask the user:
+
+```
+Would you like to write tests for existing code?
+
+1) Yes - prioritize critical paths first
+2) Yes - write tests for everything
+3) No - only use TDD for new features going forward
+```
+
+**If option 1 or 2 selected:**
+
+Create `.planning/BACKLOG.md` with test tasks:
+
+```markdown
+# Test Backlog
+
+## Critical (write first)
+- [ ] src/services/payment.ts - payment processing logic
+- [ ] src/api/auth.ts - authentication flows
+
+## High Priority
+- [ ] src/api/users.ts - user CRUD operations
+- [ ] src/middleware/validation.ts - input validation
+
+## Standard
+- [ ] src/utils/helpers.ts - utility functions
+- [ ] src/components/Dashboard.tsx - dashboard rendering
+```
+
+Then ask:
+```
+Start writing tests now, or save backlog for later?
+
+1) Start now - begin with critical paths
+2) Later - I'll run /tdd:build backlog when ready
+```
+
+**If "Start now":** Begin writing tests for the first critical path item using Red-Green-Refactor (but code already exists, so focus on capturing current behavior).
+
+### 9. Create or Update PROJECT.md
 
 If PROJECT.md doesn't exist, create it with:
 
@@ -122,7 +193,7 @@ Tests are written BEFORE implementation, not after.
 
 If PROJECT.md exists, append the TDD section only.
 
-### 8. Report Summary
+### 10. Report Summary
 
 ```
 TDD initialized for [project name]
@@ -131,9 +202,10 @@ Stack: [detected]
 Test framework: [framework] (existing/newly configured)
 Test directory: [path]
 Existing tests: [count] files
+Untested files: [count] identified
 
 Next steps:
-- Run /tdd:status to check current test coverage
+- Run /tdd:build backlog to write tests for existing code
 - Run /tdd:discuss to plan new features with TDD
 - Run /tdd:quick for ad-hoc tasks with tests
 ```
