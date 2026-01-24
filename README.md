@@ -13,7 +13,7 @@ npx get-shit-done-cc
 
 Then install TDD:
 ```bash
-git clone https://github.com/YOUR_USERNAME/tdd-workflow.git
+git clone https://github.com/jurgencalleja/tdd-workflow.git
 cd tdd-workflow
 chmod +x install.sh
 ./install.sh
