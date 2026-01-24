@@ -30,14 +30,12 @@ You use `/tdd:*` commands for everything. Never touch `/gsd:*` directly.
 /tdd:new-project          New project from scratch
        OR
 /tdd:init                 Add TDD to existing codebase
-/tdd:coverage             Analyze gaps, write retro tests (optional)
+/tdd:coverage             Write tests for existing code (optional)
     ↓
-/tdd:discuss 1            Shape how phase 1 gets built
-/tdd:plan 1               Create task plans
-/tdd:build 1              Write tests → implement → tests pass  ← TDD happens here
-/tdd:verify 1             Human acceptance testing
-    ↓
-...repeat for each phase...
+/tdd:discuss              Shape how it gets built
+/tdd:plan                 Create task plans
+/tdd:build                Write tests → implement → tests pass  ← TDD happens here
+/tdd:verify               Human acceptance testing
     ↓
 /tdd:complete             Tag release
 ```
@@ -60,11 +58,11 @@ You run one command. Tests get written before code. Automatically.
 | `/tdd:new-project` | Start project with test infrastructure |
 | `/tdd:init` | Add TDD to existing codebase |
 | `/tdd:coverage` | Analyze gaps, write tests for existing code |
-| `/tdd:discuss [N]` | Capture implementation preferences |
-| `/tdd:plan [N]` | Create task plans |
-| `/tdd:build <N>` | **Write tests → implement → verify** |
-| `/tdd:verify [N]` | Human acceptance testing |
-| `/tdd:status [N]` | Check test pass/fail |
+| `/tdd:discuss` | Capture implementation preferences |
+| `/tdd:plan` | Create task plans |
+| `/tdd:build` | **Write tests → implement → verify** |
+| `/tdd:verify` | Human acceptance testing |
+| `/tdd:status` | Check test pass/fail |
 | `/tdd:progress` | Where am I? |
 | `/tdd:quick` | Ad-hoc task with tests |
 | `/tdd:complete` | Tag release |

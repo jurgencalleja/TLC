@@ -16,10 +16,12 @@ TDD-first workflow powered by GSD. You use `/tdd:*` for everything — tests hap
 
 | Command | What It Does |
 |---------|--------------|
-| `/tdd:discuss [N]` | Capture implementation preferences for phase N |
-| `/tdd:plan [N]` | Research and create task plans for phase N |
-| `/tdd:build <N>` | **Write tests → implement → verify tests pass** |
-| `/tdd:verify [N]` | Human acceptance testing |
+| `/tdd:discuss` | Capture implementation preferences |
+| `/tdd:plan` | Research and create task plans |
+| `/tdd:build` | **Write tests → implement → verify tests pass** |
+| `/tdd:verify` | Human acceptance testing |
+
+Phase number optional. Defaults to 1.
 
 ### Navigation
 
@@ -48,20 +50,14 @@ TDD-first workflow powered by GSD. You use `/tdd:*` for everything — tests hap
 /tdd:new-project          New project from scratch
        OR
 /tdd:init                 Existing codebase
-/tdd:coverage             Analyze gaps, write retro tests (optional)
+/tdd:coverage             Write tests for existing code (optional)
     ↓
-/tdd:discuss 1            Shape how phase 1 gets built
-/tdd:plan 1               Create task plans
-/tdd:build 1              Write tests → implement → tests pass
-/tdd:verify 1             Human acceptance testing
-    ↓
-/tdd:discuss 2            Repeat for each phase...
-/tdd:plan 2
-/tdd:build 2
-/tdd:verify 2
+/tdd:discuss              Shape how it gets built
+/tdd:plan                 Create task plans
+/tdd:build                Write tests → implement → tests pass
+/tdd:verify               Human acceptance testing
     ↓
 /tdd:complete             Tag release
-/tdd:new-milestone        Start v2
 ```
 
 ## What Happens in `/tdd:build`

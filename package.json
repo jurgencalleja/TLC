@@ -1,6 +1,6 @@
 {
   "name": "tdd-claude-code",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "TDD workflow for Claude Code - wraps GSD",
   "bin": {
     "tdd-claude-code": "./bin/install.js"

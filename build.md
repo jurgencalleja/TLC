@@ -14,8 +14,10 @@ This is the core TDD command. Tests before code, automatically.
 ## Usage
 
 ```
-/tdd:build <phase_number>
+/tdd:build [phase_number]
 ```
+
+Phase number is optional. Defaults to 1.
 
 ## Process
 
