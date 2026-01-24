@@ -125,12 +125,79 @@ Start writing tests now?
 
 **If "Yes":**
 
-For each file, write tests that capture current behavior:
-1. Read the source file
-2. Identify exported functions/classes
-3. Write tests for each public interface
-4. Run tests to verify they pass (code already exists)
-5. Mark item complete in backlog
+Write tests using GSD-style execution — one file at a time with verification and commits.
+
+#### For each file in the backlog (sequentially):
+
+**a) Plan tests for this file**
+
+Read the source file and create test plan:
+```markdown
+## File: src/services/payment.ts
+
+### Exports:
+- createCharge(amount, customerId)
+- refundCharge(chargeId)
+- getPaymentHistory(customerId)
+
+### Test cases:
+| Function | Test | Type |
+|----------|------|------|
+| createCharge | creates charge for valid customer | happy path |
+| createCharge | rejects negative amount | edge case |
+| createCharge | handles Stripe API error | error |
+| refundCharge | refunds existing charge | happy path |
+| refundCharge | fails for invalid chargeId | error |
+```
+
+**b) Write test file**
+
+Create tests that capture current behavior:
+```typescript
+import { describe, it, expect } from 'vitest'
+import { createCharge, refundCharge } from '../src/services/payment'
+
+describe('createCharge', () => {
+  it('creates charge for valid customer', async () => {
+    const result = await createCharge(1000, 'cust_123')
+    expect(result.id).toBeDefined()
+    expect(result.amount).toBe(1000)
+  })
+
+  it('rejects negative amount', async () => {
+    await expect(createCharge(-100, 'cust_123'))
+      .rejects.toThrow()
+  })
+})
+```
+
+**c) Run tests for this file**
+
+```bash
+npm test -- tests/services/payment.test.ts
+```
+
+Verify:
+- ✅ Tests PASS (code already exists)
+- ❌ If tests fail, investigate — either test is wrong or found a bug
+
+**d) Commit this test file**
+
+```bash
+git add tests/services/payment.test.ts
+git commit -m "test: add payment service tests"
+```
+
+**e) Update backlog**
+
+Mark item complete in `.planning/TEST-BACKLOG.md`:
+```markdown
+- [x] src/services/payment.ts - payment processing logic ✅
+```
+
+**f) Move to next file**
+
+Repeat a-e for each file in the backlog.
 
 ### 7. Report Summary
 

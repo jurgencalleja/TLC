@@ -32,61 +32,60 @@ Check what's already set up:
 - `spec/` directory → RSpec
 - None found → Set up based on PROJECT.md stack (see framework defaults below)
 
-### Step 3: Write Tests (Spawn Test Writer Agents)
+### Step 3: Plan Tests for Each Task
 
-For each plan, spawn an agent with this prompt:
+Before writing any tests, create a test plan for each task in the phase.
 
-<agent_prompt>
-You are a TDD Test Writer. Write failing tests that define expected behavior BEFORE implementation.
+For each task in the plan:
 
-## Context
-
-<project>
-{PROJECT.md contents}
-</project>
-
-<plan>
-{Current PLAN.md contents}
-</plan>
-
-<test_framework>
-{Detected or default framework}
-</test_framework>
-
-<existing_tests>
-{List any existing test files for patterns, or "None - this is a new project"}
-</existing_tests>
-
-## Your Task
-
-For each `<task>` in the plan:
-
-1. **Understand the task** — What behavior is being specified?
-
-2. **Write test file(s)** that cover:
+1. **Read the task** — understand what behavior is being specified
+2. **Identify test cases:**
    - Happy path (expected inputs → expected outputs)
    - Edge cases mentioned in `<action>`
    - Error conditions from `<verify>`
-   
-3. **Make tests runnable NOW** — even though implementation doesn't exist:
-   - Import from where the code WILL be (path in `<files>`)
-   - Tests should FAIL, not ERROR from missing imports
-   - Use mocks/stubs where needed for dependencies
+3. **Create test plan entry**
 
-4. **Use clear test names** that describe expected behavior:
-   ```
-   ✓ "user can log in with valid credentials"
-   ✓ "login rejects invalid password with 401"
-   ✓ "login returns httpOnly cookie on success"
-   ✗ "test login" (too vague)
-   ```
+Create `.planning/phases/{phase}-TEST-PLAN.md`:
 
-## Test File Patterns
+```markdown
+# Phase {N} Test Plan
+
+## Task: {task-id} - {task-title}
+
+### File: tests/{feature}.test.ts
+
+| Test | Type | Expected Result |
+|------|------|-----------------|
+| user can log in with valid credentials | happy path | returns user object |
+| login rejects invalid password | error | throws AuthError |
+| login rejects empty email | edge case | throws ValidationError |
+
+### Dependencies to mock:
+- database connection
+- email service
+
+---
+
+## Task: {task-id-2} - {task-title-2}
+...
+```
+
+### Step 4: Write Tests One Task at a Time
+
+**For each task in the test plan, sequentially:**
+
+#### 4a. Write test file for this task
+
+Follow the project's test patterns. Test names should describe expected behavior:
+```
+✓ "user can log in with valid credentials"
+✓ "login rejects invalid password with 401"
+✗ "test login" (too vague)
+```
 
 **Vitest/Jest (TypeScript):**
 ```typescript
 import { describe, it, expect } from 'vitest'
-// Import from where code WILL exist
 import { login } from '../src/auth/login'
 
 describe('login', () => {
@@ -106,7 +105,6 @@ describe('login', () => {
 **pytest (Python):**
 ```python
 import pytest
-# Import from where code WILL exist
 from src.auth import login
 
 def test_login_returns_user_for_valid_credentials():
@@ -118,28 +116,40 @@ def test_login_raises_for_invalid_password():
         login("user@test.com", "wrong")
 ```
 
-## Output
+#### 4b. Run this test file
 
-Create test files following the project's structure. Common locations:
-- `tests/{feature}.test.ts`
-- `src/{feature}/__tests__/{feature}.test.ts`
-- `tests/test_{feature}.py`
-- `spec/{feature}_spec.rb`
+```bash
+npm test -- tests/auth/login.test.ts   # vitest
+pytest tests/test_login.py              # pytest
+```
 
-After creating each test file, run it and confirm it FAILS (not errors).
+Verify:
+- ✅ Tests execute (no syntax errors)
+- ✅ Tests FAIL (not pass, not skip)
+- ❌ If import errors, add mocks/stubs and retry
 
-## Critical Rules
+#### 4c. Commit this test file
 
+```bash
+git add tests/auth/login.test.ts
+git commit -m "test: add login tests (red) - phase {N}"
+```
+
+#### 4d. Move to next task
+
+Repeat 4a-4c for each task in the test plan.
+
+**Critical Rules:**
 - Tests must be **syntactically valid** and **runnable**
 - Tests must **FAIL** because code doesn't exist yet
 - Tests must NOT **ERROR** from import issues — mock if needed
 - Do NOT write any implementation code
 - Do NOT skip or stub out the actual assertions
-</agent_prompt>
+- **One task at a time, verify, commit, then next**
 
-### Step 4: Verify All Tests Fail (Red)
+### Step 5: Verify All Tests Fail (Red)
 
-Run the test suite:
+Run the full test suite:
 ```bash
 npm test          # or vitest run, pytest, etc.
 ```
@@ -150,7 +160,7 @@ Check output:
 - ❌ If tests error on imports, add mocks and retry
 - ❌ If tests pass, something's wrong — investigate
 
-### Step 5: Create Test Summary
+### Step 6: Create Test Summary
 
 Create `.planning/phases/{phase}-TESTS.md`:
 
@@ -180,13 +190,13 @@ Status: ✅ All tests failing (Red)
 | session persists across requests | 01-task-2 |
 ```
 
-### Step 6: Execute Implementation (Green)
+### Step 7: Execute Implementation (Green)
 
 Call `/gsd:execute-phase {phase_number}`
 
 GSD's executor implements the code. Tests provide concrete pass/fail targets.
 
-### Step 7: Verify All Tests Pass (Green)
+### Step 8: Verify All Tests Pass (Green)
 
 After execution completes, run tests again:
 ```bash
@@ -197,7 +207,7 @@ Check output:
 - ✅ All tests PASS → Continue to verify
 - ❌ Some tests fail → Report which tasks need fixes
 
-### Step 8: Update Test Summary
+### Step 9: Update Test Summary
 
 Update `.planning/phases/{phase}-TESTS.md`:
 
