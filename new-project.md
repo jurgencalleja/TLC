@@ -4,101 +4,163 @@ Initialize a new project with test-led development.
 
 ## What This Does
 
-1. Discuss tech decisions with you
-2. Call `/gsd:new-project` for requirements and roadmap
-3. Set up test infrastructure
+1. Gather requirements and context
+2. Suggest tech stack based on your needs
+3. Create roadmap
+4. Set up test infrastructure
 
 ## Process
 
-### Step 1: Tech Stack Discussion
+### Step 1: Understand What You're Building
 
-Before any planning, discuss foundational decisions:
+Start by understanding the project:
 
-**Language/Runtime:**
+**Core purpose:**
 ```
-What language/runtime for this project?
-
-1) TypeScript/Node.js - Full-stack JS, great ecosystem
-2) Python - Data/ML, fast prototyping, Django/FastAPI
-3) Go - Performance, simplicity, great for APIs
-4) Rust - Systems, performance-critical, safety
-5) Other - specify
+What are you building? (1-2 sentences)
 ```
 
-**Framework (based on language):**
+**Target users:**
 ```
-TypeScript: Next.js | Express | Fastify | Hono
-Python: FastAPI | Django | Flask
-Go: Gin | Echo | Chi | stdlib
-```
+Who uses this?
 
-**Database:**
-```
-What database fits your needs?
-
-1) PostgreSQL - Relational, robust, great default choice
-2) SQLite - Simple, embedded, good for small apps
-3) MongoDB - Document store, flexible schema
-4) Redis - Key-value, caching, sessions
-5) Supabase - Postgres + auth + realtime
-6) None - stateless or external data source
+1) Just me / internal tool
+2) Small team (<10 users)
+3) Startup scale (100-10K users)
+4) Growth stage (10K-100K users)
+5) Enterprise / high scale (100K+ users)
 ```
 
-**Architecture:**
+**Data characteristics:**
 ```
-How should this be structured?
+What kind of data?
 
-1) Monolith - Single deployable, simple to start
-2) Modular monolith - Monolith with clear module boundaries
-3) Microservices - Separate services, K8s ready
-4) Serverless - Functions, edge deployment
-5) Hybrid - Mix based on needs
-```
-
-**Hosting/Deployment:**
-```
-Where will this run?
-
-1) Docker + any host - Portable containers
-2) Vercel/Netlify - JAMstack, serverless
-3) AWS/GCP/Azure - Full cloud platform
-4) Kubernetes - Container orchestration
-5) VPS - Simple VM deployment
-6) Self-hosted - On-prem
+1) Simple CRUD - users, posts, etc.
+2) Relational - complex relationships, joins
+3) Document-oriented - flexible schemas
+4) Time-series - logs, metrics, events
+5) Graph - relationships are the data
+6) Minimal / stateless
 ```
 
-### Step 2: Capture Decisions in PROJECT.md
+**Real-time requirements:**
+```
+Do you need real-time features?
 
-Record all tech decisions at the top of PROJECT.md:
+1) No - standard request/response
+2) Some - notifications, live updates
+3) Heavy - chat, collaboration, streaming
+```
+
+**Existing constraints:**
+```
+Any constraints I should know?
+
+- Team experience (what languages/tools do you know?)
+- Existing infrastructure (AWS, GCP, on-prem?)
+- Budget considerations
+- Compliance requirements (HIPAA, SOC2, etc.)
+- Timeline pressure
+```
+
+### Step 2: Suggest Tech Stack
+
+Based on answers, suggest appropriate stack:
+
+**Example: Internal tool, small team, simple CRUD**
+```
+Suggested Stack:
+
+| Component | Recommendation | Why |
+|-----------|----------------|-----|
+| Language | TypeScript | Type safety, good tooling |
+| Framework | Next.js | Full-stack, fast to build |
+| Database | SQLite or Postgres | Simple, reliable |
+| Architecture | Monolith | No need for complexity |
+| Hosting | Vercel or Railway | Easy deploy, free tier |
+
+Alternatives to consider:
+- Python + FastAPI if more comfortable with Python
+- Supabase if you want auth + DB bundled
+```
+
+**Example: Growth stage SaaS, real-time, complex data**
+```
+Suggested Stack:
+
+| Component | Recommendation | Why |
+|-----------|----------------|-----|
+| Language | TypeScript | Type safety at scale |
+| Framework | Next.js + tRPC | Type-safe API layer |
+| Database | PostgreSQL | Reliable, scalable |
+| Cache | Redis | Sessions, real-time |
+| Architecture | Modular monolith | Scale when needed |
+| Hosting | Docker + K8s ready | Portable, scalable |
+
+Alternatives to consider:
+- Go if performance is critical
+- Microservices if team is large enough
+```
+
+**Example: High-performance API, minimal latency**
+```
+Suggested Stack:
+
+| Component | Recommendation | Why |
+|-----------|----------------|-----|
+| Language | Go or Rust | Performance, efficiency |
+| Framework | stdlib or Axum | Minimal overhead |
+| Database | PostgreSQL + Redis | Speed + reliability |
+| Architecture | Microservices | Scale independently |
+| Hosting | Kubernetes | Production-grade |
+```
+
+### Step 3: Confirm or Adjust
+
+```
+Does this stack work for you?
+
+1) Yes, proceed with this
+2) I'd prefer [language] instead
+3) Let's discuss alternatives
+```
+
+Allow user to override any decision with rationale captured.
+
+### Step 4: Record Decisions
+
+Create PROJECT.md with tech decisions:
 
 ```markdown
 # Project Name
+
+## Overview
+[From step 1 discussion]
 
 ## Tech Stack
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| Language | TypeScript | Team familiarity, type safety |
+| Language | TypeScript | Team familiarity |
 | Framework | Next.js | Full-stack, good DX |
-| Database | PostgreSQL | Relational data, reliability |
-| Architecture | Modular monolith | Start simple, scale later |
-| Hosting | Docker + Railway | Easy deployment, good free tier |
+| Database | PostgreSQL | Relational data needs |
+| Architecture | Modular monolith | Start simple |
+| Hosting | Docker + Railway | Easy CI/CD |
 
-## Test Framework
-- Vitest for unit/integration tests
-- Playwright for E2E (if needed)
+## Constraints
+- Timeline: MVP in 4 weeks
+- Team: Solo developer
+- Budget: Minimal hosting costs
 ```
 
-### Step 3: Run GSD New Project Flow
+### Step 5: Run GSD for Roadmap
 
-Call `/gsd:new-project` which handles:
-- Deep requirements gathering
-- Research phase
-- Roadmap creation with phases
+Call `/gsd:new-project` internals to:
+- Generate requirements from discussion
+- Create phase-based roadmap
+- Define milestones
 
-### Step 4: Append TDD Conventions
-
-After PROJECT.md is created, append:
+### Step 6: Append TDD Conventions
 
 ```markdown
 ## Development Methodology: Test-Led Development
@@ -110,35 +172,25 @@ This project uses TDD. All implementation follows Red → Green → Refactor:
 3. **Refactor**: Clean up while keeping tests green
 
 Tests are written BEFORE implementation, not after.
+
+## Test Framework
+- [Framework based on stack]
+- Run: `npm test` / `pytest` / `go test`
 ```
 
-### Step 5: Set Up Test Framework
+### Step 7: Set Up Project Structure
 
-Based on stack chosen:
-
-| Stack | Framework | Config |
-|-------|-----------|--------|
-| Next.js / React | Vitest | `vitest.config.ts` |
-| Node.js | Vitest | `vitest.config.ts` |
-| Python | pytest | `pyproject.toml` |
-| Go | go test | (built-in) |
-| Rust | cargo test | (built-in) |
-
-Create test directory and example test file.
-
-### Step 6: Initialize Project Structure
-
-Create the scaffolding based on decisions:
+Scaffold based on chosen stack:
 
 ```
 project/
-├── src/              # or app/ for Next.js
-├── tests/            # or __tests__/
+├── src/
+├── tests/
 ├── .env.example
-├── docker-compose.yml (if Docker chosen)
+├── docker-compose.yml
 ├── Dockerfile
-├── package.json / pyproject.toml / go.mod
-├── vitest.config.ts / pytest.ini
+├── [package.json | pyproject.toml | go.mod]
+├── [vitest.config.ts | pytest.ini]
 └── PROJECT.md
 ```
 
@@ -148,7 +200,9 @@ project/
 /tdd:new-project
 ```
 
-Interactive flow that results in a fully scaffolded project with:
-- Clear tech stack documented
-- Test framework configured
-- Ready to start phase 1
+Interactive flow that:
+1. Understands what you're building
+2. Suggests appropriate tech
+3. Lets you adjust
+4. Creates roadmap
+5. Sets up tests
