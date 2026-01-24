@@ -1,12 +1,154 @@
-# TDD Workflow for Claude Code
+# TDD
 
-Test-Led Development powered by [GSD](https://github.com/glittercowboy/get-shit-done).
+**Tests before code. Automatically.**
 
-**One interface. Tests happen automatically. You don't think about methodology.**
+```bash
+npx tdd-claude-code
+```
 
 <p align="center">
-  <img src="assets/terminal.svg" alt="TDD Installer" width="700">
+  <img src="assets/terminal.svg" alt="TDD" width="700">
 </p>
+
+---
+
+## The Problem
+
+You tell Claude to build something. It builds it. You test it manually. It's broken. You debug. Repeat.
+
+**That's backwards.**
+
+## The Solution
+
+TDD writes tests *before* code exists. Every feature has a spec. Every spec is executable. When the code works, you know — because the tests pass.
+
+```
+You describe → Tests are written → Code is implemented → Tests pass → Done
+```
+
+No manual testing. No "does this work?" No vibes.
+
+---
+
+## Quick Start
+
+```bash
+npx tdd-claude-code        # Install
+```
+
+Then in Claude Code:
+
+```
+/tdd:new-project           # New project with tests baked in
+/tdd:init                  # Add TDD to existing code
+/tdd:coverage              # Find untested code, fix it
+```
+
+That's it. Tests happen automatically.
+
+---
+
+## Commands
+
+| Command | What |
+|---------|------|
+| `/tdd:new-project` | Start fresh. Discuss stack, scaffold, tests ready. |
+| `/tdd:init` | Add TDD to existing code. Finds gaps. |
+| `/tdd:coverage` | Scan → identify untested → write tests |
+| `/tdd:build N` | Write tests → implement → verify |
+| `/tdd:quick` | One-off task with tests |
+| `/tdd:status` | Pass/fail counts |
+
+---
+
+## What Makes This Different
+
+### 1. Tests First, Always
+
+Other workflows: plan → build → "hope it works"
+
+TDD: plan → **write failing tests** → build until tests pass
+
+The tests *are* the spec. No ambiguity.
+
+### 2. Smart Stack Selection
+
+Don't pick tech in a vacuum. TDD asks what you're building, who uses it, what scale — then suggests the right stack.
+
+```
+Building: Internal dashboard
+Scale: Small team
+Data: Simple CRUD
+
+→ Suggested: Next.js + SQLite + Vercel
+→ Why: Fast to build, cheap to host, fits your needs
+```
+
+### 3. Parallel Agents
+
+Up to 3 Claude instances working simultaneously. GitHub issues as task queue. Watch them go.
+
+```
+┌──────────────────────────────────────────────────────┐
+│ Agents                                               │
+│ [1] ● Working on #42: Auth flow                      │
+│ [2] ● Working on #43: User CRUD                      │
+│ [3] ○ Idle                                           │
+└──────────────────────────────────────────────────────┘
+```
+
+### 4. GitHub Integration
+
+Plans approved → issues created automatically. Tasks complete → issues closed. Full audit trail.
+
+### 5. Live Preview
+
+Docker container spins up. See your app as it's built. Not after.
+
+---
+
+## Dashboard (Coming Soon)
+
+```
+┌─────────────────────────────────┬──────────────────────┐
+│ Chat                            │ GitHub Issues        │
+│                                 │ #42 Auth flow    WIP │
+│ Building login endpoint...      │ #43 User CRUD        │
+│ ✓ Created tests/auth.test.ts    │ #44 Dashboard        │
+│ ✓ Tests failing (expected)      ├──────────────────────┤
+│ Implementing...                 │ Agents (2/3)         │
+│                                 │ [1] ● #42            │
+│                                 │ [2] ● #43            │
+│                                 │ [3] ○ Idle           │
+├─────────────────────────────────┼──────────────────────┤
+│ > add password reset flow       │ Tests: 23/23 ✓       │
+└─────────────────────────────────┴──────────────────────┘
+```
+
+TUI dashboard. Multiple panes. Real-time updates.
+
+---
+
+## Philosophy
+
+**Tests define behavior. Code makes tests pass.**
+
+- Tests written BEFORE code
+- Tests are the spec, not an afterthought
+- If it's not tested, it doesn't exist
+- Human verification still happens — tests catch logic errors, you catch "not what I meant"
+
+---
+
+## vs Other Approaches
+
+| Approach | Process | Result |
+|----------|---------|--------|
+| Vibe coding | Build → hope | Works until it doesn't |
+| Manual TDD | Write tests yourself | Slow, easy to skip |
+| **TDD Workflow** | Tests auto-generated first | Fast, guaranteed coverage |
+
+---
 
 ## Install
 
@@ -14,99 +156,11 @@ Test-Led Development powered by [GSD](https://github.com/glittercowboy/get-shit-
 npx tdd-claude-code
 ```
 
-GSD is installed automatically if missing.
-
 Options:
-```bash
-npx tdd-claude-code --global   # available in all projects
-npx tdd-claude-code --local    # this project only
-```
+- `--global` — Available everywhere
+- `--local` — This project only
 
-## Usage
-
-You use `/tdd:*` commands for everything. Never touch `/gsd:*` directly.
-
-```
-/tdd:new-project          New project from scratch
-       OR
-/tdd:init                 Add TDD to existing codebase
-/tdd:coverage             Write tests for existing code (optional)
-    ↓
-/tdd:discuss              Shape how it gets built
-/tdd:plan                 Create task plans
-/tdd:build                Write tests → implement → tests pass  ← TDD happens here
-/tdd:verify               Human acceptance testing
-    ↓
-/tdd:complete             Tag release
-```
-
-## What `/tdd:build` Does
-
-This is where the magic happens:
-
-1. **Red** — Spawns agents to write failing tests for each task
-2. **Verify** — Runs tests, confirms they fail (code doesn't exist yet)
-3. **Green** — Calls GSD to implement (you walk away)
-4. **Verify** — Runs tests, confirms they pass
-
-You run one command. Tests get written before code. Automatically.
-
-## Commands
-
-| Command | What It Does |
-|---------|--------------|
-| `/tdd:new-project` | Start project with test infrastructure |
-| `/tdd:init` | Add TDD to existing codebase |
-| `/tdd:coverage` | Analyze gaps, write tests for existing code |
-| `/tdd:discuss` | Capture implementation preferences |
-| `/tdd:plan` | Create task plans |
-| `/tdd:build` | **Write tests → implement → verify** |
-| `/tdd:verify` | Human acceptance testing |
-| `/tdd:status` | Check test pass/fail |
-| `/tdd:progress` | Where am I? |
-| `/tdd:quick` | Ad-hoc task with tests |
-| `/tdd:complete` | Tag release |
-| `/tdd:new-milestone` | Start next version |
-| `/tdd:help` | Show all commands |
-
-## For Vibe Coders
-
-No existing codebase? No problem.
-
-`/tdd:new-project` detects your stack and sets up the test framework:
-
-| Stack | Framework |
-|-------|-----------|
-| Next.js / React | Vitest |
-| Node.js | Vitest |
-| Python | pytest |
-| Go | go test |
-| Ruby | RSpec |
-
-You describe what you want. Tests and code get written. You verify it works.
-
-## Why TDD?
-
-**Without TDD:**
-```
-Plan → Implement → "Does it work?" → Debug → Repeat
-```
-
-**With TDD:**
-```
-Plan → Write tests (spec) → Implement (pass tests) → Verify
-```
-
-Tests define expected behavior BEFORE code exists. Implementation has concrete pass/fail targets. Bugs surface immediately, not during manual testing.
-
-Human verification still happens — tests catch logic errors, you catch "not what I meant" issues.
-
-## Safe from GSD Updates
-
-TDD lives in `.claude/commands/tdd/`
-GSD lives in `.claude/commands/gsd/`
-
-Running `npx get-shit-done-cc@latest` only touches GSD. Your TDD commands are untouched.
+---
 
 ## License
 
