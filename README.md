@@ -6,12 +6,7 @@ Test-Led Development powered by [GSD](https://github.com/glittercowboy/get-shit-
 
 ## Install
 
-Requires GSD installed first:
-```bash
-npx get-shit-done-cc
-```
-
-Then install TDD:
+GSD is installed automatically if missing.
 ```bash
 git clone https://github.com/jurgencalleja/tdd-workflow.git
 cd tdd-workflow
