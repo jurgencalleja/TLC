@@ -1,0 +1,26 @@
+{
+  "name": "tdd-claude-code",
+  "version": "0.2.0",
+  "description": "TDD workflow for Claude Code - wraps GSD",
+  "bin": {
+    "tdd-claude-code": "./bin/install.js"
+  },
+  "files": [
+    "bin/",
+    "*.md",
+    "install.sh"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jurgencalleja/tdd.git"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "tdd",
+    "test-driven-development",
+    "gsd"
+  ],
+  "author": "Jurgen Calleja",
+  "license": "MIT"
+}

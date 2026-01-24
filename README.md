@@ -4,17 +4,23 @@ Test-Led Development powered by [GSD](https://github.com/glittercowboy/get-shit-
 
 **One interface. Tests happen automatically. You don't think about methodology.**
 
+<p align="center">
+  <img src="assets/terminal.svg" alt="TDD Installer" width="700">
+</p>
+
 ## Install
 
-GSD is installed automatically if missing.
 ```bash
-git clone https://github.com/jurgencalleja/tdd-workflow.git
-cd tdd-workflow
-chmod +x install.sh
-./install.sh
+npx tdd-claude-code
 ```
 
-Or manually copy the `.md` files to `.claude/commands/tdd/`
+GSD is installed automatically if missing.
+
+Options:
+```bash
+npx tdd-claude-code --global   # available in all projects
+npx tdd-claude-code --local    # this project only
+```
 
 ## Usage
 
