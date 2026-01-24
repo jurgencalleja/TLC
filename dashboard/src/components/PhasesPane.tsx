@@ -78,7 +78,7 @@ export function PhasesPane() {
   );
 }
 
-function parseRoadmap(content: string): Phase[] {
+export function parseRoadmap(content: string): Phase[] {
   const phases: Phase[] = [];
   const lines = content.split('\n');
 
