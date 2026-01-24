@@ -26,9 +26,10 @@ ${c.cyan}  ████████╗██████╗ ██████�
      ╚═╝   ╚═════╝ ╚═════╝${c.reset}
 `;
 
-const VERSION = '0.4.2';
+const VERSION = '0.5.0';
 
 const COMMANDS = [
+  'tdd.md',
   'new-project.md',
   'init.md',
   'coverage.md',
@@ -126,14 +127,15 @@ function install(targetDir, installType) {
   log('');
   log(`${c.green}Done!${c.reset} Restart Claude Code to load commands.`);
   log('');
-  log(`${c.bold}Workflow:${c.reset}`);
-  log(`  ${c.cyan}/tdd:new-project${c.reset}  Start project with test infrastructure`);
-  log(`  ${c.cyan}/tdd:discuss${c.reset}      Shape implementation preferences`);
-  log(`  ${c.cyan}/tdd:plan${c.reset}         Create task plans`);
-  log(`  ${c.cyan}/tdd:build${c.reset}        Write tests → implement → verify`);
-  log(`  ${c.cyan}/tdd:verify${c.reset}       Human acceptance testing`);
+  log(`${c.bold}Quick Start:${c.reset}`);
+  log(`  ${c.cyan}/tdd${c.reset}              Smart entry point - knows what to do next`);
   log('');
-  log(`Run ${c.cyan}/tdd:help${c.reset} for full command list.`);
+  log(`${c.dim}Or use specific commands:${c.reset}`);
+  log(`  ${c.cyan}/tdd:new-project${c.reset}  Start new project`);
+  log(`  ${c.cyan}/tdd:init${c.reset}         Add TDD to existing code`);
+  log(`  ${c.cyan}/tdd:coverage${c.reset}     Find and fix test gaps`);
+  log('');
+  log(`Run ${c.cyan}/tdd:help${c.reset} for all commands.`);
   log('');
 }
 

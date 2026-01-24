@@ -39,12 +39,14 @@ npx tdd-claude-code        # Install
 Then in Claude Code:
 
 ```
-/tdd:new-project           # New project with tests baked in
-/tdd:init                  # Add TDD to existing code
-/tdd:coverage              # Find untested code, fix it
+/tdd
 ```
 
-That's it. Tests happen automatically.
+That's it. One command. It knows what to do next.
+
+Starting fresh? It asks what you're building.
+Have existing code? It finds untested files.
+Mid-project? It picks up where you left off.
 
 ---
 
@@ -52,10 +54,10 @@ That's it. Tests happen automatically.
 
 | Command | What |
 |---------|------|
-| `/tdd:new-project` | Start fresh. Discuss stack, scaffold, tests ready. |
-| `/tdd:init` | Add TDD to existing code. Finds gaps. |
-| `/tdd:coverage` | Scan → identify untested → write tests |
-| `/tdd:build N` | Write tests → implement → verify |
+| `/tdd` | **Smart entry point. Knows what's next.** |
+| `/tdd:new-project` | Start fresh. Discuss stack, scaffold. |
+| `/tdd:init` | Add TDD to existing code. |
+| `/tdd:coverage` | Find untested → write tests |
 | `/tdd:quick` | One-off task with tests |
 | `/tdd:status` | Pass/fail counts |
 

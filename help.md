@@ -1,103 +1,115 @@
 # /tdd:help - Test-Led Development Commands
 
-TDD-first workflow powered by GSD. You use `/tdd:*` for everything — tests happen automatically.
+## Quick Start
 
-## Commands
+```
+/tdd
+```
 
-### Getting Started
+That's it. Detects where you are, tells you what's next.
+
+---
+
+## All Commands
+
+### The Smart One
 
 | Command | What It Does |
 |---------|--------------|
-| `/tdd:new-project` | Start new project with test infrastructure |
-| `/tdd:init` | Add TDD to existing codebase |
-| `/tdd:coverage` | Analyze gaps, write tests for existing code |
+| `/tdd` | **Context-aware entry point. Knows what to do next.** |
 
-### Core Workflow
+### Setup
 
 | Command | What It Does |
 |---------|--------------|
-| `/tdd:discuss` | Capture implementation preferences |
-| `/tdd:plan` | Research and create task plans |
-| `/tdd:build` | **Write tests → implement → verify tests pass** |
+| `/tdd:new-project` | Start new project (discusses stack, creates roadmap) |
+| `/tdd:init` | Add TDD to existing code |
+| `/tdd:coverage` | Find untested code, write tests |
+
+### Build (rarely needed directly)
+
+| Command | What It Does |
+|---------|--------------|
+| `/tdd:discuss` | Shape implementation approach |
+| `/tdd:plan` | Create task plan |
+| `/tdd:build` | Write tests → implement → verify |
 | `/tdd:verify` | Human acceptance testing |
 
-Phase number optional. Defaults to 1.
-
-### Navigation
+### Utility
 
 | Command | What It Does |
 |---------|--------------|
-| `/tdd:progress` | Where am I? What's next? |
-| `/tdd:status [N]` | Check test pass/fail counts |
-| `/tdd:help` | Show this help |
+| `/tdd:status` | Test pass/fail counts |
+| `/tdd:quick` | One-off task with tests |
+| `/tdd:complete` | Tag release |
+| `/tdd:new-milestone` | Start next version |
 
-### Milestones
-
-| Command | What It Does |
-|---------|--------------|
-| `/tdd:complete` | Archive milestone, tag release |
-| `/tdd:new-milestone [name]` | Start next version |
-
-### Quick Tasks
-
-| Command | What It Does |
-|---------|--------------|
-| `/tdd:quick` | Ad-hoc task with test-first flow |
+---
 
 ## Workflow
 
+**Simple version:**
 ```
-/tdd:new-project          New project from scratch
-       OR
-/tdd:init                 Existing codebase
-/tdd:coverage             Write tests for existing code (optional)
-    ↓
-/tdd:discuss              Shape how it gets built
-/tdd:plan                 Create task plans
-/tdd:build                Write tests → implement → tests pass
-/tdd:verify               Human acceptance testing
-    ↓
-/tdd:complete             Tag release
+/tdd                    <- just keep running this
 ```
 
-## What Happens in `/tdd:build`
+**Detailed version:**
+```
+/tdd:new-project        New project
+    ↓
+/tdd                    Guides you through each phase:
+                        → discuss → plan → build → verify
+    ↓
+/tdd:complete           Tag release
+```
 
-This is where TDD happens:
+---
 
-1. **Red** — Write failing tests for each task in the plan
-2. **Verify** — Run tests, confirm they fail
-3. **Green** — Implement code (via GSD execute-phase)
-4. **Verify** — Run tests, confirm they pass
+## What `/tdd` Does
 
-You don't think about it. Just run `/tdd:build` and tests happen before code.
+Checks project state and presents ONE action:
+
+```
+> /tdd
+
+Phase 2: User Dashboard
+Status: Planned, not built
+
+4 tasks ready. Tests will be written first.
+
+→ Build phase 2? (Y/n)
+```
+
+Or if you have untested code:
+
+```
+> /tdd
+
+Found 3 files without tests:
+  - src/utils/format.ts
+  - src/api/health.ts
+  - src/middleware/auth.ts
+
+Add tests? (Y/n)
+```
+
+---
 
 ## Philosophy
 
-**Tests define behavior. Implementation makes tests pass.**
+**Tests define behavior. Code makes tests pass.**
 
-- Tests are written BEFORE code exists
-- Tests are the spec, not an afterthought
-- Human verification still happens at the end
-- You never invoke GSD directly — TDD wraps it
+- Tests written BEFORE code
+- Tests are the spec, not afterthought
+- Human verification still happens
+- No phase numbers to remember
 
-## GSD Under the Hood
-
-TDD commands call GSD internally:
-
-| TDD Command | Calls |
-|-------------|-------|
-| `/tdd:new-project` | `/gsd:new-project` + test setup |
-| `/tdd:init` | scan + test setup (no GSD call) |
-| `/tdd:coverage` | scan + write tests (no GSD call) |
-| `/tdd:discuss` | `/gsd:discuss-phase` |
-| `/tdd:plan` | `/gsd:plan-phase` |
-| `/tdd:build` | write tests + `/gsd:execute-phase` |
-| `/tdd:verify` | test check + `/gsd:verify-work` |
-
-GSD does the planning and execution. TDD ensures tests come first.
+---
 
 ## Installation
 
-Lives in `.claude/commands/tdd/` — separate from GSD.
+```bash
+npx tdd-claude-code
+```
 
-GSD updates only touch `.claude/commands/gsd/`. Your TDD commands survive updates.
+Lives in `.claude/commands/tdd/`
