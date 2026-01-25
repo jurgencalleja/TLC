@@ -10,9 +10,10 @@ interface Message {
 
 interface ChatPaneProps {
   isActive: boolean;
+  isTTY?: boolean;
 }
 
-export function ChatPane({ isActive }: ChatPaneProps) {
+export function ChatPane({ isActive, isTTY = true }: ChatPaneProps) {
   const [messages, setMessages] = useState<Message[]>([
     { role: 'system', content: 'TDD Dashboard ready. Type a message to start.' }
   ]);
@@ -68,13 +69,17 @@ export function ChatPane({ isActive }: ChatPaneProps) {
       {/* Input */}
       <Box borderStyle="round" borderColor={isActive ? 'green' : 'gray'} paddingX={1}>
         <Text color="green">{"> "}</Text>
-        <TextInput
-          value={input}
-          onChange={setInput}
-          onSubmit={handleSubmit}
-          focus={isActive}
-          placeholder="Type a message..."
-        />
+        {isTTY ? (
+          <TextInput
+            value={input}
+            onChange={setInput}
+            onSubmit={handleSubmit}
+            focus={isActive}
+            placeholder="Type a message..."
+          />
+        ) : (
+          <Text color="gray">Input disabled (no TTY)</Text>
+        )}
       </Box>
     </Box>
   );

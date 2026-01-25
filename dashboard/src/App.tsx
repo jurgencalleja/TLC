@@ -10,7 +10,11 @@ import { markIssueComplete, markIssueInProgress } from './components/PlanSync.js
 
 type Pane = 'chat' | 'github' | 'agents' | 'preview';
 
-export function App() {
+interface AppProps {
+  isTTY?: boolean;
+}
+
+export function App({ isTTY = true }: AppProps) {
   const { exit } = useApp();
   const [activePane, setActivePane] = useState<Pane>('chat');
   const [pendingTasks, setPendingTasks] = useState<Map<number, string>>(new Map());
@@ -31,7 +35,7 @@ export function App() {
     if (input === '2') setActivePane('github');
     if (input === '3') setActivePane('agents');
     if (input === '4') setActivePane('preview');
-  });
+  }, { isActive: isTTY });
 
   const handleAssignToAgent = useCallback(async (issue: { number: number; title: string }) => {
     await markIssueInProgress(issue.number);
@@ -77,7 +81,7 @@ export function App() {
           <Box paddingX={1} borderStyle="single" borderBottom borderLeft={false} borderRight={false} borderTop={false}>
             <Text bold color={activePane === 'chat' ? 'cyan' : 'white'}>Chat</Text>
           </Box>
-          <ChatPane isActive={activePane === 'chat'} />
+          <ChatPane isActive={activePane === 'chat'} isTTY={isTTY} />
         </Box>
 
         {/* Right column: GitHub + Agents + Status + Preview (40%) */}
@@ -92,7 +96,7 @@ export function App() {
             <Box paddingX={1} borderStyle="single" borderBottom borderLeft={false} borderRight={false} borderTop={false}>
               <Text bold color={activePane === 'github' ? 'cyan' : 'white'}>GitHub Issues</Text>
             </Box>
-            <GitHubPane isActive={activePane === 'github'} onAssignToAgent={handleAssignToAgent} />
+            <GitHubPane isActive={activePane === 'github'} isTTY={isTTY} onAssignToAgent={handleAssignToAgent} />
           </Box>
 
           {/* Agents */}
@@ -105,7 +109,7 @@ export function App() {
             <Box paddingX={1} borderStyle="single" borderBottom borderLeft={false} borderRight={false} borderTop={false}>
               <Text bold color={activePane === 'agents' ? 'cyan' : 'white'}>Agents</Text>
             </Box>
-            <AgentsPane isActive={activePane === 'agents'} onTaskComplete={handleTaskComplete} />
+            <AgentsPane isActive={activePane === 'agents'} isTTY={isTTY} onTaskComplete={handleTaskComplete} />
           </Box>
 
           {/* Status */}
@@ -126,7 +130,7 @@ export function App() {
             <Box paddingX={1} borderStyle="single" borderBottom borderLeft={false} borderRight={false} borderTop={false}>
               <Text bold color={activePane === 'preview' ? 'cyan' : 'white'}>Preview</Text>
             </Box>
-            <PreviewPane isActive={activePane === 'preview'} />
+            <PreviewPane isActive={activePane === 'preview'} isTTY={isTTY} />
           </Box>
         </Box>
       </Box>

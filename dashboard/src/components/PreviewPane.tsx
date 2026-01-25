@@ -6,9 +6,10 @@ type ContainerStatus = 'stopped' | 'starting' | 'running' | 'error';
 
 interface PreviewPaneProps {
   isActive: boolean;
+  isTTY?: boolean;
 }
 
-export function PreviewPane({ isActive }: PreviewPaneProps) {
+export function PreviewPane({ isActive, isTTY = true }: PreviewPaneProps) {
   const [status, setStatus] = useState<ContainerStatus>('stopped');
   const [url, setUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +47,7 @@ export function PreviewPane({ isActive }: PreviewPaneProps) {
       // Restart
       stopContainer().then(startContainer);
     }
-  });
+  }, { isActive: isTTY });
 
   return (
     <Box padding={1} flexDirection="column">

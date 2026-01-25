@@ -15,10 +15,11 @@ interface Issue {
 
 interface GitHubPaneProps {
   isActive: boolean;
+  isTTY?: boolean;
   onAssignToAgent?: (issue: Issue) => void;
 }
 
-export function GitHubPane({ isActive, onAssignToAgent }: GitHubPaneProps) {
+export function GitHubPane({ isActive, isTTY = true, onAssignToAgent }: GitHubPaneProps) {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -111,7 +112,7 @@ export function GitHubPane({ isActive, onAssignToAgent }: GitHubPaneProps) {
       setLoading(true);
       fetchIssues();
     }
-  });
+  }, { isActive: isTTY });
 
   if (loading) {
     return (

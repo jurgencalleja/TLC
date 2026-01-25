@@ -16,12 +16,13 @@ interface Agent {
 
 interface AgentsPaneProps {
   isActive: boolean;
+  isTTY?: boolean;
   onTaskComplete?: (issueNumber: number) => void;
 }
 
 const MAX_AGENTS = 3;
 
-export function AgentsPane({ isActive, onTaskComplete }: AgentsPaneProps) {
+export function AgentsPane({ isActive, isTTY = true, onTaskComplete }: AgentsPaneProps) {
   const [agents, setAgents] = useState<Agent[]>([
     { id: 1, status: 'idle', task: null, issueNumber: null, output: [], process: null },
     { id: 2, status: 'idle', task: null, issueNumber: null, output: [], process: null },
@@ -98,7 +99,7 @@ export function AgentsPane({ isActive, onTaskComplete }: AgentsPaneProps) {
         stopAgent(agentNum);
       }
     }
-  });
+  }, { isActive: isTTY });
 
   return (
     <Box padding={1} flexDirection="column">
