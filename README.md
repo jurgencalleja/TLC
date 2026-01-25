@@ -30,23 +30,98 @@ No manual testing. No "does this work?" No vibes.
 
 ---
 
-## Quick Start
+## Getting Started
 
-```bash
-npx tlc-claude-code        # Install
+### New Project
+
+Starting from scratch? TLC guides you through everything.
+
+```
+/tlc:new-project
 ```
 
-Then in Claude Code:
+1. **Discuss requirements** — What are you building? Who uses it? What scale?
+2. **Choose stack** — TLC suggests tech based on your answers, you approve or adjust
+3. **Create roadmap** — Break work into phases
+4. **Build with tests** — Each phase: write tests first, then implement
+
+### Existing Project
+
+Have code already? TLC adds test coverage without disrupting your workflow.
+
+```
+/tlc:init
+```
+
+1. **Scan codebase** — TLC detects your stack, test framework, project structure
+2. **Find gaps** — Identifies files without tests, prioritizes critical paths
+3. **Write tests** — Adds tests one file at a time, starting with highest priority
+4. **Continue normally** — New features use test-first approach going forward
+
+### After Setup
+
+Once initialized, just run:
 
 ```
 /tlc
 ```
 
-That's it. One command. It knows what to do next.
+TLC knows where you are and what's next. No phase numbers to remember.
 
-Starting fresh? It asks what you're building.
-Have existing code? It finds untested files.
-Mid-project? It picks up where you left off.
+---
+
+## Handling Untested Code
+
+Code comes from many sources. Not all of it has tests.
+
+### External PRs / Other Developers
+
+Someone pushes code without tests? TLC catches it.
+
+```
+> /tlc
+
+Found 3 new files without tests:
+  - src/api/webhooks.ts (added 2 days ago)
+  - src/utils/retry.ts (added 2 days ago)
+  - src/services/notify.ts (added yesterday)
+
+Add tests now? (Y/n)
+```
+
+TLC tracks what's tested. When new untested code appears, it flags it.
+
+### After "Vibe Coding" Sessions
+
+Built something fast without tests? No judgment. Run:
+
+```
+/tlc:coverage
+```
+
+TLC scans everything, creates a prioritized backlog:
+
+```
+Coverage: 67% (24/36 files)
+
+Critical (no tests):
+  - src/auth/session.ts      ← security
+  - src/payments/charge.ts   ← money
+
+High priority:
+  - src/api/users.ts
+  - src/api/orders.ts
+
+Add to backlog and start? (Y/n)
+```
+
+### Continuous Coverage
+
+TLC integrates with your workflow:
+
+- **Before builds** — `/tlc:status` shows pass/fail counts
+- **Before releases** — `/tlc:coverage` ensures nothing slipped through
+- **Daily habit** — `/tlc` reminds you of untested code
 
 ---
 
@@ -56,10 +131,10 @@ Mid-project? It picks up where you left off.
 |---------|------|
 | `/tlc` | **Smart entry point. Knows what's next.** |
 | `/tlc:new-project` | Start fresh. Discuss stack, scaffold. |
-| `/tlc:init` | Add TLC to existing code. |
-| `/tlc:coverage` | Find untested → write tests |
-| `/tlc:quick` | One-off task with tests |
-| `/tlc:status` | Pass/fail counts |
+| `/tlc:init` | Add TLC to existing codebase. |
+| `/tlc:coverage` | Find untested code, write tests. |
+| `/tlc:status` | Test pass/fail counts. |
+| `/tlc:quick` | One-off task with tests. |
 
 ---
 
@@ -73,7 +148,11 @@ TLC: plan → **write failing tests** → build until tests pass
 
 The tests *are* the spec. No ambiguity.
 
-### 2. Smart Stack Selection
+### 2. Catches Coverage Gaps
+
+New code without tests? TLC notices. External PRs? Flagged. Post-hackathon cleanup? Prioritized backlog ready.
+
+### 3. Smart Stack Selection
 
 Don't pick tech in a vacuum. TLC asks what you're building, who uses it, what scale — then suggests the right stack.
 
@@ -86,48 +165,42 @@ Data: Simple CRUD
 → Why: Fast to build, cheap to host, fits your needs
 ```
 
-### 3. Parallel Agents
+### 4. Works With Your Team
 
-Up to 3 Claude instances working simultaneously. GitHub issues as task queue. Watch them go.
-
-```
-┌──────────────────────────────────────────────────────┐
-│ Agents                                               │
-│ [1] ● Working on #42: Auth flow                      │
-│ [2] ● Working on #43: User CRUD                      │
-│ [3] ○ Idle                                           │
-└──────────────────────────────────────────────────────┘
-```
-
-### 4. GitHub Integration
-
-Plans approved → issues created automatically. Tasks complete → issues closed. Full audit trail.
-
-### 5. Live Preview
-
-Docker container spins up. See your app as it's built. Not after.
+TLC doesn't require everyone to use it. You can:
+- Add TLC to a project others contribute to
+- Catch untested code from any source
+- Gradually improve coverage over time
 
 ---
 
-## Dashboard (Coming Soon)
+## Workflow Examples
+
+### Solo Developer, New Project
 
 ```
-┌─────────────────────────────────┬──────────────────────┐
-│ Chat                            │ GitHub Issues        │
-│                                 │ #42 Auth flow    WIP │
-│ Building login endpoint...      │ #43 User CRUD        │
-│ ✓ Created tests/auth.test.ts    │ #44 Dashboard        │
-│ ✓ Tests failing (expected)      ├──────────────────────┤
-│ Implementing...                 │ Agents (2/3)         │
-│                                 │ [1] ● #42            │
-│                                 │ [2] ● #43            │
-│                                 │ [3] ○ Idle           │
-├─────────────────────────────────┼──────────────────────┤
-│ > add password reset flow       │ Tests: 23/23 ✓       │
-└─────────────────────────────────┴──────────────────────┘
+/tlc:new-project     → Discuss requirements, choose stack
+/tlc                 → Build phase 1 (tests first)
+/tlc                 → Build phase 2 (tests first)
+...
+/tlc:complete        → Tag release
 ```
 
-TUI dashboard. Multiple panes. Real-time updates.
+### Team Project, Existing Codebase
+
+```
+/tlc:init            → Set up TLC, scan codebase
+/tlc:coverage        → Write tests for critical paths
+/tlc                 → Continue with test-first for new work
+```
+
+### After External Contributions
+
+```
+git pull             → Get latest changes
+/tlc                 → "Found 2 untested files. Add tests?"
+y                    → Tests written for new code
+```
 
 ---
 
@@ -135,20 +208,10 @@ TUI dashboard. Multiple panes. Real-time updates.
 
 **Tests define behavior. Code makes tests pass.**
 
-- Tests written BEFORE code
-- Tests are the spec, not an afterthought
-- If it's not tested, it doesn't exist
+- Tests written BEFORE code (for new features)
+- Untested code gets flagged (for external contributions)
+- Coverage gaps get prioritized (for legacy code)
 - Human verification still happens — tests catch logic errors, you catch "not what I meant"
-
----
-
-## vs Other Approaches
-
-| Approach | Process | Result |
-|----------|---------|--------|
-| Vibe coding | Build → hope | Works until it doesn't |
-| Manual TDD | Write tests yourself | Slow, easy to skip |
-| **TLC** | Tests auto-generated first | Fast, guaranteed coverage |
 
 ---
 
@@ -159,7 +222,7 @@ npx tlc-claude-code
 ```
 
 Options:
-- `--global` — Available everywhere
+- `--global` — Available in all projects
 - `--local` — This project only
 
 ---
