@@ -1,14 +1,34 @@
 # /tlc - Smart Entry Point
 
-One command. Context-aware. Tells you what to do next.
+One command. Context-aware. Visual dashboard.
 
 ## What This Does
 
-Detects project state and suggests the right action. No memorizing commands.
+Launches the TLC dashboard - a visual interface showing project state, phases, tests, and next actions.
 
 ## Process
 
-### Step 1: Detect Project State
+### Step 1: Launch Dashboard
+
+Run the TLC dashboard:
+
+```bash
+# If in TLC repo (development)
+cd dashboard && npm run dev
+
+# If installed globally
+tlc-dashboard
+```
+
+The dashboard shows:
+- Project overview (from PROJECT.md)
+- Phase progress (from ROADMAP.md)
+- Test status (pass/fail counts)
+- Available actions
+
+### Step 2: Fallback to Text Mode
+
+If the dashboard cannot be launched (not installed, dependencies missing), fall back to text-based status:
 
 Check what exists:
 
@@ -21,7 +41,7 @@ Check what exists:
 □ Source files exist?
 ```
 
-### Step 2: Route Based on State
+### Step 3: Route Based on State (Text Fallback)
 
 **No PROJECT.md → New or Init**
 ```
@@ -48,7 +68,7 @@ Parse ROADMAP.md to find:
 - Current phase: `[>]` or `[in progress]` or `[current]`
 - Next pending phase: first without marker
 
-### Step 3: Determine Current Phase Action
+### Step 4: Determine Current Phase Action
 
 For the current/next phase, check what exists:
 
@@ -61,7 +81,7 @@ Phase {N}: {Name}
 □ Verified? (.planning/phases/{N}-VERIFIED.md)
 ```
 
-### Step 4: Present Contextual Action
+### Step 5: Present Contextual Action
 
 Based on phase state, show ONE clear action:
 
@@ -113,7 +133,7 @@ Then run implementation.
 ```
 Phase 2: User Dashboard
 
-Tests passing (12/12 ✓)
+Tests passing (12/12)
 
 Next: Human verification.
 
@@ -123,14 +143,14 @@ Then run verify flow.
 
 **Phase complete:**
 ```
-Phase 2: User Dashboard ✓ Complete
+Phase 2: User Dashboard - Complete
 
 Moving to Phase 3: Reports
 
 → Continue? (Y/n)
 ```
 
-### Step 5: Check for Untested Code
+### Step 6: Check for Untested Code
 
 If project has source files without tests:
 
@@ -146,10 +166,10 @@ Add tests for existing code? (Y/n)
 
 If yes, run `/tlc:coverage` flow.
 
-### Step 6: All Phases Complete
+### Step 7: All Phases Complete
 
 ```
-All phases complete! 🎉
+All phases complete!
 
 Milestone ready for release.
 
@@ -158,53 +178,13 @@ Milestone ready for release.
 3) Check test coverage (/tlc:coverage)
 ```
 
-## Examples
-
-**Fresh directory:**
-```
-> /tlc
-
-No project detected.
-
-What would you like to do?
-1) Start new project
-2) Add TLC to existing code
-```
-
-**Mid-project:**
-```
-> /tlc
-
-Phase 2: User Dashboard
-Status: Planned, not built
-
-4 tasks ready. Tests will be written first.
-
-→ Build phase 2? (Y/n)
-```
-
-**Has untested code:**
-```
-> /tlc
-
-Phase 3: Reports [current]
-
-Also found: 3 files without test coverage
-  - src/utils/format.ts
-  - src/api/health.ts
-  - src/middleware/auth.ts
-
-1) Continue with Phase 3
-2) Add tests to existing code first
-```
-
 ## Usage
 
 ```
 /tlc
 ```
 
-No arguments. Auto-detects everything.
+No arguments. Auto-detects everything. Launches dashboard when available.
 
 ## Why This Exists
 

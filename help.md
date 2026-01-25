@@ -6,7 +6,7 @@
 /tlc
 ```
 
-That's it. Detects where you are, tells you what's next.
+Launches the visual dashboard. Detects where you are, shows what's next.
 
 ---
 
@@ -16,7 +16,7 @@ That's it. Detects where you are, tells you what's next.
 
 | Command | What It Does |
 |---------|--------------|
-| `/tlc` | **Context-aware entry point. Knows what to do next.** |
+| `/tlc` | **Visual dashboard. Context-aware. Knows what to do next.** |
 
 ### Setup
 
@@ -68,31 +68,14 @@ That's it. Detects where you are, tells you what's next.
 
 ## What `/tlc` Does
 
-Checks project state and presents ONE action:
+Launches a visual terminal dashboard showing:
+- Project overview and current phase
+- Test status (pass/fail counts)
+- Available actions
 
-```
-> /tlc
+Navigate with keyboard, select actions directly from the UI.
 
-Phase 2: User Dashboard
-Status: Planned, not built
-
-4 tasks ready. Tests will be written first.
-
-→ Build phase 2? (Y/n)
-```
-
-Or if you have untested code:
-
-```
-> /tlc
-
-Found 3 files without tests:
-  - src/utils/format.ts
-  - src/api/health.ts
-  - src/middleware/auth.ts
-
-Add tests? (Y/n)
-```
+Falls back to text mode if dashboard unavailable.
 
 ---
 

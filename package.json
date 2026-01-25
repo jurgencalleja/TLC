@@ -1,15 +1,22 @@
 {
   "name": "tlc-claude-code",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "TLC - Test Led Coding for Claude Code",
   "bin": {
-    "tlc-claude-code": "./bin/install.js"
+    "tlc-claude-code": "./bin/install.js",
+    "tlc-dashboard": "./dashboard/dist/index.js"
   },
   "files": [
     "bin/",
+    "dashboard/dist/",
+    "dashboard/package.json",
     "*.md",
     "install.sh"
   ],
+  "scripts": {
+    "build": "cd dashboard && npm run build",
+    "prepublishOnly": "npm run build"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jurgencalleja/TLC.git"
