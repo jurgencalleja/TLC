@@ -39,31 +39,31 @@
     <!-- Prompt line -->
     <text class="text prompt" font-size="15" y="0">~</text>
     <text class="text dim" font-size="15" x="16" y="0">$</text>
-    <text class="text command" font-size="15" x="36" y="0">npx tdd-claude-code</text>
+    <text class="text command" font-size="15" x="36" y="0">npx tlc-claude-code</text>
 
     <!-- Banner -->
-    <text class="text cyan" font-size="14" y="48" xml:space="preserve">  ████████╗██████╗ ██████╗</text>
-    <text class="text cyan" font-size="14" y="68" xml:space="preserve">  ╚══██╔══╝██╔══██╗██╔══██╗</text>
-    <text class="text cyan" font-size="14" y="88" xml:space="preserve">     ██║   ██║  ██║██║  ██║</text>
-    <text class="text cyan" font-size="14" y="108" xml:space="preserve">     ██║   ██║  ██║██║  ██║</text>
-    <text class="text cyan" font-size="14" y="128" xml:space="preserve">     ██║   ██████╔╝██████╔╝</text>
-    <text class="text cyan" font-size="14" y="148" xml:space="preserve">     ╚═╝   ╚═════╝ ╚═════╝</text>
+    <text class="text cyan" font-size="14" y="48" xml:space="preserve">  ████████╗██╗     ██████╗</text>
+    <text class="text cyan" font-size="14" y="68" xml:space="preserve">  ╚══██╔══╝██║    ██╔════╝</text>
+    <text class="text cyan" font-size="14" y="88" xml:space="preserve">     ██║   ██║    ██║</text>
+    <text class="text cyan" font-size="14" y="108" xml:space="preserve">     ██║   ██║    ██║</text>
+    <text class="text cyan" font-size="14" y="128" xml:space="preserve">     ██║   ███████╗╚██████╗</text>
+    <text class="text cyan" font-size="14" y="148" xml:space="preserve">     ╚═╝   ╚══════╝ ╚═════╝</text>
 
     <!-- Title and subtitle -->
-    <text class="text white" font-size="15" y="188">  <tspan class="white" font-weight="bold">TDD Workflow</tspan> <tspan class="dim">v0.6.0</tspan></text>
-    <text class="text white" font-size="15" y="212">  Test-Led Development for Claude Code</text>
+    <text class="text white" font-size="15" y="188">  <tspan class="white" font-weight="bold">TLC</tspan> <tspan class="dim">v0.6.0</tspan></text>
+    <text class="text white" font-size="15" y="212">  Test Led Coding for Claude Code</text>
     <text class="text dim" font-size="15" y="232">  Tests before code, automatically</text>
 
     <!-- Install output -->
-    <text class="text" font-size="15" y="276"><tspan class="cyan">  →</tspan><tspan class="white"> Installing </tspan><tspan class="white" font-weight="bold">globally</tspan><tspan class="white"> to ~/.claude/commands/tdd</tspan></text>
-    <text class="text" font-size="15" y="308"><tspan class="green">  ✓</tspan><tspan class="white"> Installed 11 commands to </tspan><tspan class="cyan">~/.claude/commands/tdd</tspan></text>
+    <text class="text" font-size="15" y="276"><tspan class="cyan">  →</tspan><tspan class="white"> Installing </tspan><tspan class="white" font-weight="bold">globally</tspan><tspan class="white"> to ~/.claude/commands/tlc</tspan></text>
+    <text class="text" font-size="15" y="308"><tspan class="green">  ✓</tspan><tspan class="white"> Installed 14 commands to </tspan><tspan class="cyan">~/.claude/commands/tlc</tspan></text>
 
     <!-- Done message -->
     <text class="text" font-size="15" y="352"><tspan class="green">  Done!</tspan><tspan class="white"> Restart Claude Code to load commands.</tspan></text>
 
     <!-- Workflow hint -->
     <text class="text dim" font-size="15" y="396">  Run </text>
-    <text class="text" font-size="15" y="396"><tspan class="dim">  Run </tspan><tspan class="cyan">/tdd:help</tspan><tspan class="dim"> for full command list.</tspan></text>
+    <text class="text" font-size="15" y="396"><tspan class="dim">  Run </tspan><tspan class="cyan">/tlc:help</tspan><tspan class="dim"> for full command list.</tspan></text>
 
     <!-- New prompt -->
     <text class="text prompt" font-size="15" y="448">~</text>

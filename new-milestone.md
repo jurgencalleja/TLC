@@ -1,4 +1,4 @@
-# /tdd:new-milestone - Start Next Version
+# /tlc:new-milestone - Start Next Version
 
 Begin the next milestone after completing the previous one.
 
@@ -11,12 +11,12 @@ Begin the next milestone after completing the previous one.
 ## Usage
 
 ```
-/tdd:new-milestone [name]
+/tlc:new-milestone [name]
 ```
 
 Example:
 ```
-/tdd:new-milestone v2.0
+/tlc:new-milestone v2.0
 ```
 
 ## Process
@@ -32,7 +32,7 @@ If not complete:
 ```
 Previous milestone not complete.
 
-Run /tdd:complete first.
+Run /tlc:complete first.
 ```
 
 ### Step 2: Name the Milestone
@@ -141,13 +141,13 @@ Status: Not started
 Roadmap: .planning/ROADMAP.md
 Phases: 4
 
-Start with /tdd to begin Phase 1.
+Start with /tlc to begin Phase 1.
 ```
 
 ## Example
 
 ```
-> /tdd:new-milestone
+> /tlc:new-milestone
 
 Previous milestone v1.0 complete ✓
 
@@ -168,5 +168,5 @@ Proceed? (Y/n) > y
 
 ✅ v2.0 roadmap created!
 
-Run /tdd to start Phase 1.
+Run /tlc to start Phase 1.
 ```

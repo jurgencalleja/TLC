@@ -1,4 +1,4 @@
-# /tdd:new-project - Start a New Project
+# /tlc:new-project - Start a New Project
 
 Initialize a new project with test-led development.
 
@@ -211,12 +211,12 @@ User registration, login, and session management.
 Target: v1.0 MVP
 ```
 
-### Step 6: Append TDD Conventions
+### Step 6: Append TLC Conventions
 
 ```markdown
 ## Development Methodology: Test-Led Development
 
-This project uses TDD. All implementation follows Red → Green → Refactor:
+This project uses TLC. All implementation follows Red → Green → Refactor:
 
 1. **Red**: Write failing tests that define expected behavior
 2. **Green**: Write minimum code to make tests pass
@@ -248,7 +248,7 @@ project/
 ## Usage
 
 ```
-/tdd:new-project
+/tlc:new-project
 ```
 
 Interactive flow that:

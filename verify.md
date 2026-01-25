@@ -1,4 +1,4 @@
-# /tdd:verify - Human Acceptance Testing
+# /tlc:verify - Human Acceptance Testing
 
 Verify the phase works as expected — with your own eyes.
 
@@ -12,7 +12,7 @@ Verify the phase works as expected — with your own eyes.
 ## Usage
 
 ```
-/tdd:verify [phase_number]
+/tlc:verify [phase_number]
 ```
 
 If no phase number, auto-detect current phase.
@@ -90,7 +90,7 @@ Issues found:
 1. No error message for wrong password
 2. Session doesn't persist on refresh
 
-Fix tasks added to phase. Run /tdd:build 1 to implement fixes.
+Fix tasks added to phase. Run /tlc:build 1 to implement fixes.
 ```
 
 ### Step 6: Create Verification Record
@@ -138,7 +138,7 @@ Both matter.
 ## Example
 
 ```
-> /tdd:verify 1
+> /tlc:verify 1
 
 Running tests... ✅ 11 passing
 

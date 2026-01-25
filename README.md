@@ -1,13 +1,13 @@
-# TDD
+# TLC
 
-**Tests before code. Automatically.**
+**Test Led Coding. Tests before code. Automatically.**
 
 ```bash
-npx tdd-claude-code
+npx tlc-claude-code
 ```
 
 <p align="center">
-  <img src="assets/terminal.svg" alt="TDD" width="700">
+  <img src="assets/terminal.svg" alt="TLC" width="700">
 </p>
 
 ---
@@ -20,7 +20,7 @@ You tell Claude to build something. It builds it. You test it manually. It's bro
 
 ## The Solution
 
-TDD writes tests *before* code exists. Every feature has a spec. Every spec is executable. When the code works, you know — because the tests pass.
+TLC writes tests *before* code exists. Every feature has a spec. Every spec is executable. When the code works, you know — because the tests pass.
 
 ```
 You describe → Tests are written → Code is implemented → Tests pass → Done
@@ -33,13 +33,13 @@ No manual testing. No "does this work?" No vibes.
 ## Quick Start
 
 ```bash
-npx tdd-claude-code        # Install
+npx tlc-claude-code        # Install
 ```
 
 Then in Claude Code:
 
 ```
-/tdd
+/tlc
 ```
 
 That's it. One command. It knows what to do next.
@@ -54,12 +54,12 @@ Mid-project? It picks up where you left off.
 
 | Command | What |
 |---------|------|
-| `/tdd` | **Smart entry point. Knows what's next.** |
-| `/tdd:new-project` | Start fresh. Discuss stack, scaffold. |
-| `/tdd:init` | Add TDD to existing code. |
-| `/tdd:coverage` | Find untested → write tests |
-| `/tdd:quick` | One-off task with tests |
-| `/tdd:status` | Pass/fail counts |
+| `/tlc` | **Smart entry point. Knows what's next.** |
+| `/tlc:new-project` | Start fresh. Discuss stack, scaffold. |
+| `/tlc:init` | Add TLC to existing code. |
+| `/tlc:coverage` | Find untested → write tests |
+| `/tlc:quick` | One-off task with tests |
+| `/tlc:status` | Pass/fail counts |
 
 ---
 
@@ -69,13 +69,13 @@ Mid-project? It picks up where you left off.
 
 Other workflows: plan → build → "hope it works"
 
-TDD: plan → **write failing tests** → build until tests pass
+TLC: plan → **write failing tests** → build until tests pass
 
 The tests *are* the spec. No ambiguity.
 
 ### 2. Smart Stack Selection
 
-Don't pick tech in a vacuum. TDD asks what you're building, who uses it, what scale — then suggests the right stack.
+Don't pick tech in a vacuum. TLC asks what you're building, who uses it, what scale — then suggests the right stack.
 
 ```
 Building: Internal dashboard
@@ -148,14 +148,14 @@ TUI dashboard. Multiple panes. Real-time updates.
 |----------|---------|--------|
 | Vibe coding | Build → hope | Works until it doesn't |
 | Manual TDD | Write tests yourself | Slow, easy to skip |
-| **TDD Workflow** | Tests auto-generated first | Fast, guaranteed coverage |
+| **TLC** | Tests auto-generated first | Fast, guaranteed coverage |
 
 ---
 
 ## Install
 
 ```bash
-npx tdd-claude-code
+npx tlc-claude-code
 ```
 
 Options:

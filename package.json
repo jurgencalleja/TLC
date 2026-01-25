@@ -1,9 +1,9 @@
 {
-  "name": "tdd-claude-code",
+  "name": "tlc-claude-code",
   "version": "0.6.0",
-  "description": "TDD workflow for Claude Code - Tests before code, automatically",
+  "description": "TLC - Test Led Coding for Claude Code",
   "bin": {
-    "tdd-claude-code": "./bin/install.js"
+    "tlc-claude-code": "./bin/install.js"
   },
   "files": [
     "bin/",
@@ -17,8 +17,9 @@
   "keywords": [
     "claude",
     "claude-code",
+    "tlc",
+    "test-led-coding",
     "tdd",
-    "test-driven-development",
     "testing"
   ],
   "author": "Jurgen Calleja",

@@ -1,4 +1,4 @@
-# /tdd - Smart Entry Point
+# /tlc - Smart Entry Point
 
 One command. Context-aware. Tells you what to do next.
 
@@ -27,8 +27,8 @@ Check what exists:
 ```
 No project detected.
 
-1) Start new project (/tdd:new-project)
-2) Add TDD to existing code (/tdd:init)
+1) Start new project (/tlc:new-project)
+2) Add TLC to existing code (/tlc:init)
 ```
 
 **PROJECT.md exists, no roadmap → Need Planning**
@@ -144,7 +144,7 @@ Found 5 files without tests:
 Add tests for existing code? (Y/n)
 ```
 
-If yes, run `/tdd:coverage` flow.
+If yes, run `/tlc:coverage` flow.
 
 ### Step 6: All Phases Complete
 
@@ -153,27 +153,27 @@ All phases complete! 🎉
 
 Milestone ready for release.
 
-1) Tag release (/tdd:complete)
-2) Start next milestone (/tdd:new-milestone)
-3) Check test coverage (/tdd:coverage)
+1) Tag release (/tlc:complete)
+2) Start next milestone (/tlc:new-milestone)
+3) Check test coverage (/tlc:coverage)
 ```
 
 ## Examples
 
 **Fresh directory:**
 ```
-> /tdd
+> /tlc
 
 No project detected.
 
 What would you like to do?
 1) Start new project
-2) Add TDD to existing code
+2) Add TLC to existing code
 ```
 
 **Mid-project:**
 ```
-> /tdd
+> /tlc
 
 Phase 2: User Dashboard
 Status: Planned, not built
@@ -185,7 +185,7 @@ Status: Planned, not built
 
 **Has untested code:**
 ```
-> /tdd
+> /tlc
 
 Phase 3: Reports [current]
 
@@ -201,7 +201,7 @@ Also found: 3 files without test coverage
 ## Usage
 
 ```
-/tdd
+/tlc
 ```
 
 No arguments. Auto-detects everything.
@@ -209,9 +209,9 @@ No arguments. Auto-detects everything.
 ## Why This Exists
 
 Instead of remembering:
-- `/tdd:discuss 2`
-- `/tdd:plan 2`
-- `/tdd:build 2`
-- `/tdd:verify 2`
+- `/tlc:discuss 2`
+- `/tlc:plan 2`
+- `/tlc:build 2`
+- `/tlc:verify 2`
 
-Just run `/tdd`. It knows where you are.
+Just run `/tlc`. It knows where you are.

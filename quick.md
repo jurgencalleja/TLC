@@ -1,4 +1,4 @@
-# /tdd:quick - Quick Task with Tests
+# /tlc:quick - Quick Task with Tests
 
 For ad-hoc tasks that don't need full phase planning, but still deserve tests.
 
@@ -9,18 +9,18 @@ For ad-hoc tasks that don't need full phase planning, but still deserve tests.
 3. **Implement** to pass the test
 4. **Verify** test passes
 
-Lighter weight than `/tdd:build`, but still test-first.
+Lighter weight than `/tlc:build`, but still test-first.
 
 ## Usage
 
 ```
-/tdd:quick
+/tlc:quick
 ```
 
 ## Example
 
 ```
-User: /tdd:quick
+User: /tlc:quick
 
 Claude: What do you want to do?
 
@@ -49,4 +49,4 @@ Done. Dark mode toggle added with test coverage.
 - Config changes
 - One-off tasks
 
-For anything bigger, use the full flow: `/tdd:plan` → `/tdd:build` → `/tdd:verify`
+For anything bigger, use the full flow: `/tlc:plan` → `/tlc:build` → `/tlc:verify`

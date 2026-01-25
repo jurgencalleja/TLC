@@ -1,13 +1,13 @@
-# /tdd:init - Initialize TDD in Existing Project
+# /tlc:init - Initialize TLC in Existing Project
 
-Add TDD workflow to an existing codebase. Analyzes what you have, identifies gaps, and offers to write tests for existing code.
+Add TLC workflow to an existing codebase. Analyzes what you have, identifies gaps, and offers to write tests for existing code.
 
 ## When to Use
 
 - You have existing code without tests
 - You have existing code with some tests
 - You're joining a project mid-development
-- You want to adopt TDD on a "vibe coded" project
+- You want to adopt TLC on a "vibe coded" project
 
 This command will:
 1. Set up test infrastructure (if missing)
@@ -15,7 +15,7 @@ This command will:
 3. **Identify untested modules** and critical paths
 4. **Ask if you want retrospective tests** written for existing code
 
-For brand new projects with no code, use `/tdd:new-project` instead.
+For brand new projects with no code, use `/tlc:new-project` instead.
 
 ## Process
 
@@ -25,7 +25,7 @@ Check for source files:
 - `src/`, `lib/`, `app/`, `pkg/`, or root-level code files
 - `package.json`, `pyproject.toml`, `go.mod`, `Gemfile`, `Cargo.toml`
 
-If no code found, suggest running `/tdd:new-project` instead.
+If no code found, suggest running `/tlc:new-project` instead.
 
 ### 2. Detect Stack
 
@@ -125,7 +125,7 @@ Would you like to write tests for existing code?
 
 1) Yes - prioritize critical paths first
 2) Yes - write tests for everything
-3) No - only use TDD for new features going forward
+3) No - only use TLC for new features going forward
 ```
 
 **If option 1 or 2 selected:**
@@ -153,7 +153,7 @@ Then ask:
 Start writing tests now, or save backlog for later?
 
 1) Start now - begin with critical paths
-2) Later - I'll run /tdd:build backlog when ready
+2) Later - I'll run /tlc:build backlog when ready
 ```
 
 **If "Start now":** Begin writing tests for the first critical path item using Red-Green-Refactor (but code already exists, so focus on capturing current behavior).
@@ -177,7 +177,7 @@ If PROJECT.md doesn't exist, create it with:
 
 ## Development Methodology: Test-Led Development
 
-This project uses TDD. All new implementation follows Red -> Green -> Refactor:
+This project uses TLC. All new implementation follows Red -> Green -> Refactor:
 
 1. **Red**: Write failing tests that define expected behavior
 2. **Green**: Write minimum code to make tests pass
@@ -191,12 +191,12 @@ Tests are written BEFORE implementation, not after.
 - Test directory: `[path]`
 ```
 
-If PROJECT.md exists, append the TDD section only.
+If PROJECT.md exists, append the TLC section only.
 
 ### 10. Report Summary
 
 ```
-TDD initialized for [project name]
+TLC initialized for [project name]
 
 Stack: [detected]
 Test framework: [framework] (existing/newly configured)
@@ -205,15 +205,15 @@ Existing tests: [count] files
 Untested files: [count] identified
 
 Next steps:
-- Run /tdd:build backlog to write tests for existing code
-- Run /tdd:discuss to plan new features with TDD
-- Run /tdd:quick for ad-hoc tasks with tests
+- Run /tlc:build backlog to write tests for existing code
+- Run /tlc:discuss to plan new features with TLC
+- Run /tlc:quick for ad-hoc tasks with tests
 ```
 
 ## Usage
 
 ```
-/tdd:init
+/tlc:init
 ```
 
 No arguments needed. Auto-detects everything.

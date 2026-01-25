@@ -1,4 +1,4 @@
-# /tdd:plan - Plan a Phase
+# /tlc:plan - Plan a Phase
 
 Research and create implementation plans with clear tasks.
 
@@ -12,7 +12,7 @@ Research and create implementation plans with clear tasks.
 ## Usage
 
 ```
-/tdd:plan [phase_number]
+/tlc:plan [phase_number]
 ```
 
 If no phase number, auto-detect current phase from ROADMAP.md.
@@ -136,7 +136,7 @@ Allow refinement if needed.
 Plan saved to .planning/phases/{N}-PLAN.md
 
 Ready to build?
-1) Yes, run /tdd:build (writes tests first)
+1) Yes, run /tlc:build (writes tests first)
 2) No, I'll build later
 ```
 

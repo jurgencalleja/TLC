@@ -1,4 +1,4 @@
-# /tdd:progress - Where Am I?
+# /tlc:progress - Where Am I?
 
 Show current project state and what to do next.
 
@@ -13,7 +13,7 @@ Scans project state and presents:
 ## Usage
 
 ```
-/tdd:progress
+/tlc:progress
 ```
 
 ## Process
@@ -28,7 +28,7 @@ If neither exists:
 ```
 No project found.
 
-Run /tdd:new-project to start, or /tdd:init to add TDD to existing code.
+Run /tlc:new-project to start, or /tlc:init to add TLC to existing code.
 ```
 
 ### Step 2: Parse Roadmap
@@ -79,7 +79,7 @@ Pending:
 
 Tests: 47 total | 45 passing | 2 failing
 
-Suggested: /tdd:build 4
+Suggested: /tlc:build 4
 ```
 
 ### Step 6: Suggest Next Action
@@ -88,23 +88,23 @@ Based on state:
 
 | State | Suggestion |
 |-------|------------|
-| No discussion | `/tdd:discuss {N}` |
-| Discussed, no plan | `/tdd:plan {N}` |
-| Planned, no tests | `/tdd:build {N}` |
-| Tests failing | Fix failures, then `/tdd:build {N}` |
-| Tests passing, not verified | `/tdd:verify {N}` |
+| No discussion | `/tlc:discuss {N}` |
+| Discussed, no plan | `/tlc:plan {N}` |
+| Planned, no tests | `/tlc:build {N}` |
+| Tests failing | Fix failures, then `/tlc:build {N}` |
+| Tests passing, not verified | `/tlc:verify {N}` |
 | Verified | Move to next phase |
-| All phases done | `/tdd:complete` |
+| All phases done | `/tlc:complete` |
 
 Or just:
 ```
-Run /tdd to continue.
+Run /tlc to continue.
 ```
 
 ## Example Output
 
 ```
-> /tdd:progress
+> /tlc:progress
 
 ╭─────────────────────────────────────╮
 │ My App - v1.0                       │
@@ -120,17 +120,17 @@ Phases: ████████░░░░ 3/5 complete
 
 Tests: 47 passing | 2 failing
 
-Next: /tdd:build 4 (or just /tdd)
+Next: /tlc:build 4 (or just /tlc)
 ```
 
 ## Compact Mode
 
 For quick checks:
 ```
-> /tdd:progress
+> /tlc:progress
 
 Phase 4/5: Reports
 Status: Planned
 Tests: 47/49 passing
-Next: /tdd:build
+Next: /tlc:build
 ```

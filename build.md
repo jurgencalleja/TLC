@@ -1,4 +1,4 @@
-# /tdd:build - Build a Phase (Test-First)
+# /tlc:build - Build a Phase (Test-First)
 
 Write failing tests, then implement to make them pass.
 
@@ -10,12 +10,12 @@ Write failing tests, then implement to make them pass.
 4. **Verify tests pass** after each task
 5. **Commit** after each passing task
 
-This is the core TDD command. Tests before code, one task at a time.
+This is the core TLC command. Tests before code, one task at a time.
 
 ## Usage
 
 ```
-/tdd:build <phase_number>
+/tlc:build <phase_number>
 ```
 
 ## Process
@@ -290,7 +290,7 @@ python_functions = test_*
 ## Example Run
 
 ```
-User: /tdd:build 1
+User: /tlc:build 1
 
 Claude: Loading phase 1 plans...
 Found 2 plans:
@@ -326,7 +326,7 @@ Committed: feat: session management - phase 1
 Running tests again...
 ✅ 11 tests passing
 
-Phase 1 complete. Ready for /tdd:verify 1
+Phase 1 complete. Ready for /tlc:verify 1
 ```
 
 ## Error Recovery
@@ -343,5 +343,5 @@ Phase 1 complete. Ready for /tdd:verify 1
 
 **Some tests fail after implementation:**
 - Report specific failures
-- Suggest running `/tdd:build {phase}` again to retry
-- Or manually fix and run `/tdd:status` to verify
+- Suggest running `/tlc:build {phase}` again to retry
+- Or manually fix and run `/tlc:status` to verify

@@ -1,11 +1,11 @@
-# /tdd:status - Check Test Status
+# /tlc:status - Check Test Status
 
 Quick check on test status for current or specified phase.
 
 ## Usage
 
 ```
-/tdd:status [phase_number]
+/tlc:status [phase_number]
 ```
 
 If no phase specified, shows overall test status.
@@ -24,7 +24,7 @@ Test Status
 ───────────
 ✅ 18 passing, 0 failing, 0 errors
 
-Ready for: /tdd:verify
+Ready for: /tlc:verify
 ```
 
 **Some failing:**
@@ -39,7 +39,7 @@ Failing:
 • tests/session.test.ts: session expires after timeout
 ...
 
-Action: Fix implementation or run /tdd:build to retry
+Action: Fix implementation or run /tlc:build to retry
 ```
 
 **Tests erroring:**
@@ -61,5 +61,5 @@ Test Status
 ───────────
 No tests found.
 
-Run /tdd:build to write tests and implement.
+Run /tlc:build to write tests and implement.
 ```

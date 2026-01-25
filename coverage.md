@@ -1,10 +1,10 @@
-# /tdd:coverage - Analyze Test Coverage Gaps
+# /tlc:coverage - Analyze Test Coverage Gaps
 
 Scan existing code, identify what's untested, and offer to write retrospective tests.
 
 ## When to Use
 
-- After `/tdd:init` to add tests to existing code
+- After `/tlc:init` to add tests to existing code
 - Anytime you want to improve test coverage
 - When joining a project to understand test gaps
 - After "vibe coding" a feature without tests
@@ -18,7 +18,7 @@ Identify the test setup:
 - Test directory: `tests/`, `__tests__/`, `spec/`, etc.
 - Test patterns: `*.test.ts`, `*_test.py`, etc.
 
-If no test framework found, suggest running `/tdd:init` first.
+If no test framework found, suggest running `/tlc:init` first.
 
 ### 2. Scan Source Files
 
@@ -120,7 +120,7 @@ Then ask:
 Start writing tests now?
 
 1) Yes - begin with first critical item
-2) No - I'll run /tdd:build backlog later
+2) No - I'll run /tlc:build backlog later
 ```
 
 **If "Yes":**
@@ -210,13 +210,13 @@ Backlog created: .planning/TEST-BACKLOG.md
   - High priority: 2 files
   - Standard: 11 files
 
-Run /tdd:build backlog to start writing tests.
+Run /tlc:build backlog to start writing tests.
 ```
 
 ## Usage
 
 ```
-/tdd:coverage
+/tlc:coverage
 ```
 
 No arguments needed. Scans entire codebase.

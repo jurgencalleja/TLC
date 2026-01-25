@@ -1,4 +1,4 @@
-# /tdd:discuss - Discuss Phase Implementation
+# /tlc:discuss - Discuss Phase Implementation
 
 Capture implementation preferences before planning.
 
@@ -9,7 +9,7 @@ Gathers your preferences for HOW a phase should be built through adaptive questi
 ## Usage
 
 ```
-/tdd:discuss [phase_number]
+/tlc:discuss [phase_number]
 ```
 
 If no phase number, auto-detect current phase from ROADMAP.md.
@@ -150,14 +150,14 @@ Create `.planning/phases/{N}-DISCUSSION.md`:
 Discussion saved to .planning/phases/{N}-DISCUSSION.md
 
 Ready to plan this phase?
-1) Yes, continue to /tdd:plan
+1) Yes, continue to /tlc:plan
 2) No, I'll plan later
 ```
 
 ## Example
 
 ```
-> /tdd:discuss 2
+> /tlc:discuss 2
 
 Phase 2: User Dashboard
 

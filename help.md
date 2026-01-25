@@ -1,9 +1,9 @@
-# /tdd:help - Test-Led Development Commands
+# /tlc:help - Test-Led Development Commands
 
 ## Quick Start
 
 ```
-/tdd
+/tlc
 ```
 
 That's it. Detects where you are, tells you what's next.
@@ -16,33 +16,33 @@ That's it. Detects where you are, tells you what's next.
 
 | Command | What It Does |
 |---------|--------------|
-| `/tdd` | **Context-aware entry point. Knows what to do next.** |
+| `/tlc` | **Context-aware entry point. Knows what to do next.** |
 
 ### Setup
 
 | Command | What It Does |
 |---------|--------------|
-| `/tdd:new-project` | Start new project (discusses stack, creates roadmap) |
-| `/tdd:init` | Add TDD to existing code |
-| `/tdd:coverage` | Find untested code, write tests |
+| `/tlc:new-project` | Start new project (discusses stack, creates roadmap) |
+| `/tlc:init` | Add TLC to existing code |
+| `/tlc:coverage` | Find untested code, write tests |
 
 ### Build (rarely needed directly)
 
 | Command | What It Does |
 |---------|--------------|
-| `/tdd:discuss` | Shape implementation approach |
-| `/tdd:plan` | Create task plan |
-| `/tdd:build` | Write tests → implement → verify |
-| `/tdd:verify` | Human acceptance testing |
+| `/tlc:discuss` | Shape implementation approach |
+| `/tlc:plan` | Create task plan |
+| `/tlc:build` | Write tests → implement → verify |
+| `/tlc:verify` | Human acceptance testing |
 
 ### Utility
 
 | Command | What It Does |
 |---------|--------------|
-| `/tdd:status` | Test pass/fail counts |
-| `/tdd:quick` | One-off task with tests |
-| `/tdd:complete` | Tag release |
-| `/tdd:new-milestone` | Start next version |
+| `/tlc:status` | Test pass/fail counts |
+| `/tlc:quick` | One-off task with tests |
+| `/tlc:complete` | Tag release |
+| `/tlc:new-milestone` | Start next version |
 
 ---
 
@@ -50,27 +50,27 @@ That's it. Detects where you are, tells you what's next.
 
 **Simple version:**
 ```
-/tdd                    <- just keep running this
+/tlc                    <- just keep running this
 ```
 
 **Detailed version:**
 ```
-/tdd:new-project        New project
+/tlc:new-project        New project
     ↓
-/tdd                    Guides you through each phase:
+/tlc                    Guides you through each phase:
                         → discuss → plan → build → verify
     ↓
-/tdd:complete           Tag release
+/tlc:complete           Tag release
 ```
 
 ---
 
-## What `/tdd` Does
+## What `/tlc` Does
 
 Checks project state and presents ONE action:
 
 ```
-> /tdd
+> /tlc
 
 Phase 2: User Dashboard
 Status: Planned, not built
@@ -83,7 +83,7 @@ Status: Planned, not built
 Or if you have untested code:
 
 ```
-> /tdd
+> /tlc
 
 Found 3 files without tests:
   - src/utils/format.ts
@@ -109,7 +109,7 @@ Add tests? (Y/n)
 ## Installation
 
 ```bash
-npx tdd-claude-code
+npx tlc-claude-code
 ```
 
-Lives in `.claude/commands/tdd/`
+Lives in `.claude/commands/tlc/`

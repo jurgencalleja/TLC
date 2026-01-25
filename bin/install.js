@@ -17,18 +17,18 @@ const c = {
 };
 
 const LOGO = `
-${c.cyan}  ████████╗██████╗ ██████╗
-  ╚══██╔══╝██╔══██╗██╔══██╗
-     ██║   ██║  ██║██║  ██║
-     ██║   ██║  ██║██║  ██║
-     ██║   ██████╔╝██████╔╝
-     ╚═╝   ╚═════╝ ╚═════╝${c.reset}
+${c.cyan}  ████████╗██╗     ██████╗
+  ╚══██╔══╝██║    ██╔════╝
+     ██║   ██║    ██║
+     ██║   ██║    ██║
+     ██║   ███████╗╚██████╗
+     ╚═╝   ╚══════╝ ╚═════╝${c.reset}
 `;
 
 const VERSION = '0.6.0';
 
 const COMMANDS = [
-  'tdd.md',
+  'tlc.md',
   'new-project.md',
   'init.md',
   'coverage.md',
@@ -55,8 +55,8 @@ function getLocalDir() {
 
 function printBanner() {
   console.log(LOGO);
-  console.log(`  ${c.bold}TDD Workflow${c.reset} ${c.dim}v${VERSION}${c.reset}`);
-  console.log(`  ${c.white}Test-Led Development for Claude Code${c.reset}`);
+  console.log(`  ${c.bold}TLC${c.reset} ${c.dim}v${VERSION}${c.reset}`);
+  console.log(`  ${c.white}Test Led Coding for Claude Code${c.reset}`);
   console.log(`  ${c.dim}Tests before code, automatically${c.reset}`);
   console.log('');
 }
@@ -76,7 +76,7 @@ function info(msg) {
 // Standalone - no external dependencies needed
 
 function install(targetDir, installType) {
-  const commandsDir = path.join(targetDir, 'tdd');
+  const commandsDir = path.join(targetDir, 'tlc');
 
   // Create directory
   fs.mkdirSync(commandsDir, { recursive: true });
@@ -98,14 +98,14 @@ function install(targetDir, installType) {
   log(`${c.green}Done!${c.reset} Restart Claude Code to load commands.`);
   log('');
   log(`${c.bold}Quick Start:${c.reset}`);
-  log(`  ${c.cyan}/tdd${c.reset}              Smart entry point - knows what to do next`);
+  log(`  ${c.cyan}/tlc${c.reset}              Smart entry point - knows what to do next`);
   log('');
   log(`${c.dim}Or use specific commands:${c.reset}`);
-  log(`  ${c.cyan}/tdd:new-project${c.reset}  Start new project`);
-  log(`  ${c.cyan}/tdd:init${c.reset}         Add TDD to existing code`);
-  log(`  ${c.cyan}/tdd:coverage${c.reset}     Find and fix test gaps`);
+  log(`  ${c.cyan}/tlc:new-project${c.reset}  Start new project`);
+  log(`  ${c.cyan}/tlc:init${c.reset}         Add TLC to existing code`);
+  log(`  ${c.cyan}/tlc:coverage${c.reset}     Find and fix test gaps`);
   log('');
-  log(`Run ${c.cyan}/tdd:help${c.reset} for all commands.`);
+  log(`Run ${c.cyan}/tlc:help${c.reset} for all commands.`);
   log('');
 }
 
@@ -115,14 +115,14 @@ async function main() {
   printBanner();
 
   if (args.includes('--global') || args.includes('-g')) {
-    info(`Installing ${c.bold}globally${c.reset} to ~/.claude/commands/tdd`);
+    info(`Installing ${c.bold}globally${c.reset} to ~/.claude/commands/tlc`);
     log('');
     install(getGlobalDir(), 'global');
     return;
   }
 
   if (args.includes('--local') || args.includes('-l')) {
-    info(`Installing ${c.bold}locally${c.reset} to ./.claude/commands/tdd`);
+    info(`Installing ${c.bold}locally${c.reset} to ./.claude/commands/tlc`);
     log('');
     install(getLocalDir(), 'local');
     return;
@@ -143,8 +143,8 @@ async function main() {
   });
 
   log('Where would you like to install?');
-  log(`  ${c.bold}1)${c.reset} Global ${c.dim}(~/.claude/commands/tdd)${c.reset} - available in all projects`);
-  log(`  ${c.bold}2)${c.reset} Local ${c.dim}(./.claude/commands/tdd)${c.reset} - this project only`);
+  log(`  ${c.bold}1)${c.reset} Global ${c.dim}(~/.claude/commands/tlc)${c.reset} - available in all projects`);
+  log(`  ${c.bold}2)${c.reset} Local ${c.dim}(./.claude/commands/tlc)${c.reset} - this project only`);
   log('');
 
   rl.question('  Choice [1/2]: ', (answer) => {

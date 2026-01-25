@@ -1,4 +1,4 @@
-# /tdd:complete - Complete Milestone
+# /tlc:complete - Complete Milestone
 
 Archive current milestone and tag the release.
 
@@ -13,7 +13,7 @@ Archive current milestone and tag the release.
 ## Usage
 
 ```
-/tdd:complete
+/tlc:complete
 ```
 
 ## Process
@@ -32,7 +32,7 @@ Incomplete phases:
   - Phase 4: Reports (not verified)
   - Phase 5: Settings (not built)
 
-Run /tdd to continue building.
+Run /tlc to continue building.
 ```
 
 ### Step 2: Run Full Test Suite
@@ -134,13 +134,13 @@ Files archived to .planning/archive/v1.0/
 
 Next steps:
 1) Push tag: git push origin v1.0
-2) Start next version: /tdd:new-milestone v2.0
+2) Start next version: /tlc:new-milestone v2.0
 ```
 
 ## Example
 
 ```
-> /tdd:complete
+> /tlc:complete
 
 Checking milestone status...
 
@@ -156,5 +156,5 @@ Archiving planning files...
 
 Push to remote? (Y/n) > y
 
-Done! Start v2.0 with /tdd:new-milestone
+Done! Start v2.0 with /tlc:new-milestone
 ```
