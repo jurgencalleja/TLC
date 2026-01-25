@@ -25,7 +25,7 @@ ${c.cyan}  ████████╗██╗     ██████╗
      ╚═╝   ╚══════╝ ╚═════╝${c.reset}
 `;
 
-const VERSION = '0.6.0';
+const VERSION = '0.6.1';
 
 const COMMANDS = [
   'tlc.md',
