@@ -227,6 +227,12 @@ Options:
 
 ---
 
+## See Also
+
+**Using GSD?** Check out [TDD Workflow](https://github.com/jurgencalleja/tdd) — same philosophy, integrates with GSD.
+
+---
+
 ## License
 
 MIT
