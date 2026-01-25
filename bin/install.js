@@ -31,6 +31,7 @@ const COMMANDS = [
   'tlc.md',
   'new-project.md',
   'init.md',
+  'import-project.md',
   'coverage.md',
   'discuss.md',
   'plan.md',

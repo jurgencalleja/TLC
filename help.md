@@ -24,6 +24,7 @@ That's it. Detects where you are, tells you what's next.
 |---------|--------------|
 | `/tlc:new-project` | Start new project (discusses stack, creates roadmap) |
 | `/tlc:init` | Add TLC to existing code |
+| `/tlc:import-project` | Import multi-repo microservices architecture |
 | `/tlc:coverage` | Find untested code, write tests |
 
 ### Build (rarely needed directly)
