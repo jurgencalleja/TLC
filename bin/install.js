@@ -2,7 +2,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 const readline = require('readline');
 
 // ANSI color codes
@@ -26,7 +25,7 @@ ${c.cyan}  ████████╗██████╗ ██████�
      ╚═╝   ╚═════╝ ╚═════╝${c.reset}
 `;
 
-const VERSION = '0.5.0';
+const VERSION = '0.6.0';
 
 const COMMANDS = [
   'tdd.md',
@@ -58,7 +57,7 @@ function printBanner() {
   console.log(LOGO);
   console.log(`  ${c.bold}TDD Workflow${c.reset} ${c.dim}v${VERSION}${c.reset}`);
   console.log(`  ${c.white}Test-Led Development for Claude Code${c.reset}`);
-  console.log(`  ${c.dim}Powered by GSD${c.reset}`);
+  console.log(`  ${c.dim}Tests before code, automatically${c.reset}`);
   console.log('');
 }
 
@@ -74,39 +73,10 @@ function info(msg) {
   console.log(`  ${c.cyan}→${c.reset} ${msg}`);
 }
 
-function checkGsd(localGsdDir, installType) {
-  const globalGsdDir = path.join(getGlobalDir(), 'gsd');
-
-  // GSD can be in either location - check both
-  if (fs.existsSync(localGsdDir) || fs.existsSync(globalGsdDir)) {
-    return; // GSD found
-  }
-
-  log('');
-  log(`${c.yellow}GSD not found${c.reset} - installing dependency...`);
-  log('');
-  try {
-    execSync('npx --yes get-shit-done-cc@latest', { stdio: 'inherit' });
-  } catch (e) {
-    // GSD installer may exit with error but still install
-  }
-  console.log('');
-
-  // Check both locations again after install
-  if (!fs.existsSync(localGsdDir) && !fs.existsSync(globalGsdDir)) {
-    log(`${c.yellow}GSD not found after install.${c.reset}`);
-    log('Run: npx get-shit-done-cc');
-    log('Then re-run this installer.');
-    process.exit(1);
-  }
-}
+// Standalone - no external dependencies needed
 
 function install(targetDir, installType) {
   const commandsDir = path.join(targetDir, 'tdd');
-  const gsdDir = path.join(targetDir, 'gsd');
-
-  // Check GSD dependency
-  checkGsd(gsdDir, installType);
 
   // Create directory
   fs.mkdirSync(commandsDir, { recursive: true });

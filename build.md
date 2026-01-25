@@ -6,18 +6,17 @@ Write failing tests, then implement to make them pass.
 
 1. **Write failing tests** for all tasks in the phase
 2. **Verify tests fail** (Red)
-3. **Call `/gsd:execute-phase`** to implement (Green)
-4. **Verify tests pass** after execution
+3. **Implement code** one task at a time (Green)
+4. **Verify tests pass** after each task
+5. **Commit** after each passing task
 
-This is the core TDD command. Tests before code, automatically.
+This is the core TDD command. Tests before code, one task at a time.
 
 ## Usage
 
 ```
-/tdd:build [phase_number]
+/tdd:build <phase_number>
 ```
-
-Phase number is optional. Defaults to 1.
 
 ## Process
 
@@ -194,9 +193,44 @@ Status: ✅ All tests failing (Red)
 
 ### Step 7: Execute Implementation (Green)
 
-Call `/gsd:execute-phase {phase_number}`
+Now implement the code to make tests pass. Work through each task sequentially:
 
-GSD's executor implements the code. Tests provide concrete pass/fail targets.
+**For each task in the plan:**
+
+#### 7a. Read the task
+Review the task's:
+- Goal and expected behavior
+- Acceptance criteria
+- Test cases (now written and failing)
+
+#### 7b. Implement the code
+Write the minimum code needed to pass the tests:
+- Create files specified in the task
+- Follow existing project patterns
+- Reference the failing tests for exact expected behavior
+
+#### 7c. Run tests for this task
+```bash
+npm test -- tests/auth/login.test.ts   # specific file
+```
+
+- ✅ Tests pass → Continue
+- ❌ Tests fail → Fix implementation, retry
+
+#### 7d. Commit this task
+```bash
+git add src/auth/login.ts tests/auth/login.test.ts
+git commit -m "feat: {task-title} - phase {N}"
+```
+
+#### 7e. Move to next task
+Repeat 7a-7d for each task in the phase.
+
+**Critical Rules:**
+- Implement **one task at a time**
+- Run tests **after each task**
+- Commit **after each passing task**
+- Do NOT batch — sequential execution catches issues early
 
 ### Step 8: Verify All Tests Pass (Green)
 
@@ -277,8 +311,17 @@ Running tests...
 
 Created 01-TESTS.md
 
-Executing implementation via GSD...
-[GSD execute-phase output]
+Implementing task 1/3: User login...
+✅ tests/auth/login.test.ts passing
+Committed: feat: user login - phase 1
+
+Implementing task 2/3: User registration...
+✅ tests/auth/register.test.ts passing
+Committed: feat: user registration - phase 1
+
+Implementing task 3/3: Session management...
+✅ tests/session/session.test.ts passing
+Committed: feat: session management - phase 1
 
 Running tests again...
 ✅ 11 tests passing

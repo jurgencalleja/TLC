@@ -35,9 +35,11 @@ No project detected.
 ```
 Project exists but no roadmap.
 
-Creating phases for your project...
-[Run /gsd:new-project internals to create ROADMAP.md]
+Let's break your project into phases.
+
+What's the first feature to build?
 ```
+Then create ROADMAP.md with phases based on discussion.
 
 **Roadmap exists → Check Phase Status**
 

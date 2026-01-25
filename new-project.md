@@ -153,12 +153,63 @@ Create PROJECT.md with tech decisions:
 - Budget: Minimal hosting costs
 ```
 
-### Step 5: Run GSD for Roadmap
+### Step 5: Create Roadmap
 
-Call `/gsd:new-project` internals to:
-- Generate requirements from discussion
-- Create phase-based roadmap
-- Define milestones
+Based on the project scope, break into phases:
+
+**Phase breakdown approach:**
+- Each phase = one coherent feature or component
+- Phase should be completable in focused work
+- Phase has clear "done" criteria
+
+**Example phases for a SaaS app:**
+```
+Phase 1: Project Setup
+  - Initialize repo, dependencies
+  - Set up test framework
+  - Create base configuration
+
+Phase 2: Authentication
+  - User registration
+  - Login/logout
+  - Session management
+
+Phase 3: Core Feature
+  - Main functionality
+  - Data models
+  - API endpoints
+
+Phase 4: User Dashboard
+  - UI components
+  - Data display
+  - User settings
+```
+
+Create `.planning/ROADMAP.md`:
+
+```markdown
+# Roadmap - v1.0
+
+## Overview
+{From project discussion}
+
+## Phases
+
+### Phase 1: Project Setup
+Initialize project with chosen stack and test infrastructure.
+
+### Phase 2: Authentication
+User registration, login, and session management.
+
+### Phase 3: {Core Feature}
+{Description based on project goals}
+
+### Phase 4: {Next Feature}
+{Description}
+
+## Milestone
+Target: v1.0 MVP
+```
 
 ### Step 6: Append TDD Conventions
 

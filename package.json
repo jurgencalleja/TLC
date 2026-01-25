@@ -1,7 +1,7 @@
 {
   "name": "tdd-claude-code",
-  "version": "0.5.0",
-  "description": "TDD workflow for Claude Code - wraps GSD",
+  "version": "0.6.0",
+  "description": "TDD workflow for Claude Code - Tests before code, automatically",
   "bin": {
     "tdd-claude-code": "./bin/install.js"
   },
@@ -19,7 +19,7 @@
     "claude-code",
     "tdd",
     "test-driven-development",
-    "gsd"
+    "testing"
   ],
   "author": "Jurgen Calleja",
   "license": "MIT"

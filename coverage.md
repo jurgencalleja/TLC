@@ -125,7 +125,7 @@ Start writing tests now?
 
 **If "Yes":**
 
-Write tests using GSD-style execution — one file at a time with verification and commits.
+Write tests one file at a time with verification and commits.
 
 #### For each file in the backlog (sequentially):
 
