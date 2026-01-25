@@ -9,7 +9,7 @@ const isTTY = process.stdin.isTTY ?? false;
 const stdin = isTTY ? process.stdin : new Readable({ read() {} });
 
 render(<App isTTY={isTTY} />, {
-  stdin,
+  stdin: stdin as typeof process.stdin,
   stdout: process.stdout,
   exitOnCtrlC: isTTY,
 });
