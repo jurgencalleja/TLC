@@ -145,7 +145,8 @@ Launch a mini-Replit for your team with Docker:
 # Add launcher to your project (one-time)
 tlc init
 
-# Then double-click tlc-start.bat (Windows)
+# Windows: double-click tlc-start.bat
+# Mac/Linux: ./tlc-start.sh
 ```
 
 **What you get:**
