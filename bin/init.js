@@ -70,46 +70,53 @@ const shContent = `#!/bin/bash
 
 set -e
 
-# Find TLC installation
-TLC_DIR=""
-LOCATIONS=(
-    "$HOME/.nvm/versions/node/*/lib/node_modules/tlc-claude-code"
-    "/usr/local/lib/node_modules/tlc-claude-code"
-    "/usr/lib/node_modules/tlc-claude-code"
-    "$HOME/.npm-global/lib/node_modules/tlc-claude-code"
-)
+PROJECT_PATH="$(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
+TLC_DIR="$PROJECT_PATH/.tlc"
 
-# Check npm global
-NPM_ROOT=$(npm root -g 2>/dev/null || echo "")
-if [ -n "$NPM_ROOT" ] && [ -f "$NPM_ROOT/tlc-claude-code/start-dev.sh" ]; then
-    TLC_DIR="$NPM_ROOT/tlc-claude-code"
-fi
-
-# Check common locations
-if [ -z "$TLC_DIR" ]; then
-    for pattern in "\${LOCATIONS[@]}"; do
-        for dir in $pattern; do
-            if [ -f "$dir/start-dev.sh" ]; then
-                TLC_DIR="$dir"
-                break 2
-            fi
-        done
-    done
-fi
-
-if [ -z "$TLC_DIR" ]; then
-    echo "[TLC] ERROR: Could not find TLC installation"
-    echo "[TLC] Install with: npm install -g tlc-claude-code"
+if [ ! -f "$TLC_DIR/docker-compose.dev.yml" ]; then
+    echo "[TLC] ERROR: .tlc folder not found. Run: tlc init"
     exit 1
 fi
 
-PROJECT_PATH="$(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
+# Check Docker
+echo "[TLC] Checking Docker..."
+if ! docker info >/dev/null 2>&1; then
+    echo "[TLC] Starting Docker..."
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        open -a Docker
+    fi
+    echo "[TLC] Waiting for Docker..."
+    for i in {1..30}; do
+        sleep 2
+        docker info >/dev/null 2>&1 && break
+        printf "."
+    done
+    echo ""
+fi
 
-echo "[TLC] Found TLC at: $TLC_DIR"
-echo "[TLC] Starting dev server for: $PROJECT_PATH"
+if ! docker info >/dev/null 2>&1; then
+    echo "[TLC] ERROR: Docker not running"
+    exit 1
+fi
+
+echo "[TLC] Docker ready!"
+
+PROJECT_NAME=$(basename "$PROJECT_PATH" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9')
+export PROJECT_DIR="$PROJECT_PATH"
+export COMPOSE_PROJECT_NAME="\${PROJECT_NAME:-dev}"
+
+echo "[TLC] Project: $PROJECT_PATH"
+echo ""
+echo "[TLC] Starting services..."
+echo "      Dashboard: http://localhost:3147"
+echo "      App:       http://localhost:5001"
+echo "      DB Admin:  http://localhost:8080"
+echo ""
+echo "[TLC] Press Ctrl+C to stop"
 echo ""
 
-exec "$TLC_DIR/start-dev.sh" "$PROJECT_PATH"
+cd "$TLC_DIR"
+docker-compose -f docker-compose.dev.yml up --build
 `;
 
 // Detect OS - WSL counts as Windows since user will double-click .bat from Explorer
@@ -118,10 +125,11 @@ const isWindows = process.platform === 'win32' || isWSL;
 const launcherFile = isWindows ? 'tlc-start.bat' : 'tlc-start.sh';
 const launcherPath = path.join(projectDir, launcherFile);
 
-// FAST PATH: If launcher exists for this OS, just confirm and exit
-if (fs.existsSync(launcherPath)) {
+// FAST PATH: If launcher and .tlc folder exist, just confirm and exit
+const tlcFolderExists = fs.existsSync(path.join(projectDir, '.tlc', 'docker-compose.dev.yml'));
+if (fs.existsSync(launcherPath) && tlcFolderExists) {
     console.log('');
-    console.log(`[TLC] Already initialized. ${launcherFile} exists.`);
+    console.log(`[TLC] Already initialized.`);
     console.log('');
     if (isWindows) {
         console.log('[TLC] To start: Double-click ' + launcherFile);
@@ -160,19 +168,66 @@ if (isWindows) {
     console.log('[TLC] Note: Full macOS/Linux support coming soon!');
 }
 
+// Copy TLC files to project's .tlc/ directory for Docker access
+const tlcLocalDir = path.join(projectDir, '.tlc');
+const tlcInstallDir = path.join(__dirname, '..');
+
+if (!fs.existsSync(tlcLocalDir)) {
+    fs.mkdirSync(tlcLocalDir, { recursive: true });
+}
+
+// Copy server folder
+const serverSrc = path.join(tlcInstallDir, 'server');
+const serverDest = path.join(tlcLocalDir, 'server');
+if (fs.existsSync(serverSrc)) {
+    copyDirSync(serverSrc, serverDest);
+    console.log('[TLC] Copied server to .tlc/server');
+}
+
+// Copy docker-compose.dev.yml
+const composeSrc = path.join(tlcInstallDir, 'docker-compose.dev.yml');
+const composeDest = path.join(tlcLocalDir, 'docker-compose.dev.yml');
+if (fs.existsSync(composeSrc)) {
+    fs.copyFileSync(composeSrc, composeDest);
+    console.log('[TLC] Copied docker-compose.dev.yml to .tlc/');
+}
+
+// Helper to copy directory recursively
+function copyDirSync(src, dest) {
+    if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
+    for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+        const srcPath = path.join(src, entry.name);
+        const destPath = path.join(dest, entry.name);
+        if (entry.name === 'node_modules') continue; // Skip node_modules
+        if (entry.isDirectory()) {
+            copyDirSync(srcPath, destPath);
+        } else {
+            fs.copyFileSync(srcPath, destPath);
+        }
+    }
+}
+
 // Add to .gitignore if not already there
 const gitignorePath = path.join(projectDir, '.gitignore');
 
 if (fs.existsSync(gitignorePath)) {
     let gitignore = fs.readFileSync(gitignorePath, 'utf-8');
+    let updated = false;
     if (!gitignore.includes('tlc-start')) {
-        gitignore += '\\n# TLC dev server launcher (local only)\\ntlc-start.*\\n';
+        gitignore += '\n# TLC dev server (local only)\ntlc-start.*\n';
+        updated = true;
+    }
+    if (!gitignore.includes('.tlc/')) {
+        gitignore += '.tlc/\n';
+        updated = true;
+    }
+    if (updated) {
         fs.writeFileSync(gitignorePath, gitignore);
-        console.log('[TLC] Added tlc-start.* to .gitignore');
+        console.log('[TLC] Updated .gitignore');
     }
 } else {
-    fs.writeFileSync(gitignorePath, '# TLC dev server launcher (local only)\\ntlc-start.*\\n');
-    console.log('[TLC] Created .gitignore with tlc-start.*');
+    fs.writeFileSync(gitignorePath, '# TLC dev server (local only)\ntlc-start.*\n.tlc/\n');
+    console.log('[TLC] Created .gitignore');
 }
 
 // Create/update .tlc.json if it doesn't exist
