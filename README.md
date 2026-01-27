@@ -7,7 +7,7 @@
 **Test Led Coding for Claude Code. Tests before code. Automatically.**
 
 ```bash
-npx tlc-claude-code
+npx tlc-claude-code   # or just: tlc (after global install)
 ```
 
 <p align="center">
@@ -101,7 +101,7 @@ TLC knows where you are and what's next.
 | `/tlc:claim` | Reserve a task |
 | `/tlc:who` | See who's working on what |
 | `/tlc:bug` | Log a bug |
-| `npx tlc-claude-code init` | Add Docker dev launcher to project |
+| `tlc init` | Add Docker dev launcher to project |
 
 ### Integration Commands
 
@@ -129,7 +129,7 @@ TLC supports distributed teams with git-based coordination.
 ```bash
 /tlc:claim 2                  # Reserve task 2
 /tlc:who                      # See team status
-npx tlc-claude-code init      # Add dev server launcher
+tlc init      # Add dev server launcher
 # Then double-click tlc-start.bat
 ```
 
@@ -143,7 +143,7 @@ Launch a mini-Replit for your team with Docker:
 
 ```bash
 # Add launcher to your project (one-time)
-npx tlc-claude-code init
+tlc init
 
 # Then double-click tlc-start.bat (Windows)
 ```
@@ -261,14 +261,21 @@ C:\Code\TLC\                  (or your install location)
 ## Install
 
 ```bash
-# Interactive (choose global or local)
-npx tlc-claude-code
+# Install globally (recommended)
+npm install -g tlc-claude-code
 
-# Global (all projects)
-npx tlc-claude-code --global
+# Then use anywhere:
+tlc              # Install slash commands
+tlc init         # Add dev server to project
+tlc --help       # See all options
+```
 
-# Local (this project only)
-npx tlc-claude-code --local
+Or use without installing:
+
+```bash
+npx tlc-claude-code            # Interactive install
+npx tlc-claude-code --global   # Global install
+npx tlc-claude-code --local    # Local install only
 ```
 
 Commands install to `.claude/commands/tlc/`
