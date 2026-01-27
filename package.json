@@ -1,11 +1,11 @@
 {
   "name": "tlc-claude-code",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "TLC - Test Led Coding for Claude Code",
   "bin": {
     "tlc-claude-code": "./bin/install.js",
     "tlc-dashboard": "./dashboard/dist/index.js",
-    "tlc-server": "./server/index.js"
+    "tlc-server": "./bin/server.js"
   },
   "files": [
     "bin/",

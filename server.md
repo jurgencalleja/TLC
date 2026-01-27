@@ -4,44 +4,22 @@ Launch a unified development environment with live app preview, real-time logs, 
 
 ## Instructions for Claude
 
-**DO NOT generate server code. Use the pre-built server from the TLC package.**
+**DO NOT generate server code. Run the pre-built server from the TLC package.**
 
-### Step 1: Find TLC Server
+### Step 1: Start Server
 
-```bash
-# The server is installed with TLC at one of these locations:
-~/.claude/commands/tlc/../../../server/
-# Or in node_modules:
-npx tlc-server
-```
-
-Run this to locate it:
-```bash
-SERVER_PATH=$(npm root -g)/tlc-claude-code/server
-if [ ! -d "$SERVER_PATH" ]; then
-  SERVER_PATH=$(dirname $(which tlc-claude-code 2>/dev/null || echo ""))/../server
-fi
-echo "Server at: $SERVER_PATH"
-```
-
-### Step 2: Install Dependencies (first time only)
+Run this command in the user's project directory:
 
 ```bash
-cd "$SERVER_PATH" && npm install
+npx -p tlc-claude-code tlc-server
 ```
 
-### Step 3: Start Server
+That's it. The server will:
+- Auto-detect the project type
+- Start the user's app
+- Open dashboard at http://localhost:3147
 
-```bash
-cd /path/to/user/project && node "$SERVER_PATH/index.js"
-```
-
-Or use npx:
-```bash
-npx tlc-server
-```
-
-### Step 4: Show User the URLs
+### Step 2: Show User the URLs
 
 ```
 TLC Dev Server running!
