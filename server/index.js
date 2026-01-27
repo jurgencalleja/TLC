@@ -211,6 +211,7 @@ app.get('/api/status', (req, res) => {
     appPort,
     testsPass: plan.testsPass || 0,
     testsFail: plan.testsFail || 0,
+    tasks: plan.tasks?.length || 0,
     bugsOpen: bugs.filter(b => b.status === 'open').length,
     phase: plan.currentPhase,
     phaseName: plan.currentPhaseName
@@ -233,6 +234,123 @@ app.get('/api/tasks', (req, res) => {
     phaseName: plan.currentPhaseName,
     items: plan.tasks
   });
+});
+
+// Plan content endpoint
+app.get('/api/plan', (req, res) => {
+  const plan = parsePlan(PROJECT_DIR);
+  let content = '';
+
+  // Try to read current phase plan file
+  const phasesDir = path.join(PROJECT_DIR, '.planning', 'phases');
+  if (plan.currentPhase && fs.existsSync(phasesDir)) {
+    const planFile = path.join(phasesDir, `${plan.currentPhase}-PLAN.md`);
+    if (fs.existsSync(planFile)) {
+      content = fs.readFileSync(planFile, 'utf-8');
+    }
+  }
+
+  // Fallback to ROADMAP.md
+  if (!content) {
+    const roadmapFile = path.join(PROJECT_DIR, '.planning', 'ROADMAP.md');
+    if (fs.existsSync(roadmapFile)) {
+      content = fs.readFileSync(roadmapFile, 'utf-8');
+    }
+  }
+
+  res.json({
+    phase: plan.currentPhase,
+    phaseName: plan.currentPhaseName,
+    content
+  });
+});
+
+// Test checklist endpoint
+app.get('/api/tests', (req, res) => {
+  const plan = parsePlan(PROJECT_DIR);
+  let items = [];
+
+  // Try to read TESTS.md for current phase
+  const phasesDir = path.join(PROJECT_DIR, '.planning', 'phases');
+  if (plan.currentPhase && fs.existsSync(phasesDir)) {
+    const testsFile = path.join(phasesDir, `${plan.currentPhase}-TESTS.md`);
+    if (fs.existsSync(testsFile)) {
+      const content = fs.readFileSync(testsFile, 'utf-8');
+      // Parse checkboxes
+      const lines = content.split('\n');
+      for (const line of lines) {
+        const match = line.match(/^[-*]\s*\[([ x])\]\s*(.+)$/i);
+        if (match) {
+          items.push({
+            checked: match[1].toLowerCase() === 'x',
+            text: match[2].trim()
+          });
+        }
+      }
+    }
+  }
+
+  res.json({ items });
+});
+
+// Bugs list endpoint
+app.get('/api/bugs', (req, res) => {
+  const bugs = parseBugs(PROJECT_DIR);
+  res.json(bugs);
+});
+
+// Changelog endpoint
+app.get('/api/changelog', (req, res) => {
+  try {
+    const { execSync } = require('child_process');
+    const output = execSync('git log --oneline -20 --pretty=format:"%h|%s|%an|%ar"', {
+      cwd: PROJECT_DIR,
+      encoding: 'utf-8'
+    });
+
+    const commits = output.trim().split('\n').filter(Boolean).map(line => {
+      const [hash, message, author, date] = line.split('|');
+      return { hash, message, author, date };
+    });
+
+    res.json({ commits });
+  } catch (e) {
+    res.json({ commits: [] });
+  }
+});
+
+// Playwright endpoint
+app.post('/api/playwright', (req, res) => {
+  addLog('test', '--- Running Playwright tests ---', 'info');
+
+  const testProcess = spawn('npx', ['playwright', 'test'], {
+    cwd: PROJECT_DIR,
+    env: { ...process.env, CI: 'true' },
+    shell: true
+  });
+
+  testProcess.stdout.on('data', (data) => {
+    const text = data.toString().trim();
+    if (text) {
+      broadcast('test-output', { data: text, stream: 'stdout' });
+      addLog('test', text);
+    }
+  });
+
+  testProcess.stderr.on('data', (data) => {
+    const text = data.toString().trim();
+    if (text) {
+      broadcast('test-output', { data: text, stream: 'stderr' });
+      addLog('test', text, 'error');
+    }
+  });
+
+  testProcess.on('exit', (code) => {
+    broadcast('test-complete', { exitCode: code });
+    addLog('test', `Playwright ${code === 0 ? 'passed' : 'failed'}`, code === 0 ? 'success' : 'error');
+  });
+
+  res.json({ success: true });
 });
 
 app.post('/api/bug', (req, res) => {
