@@ -265,8 +265,8 @@ C:\Code\TLC\                  (or your install location)
 npm install -g tlc-claude-code
 
 # Then use anywhere:
-tlc              # Install slash commands
-tlc init         # Add dev server to project
+tlc              # Install slash commands to Claude Code
+tlc init         # Add Docker launcher to project (creates tlc-start.bat)
 tlc --help       # See all options
 ```
 

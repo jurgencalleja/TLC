@@ -4,10 +4,8 @@
  * TLC CLI - Simple entry point
  *
  * Usage:
- *   tlc           - Install TLC commands (interactive)
- *   tlc init      - Add dev server launcher to project
- *   tlc server    - Start dev server
- *   tlc setup     - Setup server requirements (Linux/macOS)
+ *   tlc           - Install TLC slash commands to Claude Code
+ *   tlc init      - Add Docker dev launcher (tlc-start.bat) to project
  */
 
 const args = process.argv.slice(2);
@@ -17,12 +15,6 @@ switch (command) {
   case 'init':
     require('./init.js');
     break;
-  case 'server':
-    require('./server.js');
-    break;
-  case 'setup':
-    require('./setup.js');
-    break;
   case 'help':
   case '--help':
   case '-h':
@@ -30,18 +22,21 @@ switch (command) {
   TLC - Test Led Coding
 
   Usage:
-    tlc              Install TLC commands to Claude Code
-    tlc init         Add dev server launcher (tlc-start.bat) to project
-    tlc server       Start the TLC dev server
-    tlc setup        Setup server requirements (Linux/macOS)
+    tlc              Install TLC slash commands to Claude Code
+    tlc init         Add Docker launcher to your project
 
   Options:
-    --global, -g     Install commands globally
-    --local, -l      Install commands locally
+    --global, -g     Install commands globally (~/.claude/commands)
+    --local, -l      Install commands locally (./.claude/commands)
 
-  Examples:
-    tlc --global     Install commands for all projects
-    tlc init         Add Docker launcher to current project
+  After 'tlc init':
+    Double-click tlc-start.bat to launch Docker dev environment:
+    - Dashboard:  http://localhost:3147
+    - App:        http://localhost:5000
+    - DB Admin:   http://localhost:8080
+    - Database:   localhost:5433
+
+  Requires: Docker Desktop (https://docker.com/products/docker-desktop)
 `);
     break;
   default:
