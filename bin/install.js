@@ -54,6 +54,7 @@ const COMMANDS = [
   'who.md',
   'bug.md',
   'server.md',
+  'start.md',
   // CI/CD & Integration
   'ci.md',
   'issues.md',
