@@ -163,6 +163,12 @@ tlc init
 - **Bug submission** — Web form for QA
 - **Task board** — Who's working on what
 - **Multi-project** — Containers named `tlc-{project}-*` for simultaneous projects
+- **Hot reload** — Code changes apply instantly (no restart needed)
+
+**Rebuild when needed:**
+```bash
+tlc rebuild      # After package.json changes or to get a clean slate
+```
 
 **Requirements:** [Docker Desktop](https://www.docker.com/products/docker-desktop)
 
@@ -267,6 +273,7 @@ npm install -g tlc-claude-code
 # Then use anywhere:
 tlc              # Install slash commands to Claude Code
 tlc init         # Add Docker launcher to project (creates tlc-start.bat)
+tlc rebuild      # Full Docker rebuild (after package.json changes)
 tlc --help       # See all options
 ```
 
