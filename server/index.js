@@ -11,10 +11,29 @@ const chokidar = require('chokidar');
 
 const { detectProject } = require('./lib/project-detector');
 const { parsePlan, parseBugs } = require('./lib/plan-parser');
+const { autoProvision, stopDatabase } = require('./lib/auto-database');
+
+// Handle PGlite WASM crashes gracefully
+process.on('uncaughtException', (err) => {
+  if (err.message && err.message.includes('unreachable')) {
+    console.error('\n[TLC] ⚠️  Database crashed (PGlite WASM limitation)');
+    console.error('[TLC] This happens with heavy concurrent database operations.');
+    console.error('[TLC] Solutions:');
+    console.error('[TLC]   1. Install Docker for stable PostgreSQL support');
+    console.error('[TLC]   2. Use an external PostgreSQL database');
+    console.error('[TLC]   3. Set DATABASE_URL environment variable\n');
+    process.exit(1);
+  }
+  console.error('[TLC] Uncaught exception:', err);
+  process.exit(1);
+});
 
 // Configuration
 const TLC_PORT = parseInt(process.env.TLC_PORT || '3147');
 const PROJECT_DIR = process.cwd();
+const SKIP_DB = process.argv.includes('--skip-db') || process.env.TLC_SKIP_DB === 'true';
+const PROXY_ONLY = process.argv.includes('--proxy-only') || process.env.TLC_PROXY_ONLY === 'true';
+const EXTERNAL_APP_PORT = parseInt(process.env.TLC_APP_PORT || '5000');
 
 // State
 let appProcess = null;
@@ -84,6 +103,18 @@ async function startApp() {
   addLog('app', `Command: ${project.cmd} ${project.args.join(' ')}`, 'info');
   addLog('app', `Port: ${appPort}`, 'info');
 
+  // Auto-provision database if needed
+  let extraEnv = {};
+  if (SKIP_DB) {
+    addLog('app', 'Skipping database auto-provisioning (--skip-db)', 'info');
+  } else {
+    try {
+      extraEnv = await autoProvision(PROJECT_DIR, (msg) => addLog('app', msg, 'info'));
+    } catch (err) {
+      addLog('app', `Database provisioning failed: ${err.message}`, 'error');
+    }
+  }
+
   // Kill existing process if any
   if (appProcess) {
     appProcess.kill();
@@ -94,7 +125,7 @@ async function startApp() {
     console.log('[TLC] Spawning:', project.cmd, project.args);
     appProcess = spawn(project.cmd, project.args, {
       cwd: PROJECT_DIR,
-      env: { ...process.env, PORT: appPort.toString() },
+      env: { ...process.env, ...extraEnv, PORT: appPort.toString() },
       shell: true
     });
 
@@ -371,11 +402,18 @@ function setupWatchers() {
 }
 
 // Graceful shutdown
-function shutdown() {
+async function shutdown() {
   console.log('\n[TLC] Shutting down...');
 
   if (appProcess) {
     appProcess.kill();
+  }
+
+  // Stop auto-provisioned database
+  try {
+    await stopDatabase();
+  } catch (e) {
+    // Ignore
   }
 
   wsClients.forEach(client => client.close());
@@ -408,7 +446,16 @@ async function main() {
   });
 
   setupWatchers();
-  await startApp();
+
+  if (PROXY_ONLY) {
+    // In proxy-only mode, just set the app port for proxying
+    // App is managed externally (e.g., by docker-compose)
+    appPort = EXTERNAL_APP_PORT;
+    console.log(`  Proxy-only mode: forwarding to app on port ${appPort}`);
+    addLog('app', `Proxy-only mode: app expected on port ${appPort}`, 'info');
+  } else {
+    await startApp();
+  }
 
   console.log('  Press Ctrl+C to stop\n');
 }
