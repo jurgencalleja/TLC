@@ -101,7 +101,6 @@ TLC knows where you are and what's next.
 | `/tlc:claim` | Reserve a task |
 | `/tlc:who` | See who's working on what |
 | `/tlc:bug` | Log a bug |
-| `/tlc:server` | Start dev server with dashboard |
 | `npx tlc-claude-code init` | Add Docker dev launcher to project |
 
 ### Integration Commands
@@ -128,9 +127,10 @@ TLC supports distributed teams with git-based coordination.
 ```
 
 ```bash
-/tlc:claim 2        # Reserve task 2
-/tlc:who            # See team status
-/tlc:server         # Start dashboard for QA
+/tlc:claim 2                  # Reserve task 2
+/tlc:who                      # See team status
+npx tlc-claude-code init      # Add dev server launcher
+# Then double-click tlc-start.bat
 ```
 
 **📄 [Full Team Workflow Guide →](docs/team-workflow.md)**
@@ -139,45 +139,34 @@ TLC supports distributed teams with git-based coordination.
 
 ## Dev Server
 
-Launch a mini-Replit for your team. Two options:
-
-### Option 1: Docker (Recommended)
-
-One-click launcher that runs your app, database, and dashboard in containers:
+Launch a mini-Replit for your team with Docker:
 
 ```bash
-# Add launcher to your project
+# Add launcher to your project (one-time)
 npx tlc-claude-code init
 
 # Then double-click tlc-start.bat (Windows)
 ```
 
 **What you get:**
-- **Dashboard**: http://localhost:3147 — Live preview, logs, tasks
-- **App**: http://localhost:5000 — Your running application
-- **DB Admin**: http://localhost:8080 — Database GUI (Adminer)
-- **Database**: localhost:5433 — PostgreSQL auto-provisioned
 
-Containers are named `tlc-{project}-*` so you can run multiple projects simultaneously.
+| URL | Service |
+|-----|---------|
+| http://localhost:3147 | Dashboard — Live preview, logs, tasks |
+| http://localhost:5000 | App — Your running application |
+| http://localhost:8080 | DB Admin — Database GUI (Adminer) |
+| localhost:5433 | Database — PostgreSQL |
 
-**Requirements:** [Docker Desktop](https://www.docker.com/products/docker-desktop)
-
-> **Note:** Windows only for now. macOS/Linux support coming soon.
-
-### Option 2: Direct (No Docker)
-
-```bash
-/tlc:server
-```
-
-Runs the app directly on your machine with auto-detected start command.
-
-### Features
-
+**Features:**
 - **Live preview** — Your app embedded in dashboard
 - **Real-time logs** — App, tests, git activity
 - **Bug submission** — Web form for QA
 - **Task board** — Who's working on what
+- **Multi-project** — Containers named `tlc-{project}-*` for simultaneous projects
+
+**Requirements:** [Docker Desktop](https://www.docker.com/products/docker-desktop)
+
+> **Note:** Windows only for now. macOS/Linux support coming soon.
 
 ---
 
@@ -290,7 +279,6 @@ Commands install to `.claude/commands/tlc/`
 
 - **[Help / All Commands](help.md)** — Complete command reference
 - **[Team Workflow](docs/team-workflow.md)** — Guide for teams (engineers + PO + QA)
-- **[Server Spec](server.md)** — Dev server documentation
 
 ---
 
