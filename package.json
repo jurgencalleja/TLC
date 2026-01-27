@@ -1,6 +1,6 @@
 {
   "name": "tlc-claude-code",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "TLC - Test Led Coding for Claude Code",
   "bin": {
     "tlc": "./bin/tlc.js",
@@ -16,7 +16,8 @@
     "start-dev.sh",
     "start-dev.bat",
     "*.md",
-    "install.sh"
+    "install.sh",
+    ".gitattributes"
   ],
   "scripts": {
     "build": "cd dashboard && npm run build",
