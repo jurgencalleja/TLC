@@ -15,6 +15,9 @@ switch (command) {
   case 'init':
     require('./init.js');
     break;
+  case 'rebuild':
+    require('./rebuild.js');
+    break;
   case 'help':
   case '--help':
   case '-h':
@@ -24,6 +27,7 @@ switch (command) {
   Usage:
     tlc              Install TLC slash commands to Claude Code
     tlc init         Add Docker launcher to your project
+    tlc rebuild      Stop, rebuild, and restart Docker containers
 
   Options:
     --global, -g     Install commands globally (~/.claude/commands)
