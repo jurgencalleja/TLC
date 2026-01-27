@@ -277,7 +277,8 @@ app.post('/api/restart', (req, res) => {
 
 // Proxy to running app
 app.use('/app', createProxyMiddleware({
-  target: () => `http://localhost:${appPort}`,
+  target: 'http://localhost:3000',  // default fallback
+  router: () => `http://localhost:${appPort}`,  // dynamic routing
   changeOrigin: true,
   pathRewrite: { '^/app': '' },
   ws: true,

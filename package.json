@@ -1,6 +1,6 @@
 {
   "name": "tlc-claude-code",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "description": "TLC - Test Led Coding for Claude Code",
   "bin": {
     "tlc-claude-code": "./bin/install.js",
