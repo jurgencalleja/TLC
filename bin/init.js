@@ -85,8 +85,9 @@ console.log('       TLC Project Init');
 console.log('  ============================');
 console.log('');
 
-// Detect OS
-const isWindows = process.platform === 'win32';
+// Detect OS - WSL counts as Windows since user will double-click .bat from Explorer
+const isWSL = process.platform === 'linux' && fs.existsSync('/mnt/c');
+const isWindows = process.platform === 'win32' || isWSL;
 
 if (isWindows) {
     // Create Windows launcher
