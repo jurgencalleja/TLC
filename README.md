@@ -193,6 +193,21 @@ Automatic repair of failing tests:
 | `/tlc:bug` | Log a bug or feedback. |
 | `/tlc:server` | Start dev server with dashboard. |
 
+### CI/CD & Integration
+
+| Command | What |
+|---------|------|
+| `/tlc:ci` | Generate CI/CD pipelines (GitHub Actions, GitLab, etc.) |
+| `/tlc:issues` | Sync with issue trackers (GitHub, Jira, Linear). |
+| `/tlc:docs` | Generate API docs, architecture, onboarding guides. |
+
+### Multi-Tool & Deployment
+
+| Command | What |
+|---------|------|
+| `/tlc:export` | Export rules for Cursor, Copilot, Continue, Cody. |
+| `/tlc:deploy` | VPS deployment with branch previews. |
+
 ### Utility
 
 | Command | What |
@@ -359,15 +374,15 @@ TLC uses specialized AI agents for different tasks. Most are invoked automatical
 TLC v1.0 - Team Collaboration Release:
 
 - [x] **Phase 1:** Core Infrastructure (multi-user, bug tracking, server spec)
-- [ ] **Phase 2:** Test Quality & Auto-Fix
-- [ ] **Phase 3:** TLC Dev Server (mini-Replit)
-- [ ] **Phase 4:** CI/CD Integration
-- [ ] **Phase 5:** Issue Tracker Integration
-- [ ] **Phase 6:** Team Documentation
-- [ ] **Phase 7:** Multi-Tool Support (Cursor, Copilot)
-- [ ] **Phase 8:** VPS Deployment Server
+- [x] **Phase 2:** Test Quality & Auto-Fix
+- [x] **Phase 3:** TLC Dev Server (mini-Replit)
+- [x] **Phase 4:** CI/CD Integration
+- [x] **Phase 5:** Issue Tracker Integration
+- [x] **Phase 6:** Team Documentation
+- [x] **Phase 7:** Multi-Tool Support (Cursor, Copilot, Continue, Cody)
+- [x] **Phase 8:** VPS Deployment Server (with auth & Slack webhooks)
 
-See `.planning/ROADMAP.md` for details.
+All command specs implemented. Server code in `server/` directory.
 
 ---
 
