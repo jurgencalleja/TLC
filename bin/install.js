@@ -28,29 +28,41 @@ ${c.cyan}  ████████╗██╗     ██████╗
 const VERSION = require('../package.json').version;
 
 const COMMANDS = [
+  // Core workflow
   'tlc.md',
   'new-project.md',
   'init.md',
   'import-project.md',
-  'coverage.md',
   'discuss.md',
   'plan.md',
   'build.md',
   'verify.md',
-  'status.md',
   'progress.md',
   'complete.md',
   'new-milestone.md',
   'quick.md',
-  'config.md',
+  // Quality & Testing
+  'status.md',
+  'coverage.md',
   'quality.md',
   'edge-cases.md',
   'autofix.md',
-  'bug.md',
-  'server.md',
+  'config.md',
+  // Team Collaboration
   'claim.md',
   'release.md',
   'who.md',
+  'bug.md',
+  'server.md',
+  // CI/CD & Integration
+  'ci.md',
+  'issues.md',
+  // Documentation
+  'docs.md',
+  // Multi-Tool & Deployment
+  'export.md',
+  'deploy.md',
+  // Help
   'help.md'
 ];
 

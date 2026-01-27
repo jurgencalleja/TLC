@@ -65,6 +65,26 @@ Launches the visual dashboard. Detects where you are, shows what's next.
 | `/tlc:release` | Release a claimed task |
 | `/tlc:who` | Show who's working on what |
 
+### CI/CD & Integration
+
+| Command | What It Does |
+|---------|--------------|
+| `/tlc:ci` | Generate CI/CD pipeline (GitHub Actions, GitLab, etc.) |
+| `/tlc:issues` | Sync with issue trackers (GitHub, Jira, Linear) |
+
+### Documentation
+
+| Command | What It Does |
+|---------|--------------|
+| `/tlc:docs` | Generate project docs (API, architecture, onboarding) |
+
+### Multi-Tool & Deployment
+
+| Command | What It Does |
+|---------|--------------|
+| `/tlc:export` | Export rules for Cursor, Copilot, Continue, Cody |
+| `/tlc:deploy` | VPS deployment with branch previews |
+
 ---
 
 ## Workflow
