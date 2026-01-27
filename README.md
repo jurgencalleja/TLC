@@ -70,9 +70,184 @@ TLC knows where you are and what's next. No phase numbers to remember.
 
 ---
 
-## Handling Untested Code
+## Team Collaboration
 
-Code comes from many sources. Not all of it has tests.
+TLC supports distributed teams with built-in coordination.
+
+### Task Claiming
+
+Prevent duplicate work when multiple engineers use Claude Code:
+
+```bash
+/tlc:claim 2        # Reserve task 2
+/tlc:release 2      # Release if blocked
+/tlc:who            # See who's working on what
+```
+
+Task status tracked in PLAN.md:
+```markdown
+### Task 1: Create schema [x@alice]     ← completed by alice
+### Task 2: Add validation [>@bob]      ← bob is working
+### Task 3: Write tests [ ]             ← available
+```
+
+### Bug Tracking
+
+QA and engineers can log bugs via CLI or web UI:
+
+```bash
+/tlc:bug "Login fails with + symbol in email"
+```
+
+Bugs tracked in `.planning/BUGS.md`, committed to git.
+
+### Dev Server
+
+Launch a mini-Replit experience for your team:
+
+```bash
+/tlc:server
+```
+
+- **Live preview** — Your app embedded in dashboard
+- **Real-time logs** — App output, test results, git activity
+- **Bug submission** — Web form with screenshot capture
+- **Task board** — Who's working on what
+
+Share URL with QA/PO: `http://192.168.1.x:3147`
+
+---
+
+## Test Quality
+
+### Quality Scoring
+
+Measure and improve test quality:
+
+```bash
+/tlc:quality
+```
+
+- Coverage percentage (lines, branches, functions)
+- Edge case detection (null, empty, boundaries)
+- Mutation testing score
+- Prioritized recommendations
+
+### Edge Case Generation
+
+AI-generated edge case tests:
+
+```bash
+/tlc:edge-cases src/auth/login.ts
+```
+
+Generates tests for null inputs, boundaries, unicode, security patterns.
+
+### Auto-Fix
+
+Automatic repair of failing tests:
+
+```bash
+/tlc:autofix
+```
+
+- Analyzes failure reason
+- Attempts fix with reasoning
+- Retries up to max attempts
+- Reports what it couldn't fix
+
+---
+
+## Commands
+
+### Core
+
+| Command | What |
+|---------|------|
+| `/tlc` | **Smart entry point. Knows what's next.** |
+| `/tlc:new-project` | Start fresh. Discuss stack, scaffold. |
+| `/tlc:init` | Add TLC to existing codebase. |
+| `/tlc:discuss` | Shape implementation approach. |
+| `/tlc:plan` | Create task plan. |
+| `/tlc:build` | Write tests → implement → verify. |
+| `/tlc:verify` | Human acceptance testing. |
+
+### Quality & Testing
+
+| Command | What |
+|---------|------|
+| `/tlc:status` | Test pass/fail counts. |
+| `/tlc:coverage` | Find untested code, write tests. |
+| `/tlc:quality` | Test quality scoring and analysis. |
+| `/tlc:edge-cases` | Generate edge case tests. |
+| `/tlc:autofix` | Auto-fix failing tests. |
+| `/tlc:config` | Configure test frameworks. |
+
+### Team Collaboration
+
+| Command | What |
+|---------|------|
+| `/tlc:claim` | Reserve a task. |
+| `/tlc:release` | Release a claimed task. |
+| `/tlc:who` | See who's working on what. |
+| `/tlc:bug` | Log a bug or feedback. |
+| `/tlc:server` | Start dev server with dashboard. |
+
+### Utility
+
+| Command | What |
+|---------|------|
+| `/tlc:quick` | One-off task with tests. |
+| `/tlc:complete` | Tag release. |
+| `/tlc:new-milestone` | Start next version. |
+| `/tlc:progress` | Check current state. |
+
+---
+
+## Test Framework
+
+TLC defaults to the **mocha ecosystem**:
+
+| Library | Purpose |
+|---------|---------|
+| mocha | Test runner |
+| chai | Assertions |
+| sinon | Mocks/stubs/spies |
+| proxyquire | Module mocking |
+
+### Configuration
+
+Configure frameworks in `.tlc.json`:
+
+```json
+{
+  "testFrameworks": {
+    "primary": "mocha",
+    "installed": ["mocha", "chai", "sinon", "proxyquire"],
+    "run": ["mocha"]
+  }
+}
+```
+
+### Multi-Framework Support
+
+Projects can have multiple test frameworks:
+
+```json
+{
+  "testFrameworks": {
+    "primary": "mocha",
+    "installed": ["mocha", "jest"],
+    "run": ["mocha", "jest"]
+  }
+}
+```
+
+Use `/tlc:config` to manage frameworks.
+
+---
+
+## Handling Untested Code
 
 ### External PRs / Other Developers
 
@@ -89,8 +264,6 @@ Found 3 new files without tests:
 Add tests now? (Y/n)
 ```
 
-TLC tracks what's tested. When new untested code appears, it flags it.
-
 ### After "Vibe Coding" Sessions
 
 Built something fast without tests? No judgment. Run:
@@ -99,78 +272,7 @@ Built something fast without tests? No judgment. Run:
 /tlc:coverage
 ```
 
-TLC scans everything, creates a prioritized backlog:
-
-```
-Coverage: 67% (24/36 files)
-
-Critical (no tests):
-  - src/auth/session.ts      ← security
-  - src/payments/charge.ts   ← money
-
-High priority:
-  - src/api/users.ts
-  - src/api/orders.ts
-
-Add to backlog and start? (Y/n)
-```
-
-### Continuous Coverage
-
-TLC integrates with your workflow:
-
-- **Before builds** — `/tlc:status` shows pass/fail counts
-- **Before releases** — `/tlc:coverage` ensures nothing slipped through
-- **Daily habit** — `/tlc` reminds you of untested code
-
----
-
-## Commands
-
-| Command | What |
-|---------|------|
-| `/tlc` | **Smart entry point. Knows what's next.** |
-| `/tlc:new-project` | Start fresh. Discuss stack, scaffold. |
-| `/tlc:init` | Add TLC to existing codebase. |
-| `/tlc:coverage` | Find untested code, write tests. |
-| `/tlc:status` | Test pass/fail counts. |
-| `/tlc:quick` | One-off task with tests. |
-
----
-
-## What Makes This Different
-
-### 1. Tests First, Always
-
-Other workflows: plan → build → "hope it works"
-
-TLC: plan → **write failing tests** → build until tests pass
-
-The tests *are* the spec. No ambiguity.
-
-### 2. Catches Coverage Gaps
-
-New code without tests? TLC notices. External PRs? Flagged. Post-hackathon cleanup? Prioritized backlog ready.
-
-### 3. Smart Stack Selection
-
-Don't pick tech in a vacuum. TLC asks what you're building, who uses it, what scale — then suggests the right stack.
-
-```
-Building: Internal dashboard
-Scale: Small team
-Data: Simple CRUD
-
-→ Suggested: Next.js + SQLite + Vercel
-→ Why: Fast to build, cheap to host, fits your needs
-```
-
-### 4. Works With Your Team
-
-TLC doesn't require everyone to use it. You can:
-- Add TLC to a project others contribute to
-- Catch untested code from any source
-- Gradually improve coverage over time
+TLC scans everything, creates a prioritized backlog.
 
 ---
 
@@ -186,21 +288,86 @@ TLC doesn't require everyone to use it. You can:
 /tlc:complete        → Tag release
 ```
 
-### Team Project, Existing Codebase
+### Team Project
 
 ```
-/tlc:init            → Set up TLC, scan codebase
-/tlc:coverage        → Write tests for critical paths
-/tlc                 → Continue with test-first for new work
+/tlc:server          → Start dev server
+/tlc:claim 1         → Claim task 1
+/tlc:build           → Build with tests
+git push             → Share progress
+/tlc:release         → Release when done
 ```
 
-### After External Contributions
+### QA Workflow
 
+1. Open dashboard: `http://192.168.1.x:3147`
+2. Test features in live preview
+3. Submit bugs via web form
+4. Verify fixes when ready
+
+---
+
+## Architecture
+
+### Planning Files
+
+| File | Purpose |
+|------|---------|
+| `PROJECT.md` | Project overview, tech stack |
+| `.planning/ROADMAP.md` | Phases and progress |
+| `.planning/phases/{N}-PLAN.md` | Task plans |
+| `.planning/BUGS.md` | Bug tracker |
+| `.tlc.json` | TLC configuration |
+| `CLAUDE.md` | Instructions for Claude |
+
+### Task Status Markers
+
+```markdown
+### Task 1: Create schema [ ]           ← available
+### Task 2: Add validation [>@alice]    ← claimed by alice
+### Task 3: Write tests [x@bob]         ← completed by bob
 ```
-git pull             → Get latest changes
-/tlc                 → "Found 2 untested files. Add tests?"
-y                    → Tests written for new code
-```
+
+---
+
+## Agents
+
+TLC uses specialized AI agents for different tasks. Most are invoked automatically.
+
+### Research Agents
+
+| Agent | Purpose |
+|-------|---------|
+| `tlc-competitor-analyst` | Competitive analysis |
+| `tlc-market-researcher` | Market landscape |
+| `tlc-tech-researcher` | Framework evaluation |
+| `tlc-security-researcher` | Security best practices |
+
+### Build Agents
+
+| Agent | Purpose |
+|-------|---------|
+| `tlc-planner` | Create test-first plans |
+| `tlc-executor` | Execute Red → Green → Refactor |
+| `tlc-coverage-analyzer` | Find untested code |
+| `tlc-verifier` | Verify phase completion |
+
+---
+
+## Roadmap
+
+TLC v1.0 - Team Collaboration Release:
+
+- [x] **Phase 1:** Core Infrastructure (multi-user, bug tracking, server spec)
+- [ ] **Phase 2:** Test Quality & Auto-Fix
+- [ ] **Phase 3:** TLC Dev Server (mini-Replit)
+- [ ] **Phase 4:** CI/CD Integration
+- [ ] **Phase 5:** Issue Tracker Integration
+- [ ] **Phase 6:** Team Documentation
+- [ ] **Phase 7:** Multi-Tool Support (Cursor, Copilot)
+- [ ] **Phase 8:** VPS Deployment Server
+
+See `.planning/ROADMAP.md` for details.
 
 ---
 
@@ -224,12 +391,6 @@ npx tlc-claude-code
 Options:
 - `--global` — Available in all projects
 - `--local` — This project only
-
----
-
-## See Also
-
-**Using GSD?** Check out [TDD Workflow](https://github.com/jurgencalleja/tdd) — same philosophy, integrates with GSD.
 
 ---
 

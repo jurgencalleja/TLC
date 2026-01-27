@@ -36,15 +36,24 @@ Launches the visual dashboard. Detects where you are, shows what's next.
 | `/tlc:build` | Write tests → implement → verify |
 | `/tlc:verify` | Human acceptance testing |
 
-### Utility
+### Quality & Testing
 
 | Command | What It Does |
 |---------|--------------|
 | `/tlc:status` | Test pass/fail counts |
+| `/tlc:coverage` | Find untested code, write tests |
+| `/tlc:quality` | Test quality scoring and analysis |
+| `/tlc:edge-cases` | Generate edge case tests |
+| `/tlc:autofix` | Auto-fix failing tests |
+| `/tlc:config` | Configure test frameworks |
+
+### Utility
+
+| Command | What It Does |
+|---------|--------------|
 | `/tlc:quick` | One-off task with tests |
 | `/tlc:complete` | Tag release |
 | `/tlc:new-milestone` | Start next version |
-| `/tlc:config` | Configure test frameworks |
 | `/tlc:bug` | Log a bug or feedback |
 | `/tlc:server` | Start dashboard server for QA |
 
