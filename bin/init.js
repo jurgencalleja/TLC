@@ -79,15 +79,28 @@ echo ""
 # TODO: Implement full macOS/Linux support
 `;
 
+// Detect OS - WSL counts as Windows since user will double-click .bat from Explorer
+const isWSL = process.platform === 'linux' && fs.existsSync('/mnt/c');
+const isWindows = process.platform === 'win32' || isWSL;
+const launcherFile = isWindows ? 'tlc-start.bat' : 'tlc-start.sh';
+const launcherPath = path.join(projectDir, launcherFile);
+
+// FAST PATH: If already initialized, just confirm and exit
+if (fs.existsSync(launcherPath) && fs.existsSync(path.join(projectDir, '.tlc.json'))) {
+    console.log('');
+    console.log(`[TLC] Already initialized. ${launcherFile} exists.`);
+    console.log('');
+    console.log('[TLC] To start: Double-click ' + launcherFile);
+    console.log('[TLC] To rebuild: tlc rebuild');
+    console.log('');
+    process.exit(0);
+}
+
 console.log('');
 console.log('  ============================');
 console.log('       TLC Project Init');
 console.log('  ============================');
 console.log('');
-
-// Detect OS - WSL counts as Windows since user will double-click .bat from Explorer
-const isWSL = process.platform === 'linux' && fs.existsSync('/mnt/c');
-const isWindows = process.platform === 'win32' || isWSL;
 
 if (isWindows) {
     // Create Windows launcher

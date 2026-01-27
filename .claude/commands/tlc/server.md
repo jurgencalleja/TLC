@@ -4,7 +4,7 @@ Set up Docker-based development environment.
 
 ## Instructions for Claude
 
-**IMPORTANT: Keep this simple. Do exactly these steps:**
+**CRITICAL: Do NOT analyze the codebase. Do NOT check files. Do NOT run any detection. Just execute the two steps below immediately.**
 
 ### Step 1: Create the launcher
 
