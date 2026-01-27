@@ -47,6 +47,9 @@ function addLog(type, text, level = '') {
   logs[type].push(entry);
   if (logs[type].length > 1000) logs[type].shift();
   broadcast(`${type}-log`, { data: text, level });
+  // Also log to console for debugging
+  const prefix = level === 'error' ? '[ERROR]' : level === 'warn' ? '[WARN]' : '[INFO]';
+  console.log(`[${type}] ${prefix} ${text}`);
 }
 
 // WebSocket connection handling
@@ -65,7 +68,11 @@ wss.on('connection', (ws) => {
 
 // Start the user's app
 async function startApp() {
+  console.log('[TLC] Starting app detection...');
+  console.log('[TLC] Project dir:', PROJECT_DIR);
+
   const project = detectProject(PROJECT_DIR);
+  console.log('[TLC] Detected project:', project);
 
   if (!project) {
     addLog('app', 'Could not detect project type. Create a start command in .tlc.json', 'error');
@@ -83,28 +90,39 @@ async function startApp() {
     await new Promise(resolve => setTimeout(resolve, 500));
   }
 
-  appProcess = spawn(project.cmd, project.args, {
-    cwd: PROJECT_DIR,
-    env: { ...process.env, PORT: appPort.toString() },
-    shell: true
-  });
+  try {
+    console.log('[TLC] Spawning:', project.cmd, project.args);
+    appProcess = spawn(project.cmd, project.args, {
+      cwd: PROJECT_DIR,
+      env: { ...process.env, PORT: appPort.toString() },
+      shell: true
+    });
 
-  appProcess.stdout.on('data', (data) => {
-    const text = data.toString().trim();
-    if (text) addLog('app', text);
-  });
+    appProcess.stdout.on('data', (data) => {
+      const text = data.toString().trim();
+      if (text) addLog('app', text);
+    });
 
-  appProcess.stderr.on('data', (data) => {
-    const text = data.toString().trim();
-    if (text) addLog('app', text, 'error');
-  });
+    appProcess.stderr.on('data', (data) => {
+      const text = data.toString().trim();
+      if (text) addLog('app', text, 'error');
+    });
 
-  appProcess.on('exit', (code) => {
-    addLog('app', `App exited with code ${code}`, code === 0 ? 'info' : 'error');
-    appProcess = null;
-  });
+    appProcess.on('error', (err) => {
+      console.error('[TLC] Spawn error:', err);
+      addLog('app', `Failed to start: ${err.message}`, 'error');
+    });
 
-  broadcast('app-start', { port: appPort });
+    appProcess.on('exit', (code) => {
+      addLog('app', `App exited with code ${code}`, code === 0 ? 'info' : 'error');
+      appProcess = null;
+    });
+
+    broadcast('app-start', { port: appPort });
+  } catch (err) {
+    console.error('[TLC] Failed to spawn app:', err);
+    addLog('app', `Failed to start app: ${err.message}`, 'error');
+  }
 }
 
 // Run tests
@@ -278,20 +296,26 @@ app.post('/api/restart', (req, res) => {
 // Proxy to running app
 app.use('/app', createProxyMiddleware({
   target: 'http://localhost:3000',  // default fallback
-  router: () => `http://localhost:${appPort}`,  // dynamic routing
+  router: () => {
+    const target = `http://localhost:${appPort}`;
+    return target;
+  },  // dynamic routing
   changeOrigin: true,
   pathRewrite: { '^/app': '' },
   ws: true,
   onError: (err, req, res) => {
-    res.status(502).send(`
-      <html>
-        <body style="font-family: system-ui; padding: 40px; background: #1a1a2e; color: #eee;">
-          <h2>App not running</h2>
-          <p>Waiting for app to start on port ${appPort}...</p>
-          <script>setTimeout(() => location.reload(), 2000)</script>
-        </body>
-      </html>
-    `);
+    // WebSocket upgrades don't have res.status
+    if (res && typeof res.status === 'function') {
+      res.status(502).send(`
+        <html>
+          <body style="font-family: system-ui; padding: 40px; background: #1a1a2e; color: #eee;">
+            <h2>App not running</h2>
+            <p>Waiting for app to start on port ${appPort}...</p>
+            <script>setTimeout(() => location.reload(), 2000)</script>
+          </body>
+        </html>
+      `);
+    }
   }
 }));
 
