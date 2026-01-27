@@ -155,6 +155,7 @@ npx tlc-claude-code init
 **What you get:**
 - **Dashboard**: http://localhost:3147 — Live preview, logs, tasks
 - **App**: http://localhost:5000 — Your running application
+- **DB Admin**: http://localhost:8080 — Database GUI (Adminer)
 - **Database**: localhost:5433 — PostgreSQL auto-provisioned
 
 Containers are named `tlc-{project}-*` so you can run multiple projects simultaneously.
