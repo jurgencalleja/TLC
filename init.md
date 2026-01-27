@@ -57,12 +57,11 @@ Look for test indicators:
 
 ### 4. Set Up Test Framework (if missing)
 
-If no tests found, set up based on detected stack:
+If no tests found, set up based on detected stack. TLC defaults to mocha for JavaScript/TypeScript:
 
 | Stack | Framework | Setup |
 |-------|-----------|-------|
-| Next.js / React | Vitest | `npm install -D vitest @testing-library/react` |
-| Node.js | Vitest | `npm install -D vitest` |
+| Next.js / React / Node.js | Mocha + Chai + Sinon | `npm install -D mocha chai sinon proxyquire` |
 | Python | pytest | `pip install pytest` or add to pyproject.toml |
 | Go | go test | Built-in, no setup needed |
 | Ruby | RSpec | `gem install rspec && rspec --init` |
@@ -70,11 +69,34 @@ If no tests found, set up based on detected stack:
 
 Create config file and test directory structure.
 
-Add test scripts to package.json / pyproject.toml / Makefile:
+For JavaScript/TypeScript, create `.mocharc.json`:
+```json
+{
+  "extension": ["js", "ts"],
+  "spec": "test/**/*.test.{js,ts}",
+  "require": ["ts-node/register"],
+  "timeout": 5000
+}
+```
+
+Create `.tlc.json`:
+```json
+{
+  "testFrameworks": {
+    "primary": "mocha",
+    "installed": ["mocha", "chai", "sinon", "proxyquire"],
+    "run": ["mocha"]
+  },
+  "testCommand": "npm test",
+  "testDirectory": "test"
+}
+```
+
+Add test scripts to package.json:
 ```json
 "scripts": {
-  "test": "vitest run",
-  "test:watch": "vitest"
+  "test": "mocha",
+  "test:watch": "mocha --watch"
 }
 ```
 
@@ -82,8 +104,35 @@ Add test scripts to package.json / pyproject.toml / Makefile:
 
 - Skip framework setup
 - Note existing test patterns for consistency
-- Report: "Found existing test framework: [vitest/jest/pytest/etc]"
+- Report: "Found existing test framework: [mocha/jest/vitest/pytest/etc]"
 - Report: "Found X existing test files"
+
+**Offer to add TLC default stack:**
+```
+Detected: jest (47 test files)
+
+Options:
+1) Keep jest only - use for all tests
+2) Add mocha alongside jest - new tests use mocha, keep existing jest
+3) Keep jest as primary - configure in .tlc.json
+
+Which approach? [1/2/3]:
+```
+
+If option 2 selected, create multi-framework config:
+```json
+{
+  "testFrameworks": {
+    "primary": "mocha",
+    "installed": ["mocha", "chai", "sinon", "proxyquire", "jest"],
+    "run": ["mocha", "jest"]
+  },
+  "commands": {
+    "mocha": "npx mocha 'test/**/*.test.js'",
+    "jest": "npx jest"
+  }
+}
+```
 
 ### 6. Analyze Existing Code Structure
 

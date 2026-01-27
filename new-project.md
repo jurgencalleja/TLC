@@ -225,9 +225,44 @@ This project uses TLC. All implementation follows Red → Green → Refactor:
 Tests are written BEFORE implementation, not after.
 
 ## Test Framework
-- [Framework based on stack]
-- Run: `npm test` / `pytest` / `go test`
+
+TLC defaults to the mocha ecosystem:
+
+| Library | Purpose |
+|---------|---------|
+| mocha | Test runner |
+| chai | Assertions |
+| sinon | Mocks/stubs/spies |
+| proxyquire | Module mocking |
+
+Run: `npm test`
+
+To use a different framework, run `/tlc:config`.
 ```
+
+### Step 6b: Create TLC Config
+
+Create `.tlc.json` with default test settings:
+
+```json
+{
+  "testFrameworks": {
+    "primary": "mocha",
+    "installed": ["mocha", "chai", "sinon", "proxyquire"],
+    "run": ["mocha"]
+  },
+  "testCommand": "npm test",
+  "testDirectory": "test"
+}
+```
+
+For non-JavaScript stacks:
+
+| Stack | Primary | Installed |
+|-------|---------|-----------|
+| Python | pytest | pytest |
+| Go | go test | (built-in) |
+| Ruby | rspec | rspec |
 
 ### Step 7: Set Up Project Structure
 
@@ -236,13 +271,42 @@ Scaffold based on chosen stack:
 ```
 project/
 ├── src/
-├── tests/
+├── test/
 ├── .env.example
+├── .tlc.json
+├── .mocharc.json
 ├── docker-compose.yml
 ├── Dockerfile
 ├── [package.json | pyproject.toml | go.mod]
-├── [vitest.config.ts | pytest.ini]
 └── PROJECT.md
+```
+
+### Step 8: Install Test Dependencies
+
+For JavaScript/TypeScript projects, install the mocha stack:
+
+```bash
+npm install -D mocha chai sinon proxyquire @types/mocha @types/chai @types/sinon
+```
+
+Create `.mocharc.json`:
+```json
+{
+  "extension": ["js", "ts"],
+  "spec": "test/**/*.test.{js,ts}",
+  "require": ["ts-node/register"],
+  "timeout": 5000
+}
+```
+
+Add to `package.json`:
+```json
+{
+  "scripts": {
+    "test": "mocha",
+    "test:watch": "mocha --watch"
+  }
+}
 ```
 
 ## Usage

@@ -42,8 +42,22 @@ Each task should be:
 - **Testable** - has clear pass/fail criteria
 - **Independent** - minimal dependencies on other tasks
 
+#### Task Status Markers (Multi-User)
+
+When working with teammates, tasks include status markers in headings:
+
+| Marker | Meaning | Example |
+|--------|---------|---------|
+| `[ ]` | Available | `### Task 1: Create schema [ ]` |
+| `[>@user]` | Claimed (in progress) | `### Task 1: Create schema [>@alice]` |
+| `[x@user]` | Completed | `### Task 1: Create schema [x@alice]` |
+
+Claim tasks before starting to avoid duplicate work.
+Use `/tlc:who` to see team status.
+Use `/tlc:claim` to claim a task, `/tlc:release` to release one.
+
 ```markdown
-## Task 1: Create user schema
+## Task 1: Create user schema [ ]
 
 **Goal:** Define database schema for users table
 

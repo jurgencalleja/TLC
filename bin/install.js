@@ -42,6 +42,12 @@ const COMMANDS = [
   'complete.md',
   'new-milestone.md',
   'quick.md',
+  'config.md',
+  'bug.md',
+  'server.md',
+  'claim.md',
+  'release.md',
+  'who.md',
   'help.md'
 ];
 

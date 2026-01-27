@@ -24,14 +24,63 @@ This is the core TLC command. Tests before code, one task at a time.
 
 Read all `.planning/phases/{phase}-*-PLAN.md` files for this phase.
 
+### Step 1b: Sync and Claim (Multi-User)
+
+Before starting work, coordinate with teammates:
+
+1. **Pull latest:** `git pull --rebase`
+2. **Get user identity:**
+   ```bash
+   if [ -n "$TLC_USER" ]; then
+     user=$TLC_USER
+   else
+     user=$(git config user.name | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+   fi
+   ```
+3. **Parse task status:** Read `[>@user]` and `[x@user]` markers from plan
+4. **Show availability:**
+   ```
+   Phase 1 Tasks:
+     [x@alice] 1. Create schema (done)
+     [ ] 2. Add validation (available)
+     [>@bob] 3. Write migrations (bob is working)
+     [ ] 4. Integration tests (available)
+
+   Work on task 2? (Y/n)
+   ```
+5. **Claim selected task:** Update `[ ]` → `[>@{user}]`
+6. **Commit claim:** `git commit -m "claim: task 2 (@{user})"`
+7. **Push:** Prompt user or auto-push
+
+If no markers exist in PLAN.md, skip this step (single-user mode).
+
 ### Step 2: Detect Test Framework
 
+#### Check TLC Config First
+
+If `.tlc.json` exists, use configured frameworks:
+
+```json
+{
+  "testFrameworks": {
+    "primary": "mocha",
+    "installed": ["mocha", "chai", "sinon", "proxyquire"],
+    "run": ["mocha"]
+  }
+}
+```
+
+#### Auto-Detection (No Config)
+
 Check what's already set up:
+- `.tlc.json` → Use configured framework
+- `mocha` in package.json → Mocha (TLC default)
+- `.mocharc.*` or `mocha.opts` → Mocha
 - `vitest.config.*` → Vitest
 - `jest.config.*` → Jest
 - `pytest.ini` or `pyproject.toml` with pytest → pytest
 - `spec/` directory → RSpec
-- None found → Set up based on PROJECT.md stack (see framework defaults below)
+- None found → Set up mocha stack (TLC default)
 
 ### Step 3: Plan Tests for Each Task
 
@@ -84,7 +133,49 @@ Follow the project's test patterns. Test names should describe expected behavior
 ✗ "test login" (too vague)
 ```
 
-**Vitest/Jest (TypeScript):**
+**Mocha/Chai (TLC Default):**
+```javascript
+const { expect } = require('chai')
+const sinon = require('sinon')
+const proxyquire = require('proxyquire')
+
+describe('login', () => {
+  let login, dbStub
+
+  beforeEach(() => {
+    dbStub = sinon.stub()
+    login = proxyquire('../src/auth/login', {
+      './db': { findUser: dbStub }
+    })
+  })
+
+  afterEach(() => {
+    sinon.restore()
+  })
+
+  it('returns user object for valid credentials', async () => {
+    dbStub.resolves({ id: 1, email: 'user@test.com' })
+
+    const result = await login('user@test.com', 'password123')
+
+    expect(result.user).to.exist
+    expect(result.user.email).to.equal('user@test.com')
+  })
+
+  it('throws AuthError for invalid password', async () => {
+    dbStub.resolves(null)
+
+    try {
+      await login('user@test.com', 'wrong')
+      expect.fail('Should have thrown')
+    } catch (err) {
+      expect(err.message).to.equal('Invalid credentials')
+    }
+  })
+})
+```
+
+**Vitest/Jest (Alternative):**
 ```typescript
 import { describe, it, expect } from 'vitest'
 import { login } from '../src/auth/login'
@@ -223,7 +314,15 @@ git add src/auth/login.ts tests/auth/login.test.ts
 git commit -m "feat: {task-title} - phase {N}"
 ```
 
-#### 7e. Move to next task
+#### 7e. Mark Task Complete (Multi-User)
+
+If using multi-user mode (task had `[>@user]` marker):
+
+1. Update marker: `[>@{user}]` → `[x@{user}]`
+2. Commit: `git commit -m "complete: task {N} - {title} (@{user})"`
+3. Push to share progress with team
+
+#### 7f. Move to next task
 Repeat 7a-7d for each task in the phase.
 
 **Critical Rules:**
@@ -255,31 +354,78 @@ Status: ✅ All tests passing (Green)
 {test runner output showing all pass}
 ```
 
-## Framework Defaults (for new projects)
+## Framework Defaults
 
-If no test framework detected, set up based on PROJECT.md:
+### TLC Default: Mocha Stack
 
-| Stack in PROJECT.md | Framework | Setup |
-|---------------------|-----------|-------|
-| Next.js, React, Vite | Vitest | `npm install -D vitest`, create `vitest.config.ts` |
-| Node.js, Express | Vitest | `npm install -D vitest`, create `vitest.config.ts` |
-| Python, FastAPI, Flask | pytest | `pip install pytest`, create `pytest.ini` |
-| Go | go test | Built-in, create `*_test.go` files |
-| Ruby, Rails | RSpec | `gem install rspec`, `rspec --init` |
+For JavaScript/TypeScript projects, TLC defaults to the mocha ecosystem:
 
-Default Vitest config:
-```typescript
-import { defineConfig } from 'vitest/config'
+| Library | Purpose | Install |
+|---------|---------|---------|
+| **mocha** | Test runner | `npm install -D mocha` |
+| **chai** | Assertions | `npm install -D chai` |
+| **sinon** | Mocks/stubs/spies | `npm install -D sinon` |
+| **proxyquire** | Module mocking | `npm install -D proxyquire` |
 
-export default defineConfig({
-  test: {
-    globals: true,
-    environment: 'node', // or 'jsdom' for React
-  },
-})
+Full setup:
+```bash
+npm install -D mocha chai sinon proxyquire @types/mocha @types/chai @types/sinon
 ```
 
-Default pytest.ini:
+Default `.mocharc.json`:
+```json
+{
+  "extension": ["js", "ts"],
+  "spec": "test/**/*.test.{js,ts}",
+  "require": ["ts-node/register"],
+  "timeout": 5000
+}
+```
+
+Default `package.json` scripts:
+```json
+{
+  "scripts": {
+    "test": "mocha",
+    "test:watch": "mocha --watch"
+  }
+}
+```
+
+### Alternative Frameworks
+
+| Stack | Framework | Setup |
+|-------|-----------|-------|
+| Vite projects | Vitest | `npm install -D vitest` |
+| React/Meta ecosystem | Jest | `npm install -D jest` |
+| Python | pytest | `pip install pytest` |
+| Go | go test | Built-in |
+| Ruby | RSpec | `gem install rspec` |
+
+To use an alternative, run `/tlc:config` to configure.
+
+### Multi-Framework Support
+
+Projects can have multiple test frameworks. Configure in `.tlc.json`:
+
+```json
+{
+  "testFrameworks": {
+    "primary": "mocha",
+    "installed": ["mocha", "chai", "sinon", "jest"],
+    "run": ["mocha", "jest"]
+  },
+  "commands": {
+    "mocha": "npx mocha 'test/**/*.test.js'",
+    "jest": "npx jest",
+    "all": "npm test"
+  }
+}
+```
+
+When running tests, TLC will execute all frameworks in the `run` array.
+
+Default pytest.ini (Python):
 ```ini
 [pytest]
 testpaths = tests

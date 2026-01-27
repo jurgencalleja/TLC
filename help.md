@@ -44,6 +44,17 @@ Launches the visual dashboard. Detects where you are, shows what's next.
 | `/tlc:quick` | One-off task with tests |
 | `/tlc:complete` | Tag release |
 | `/tlc:new-milestone` | Start next version |
+| `/tlc:config` | Configure test frameworks |
+| `/tlc:bug` | Log a bug or feedback |
+| `/tlc:server` | Start dashboard server for QA |
+
+### Multi-User Collaboration
+
+| Command | What It Does |
+|---------|--------------|
+| `/tlc:claim` | Claim a task (reserve for yourself) |
+| `/tlc:release` | Release a claimed task |
+| `/tlc:who` | Show who's working on what |
 
 ---
 
@@ -97,3 +108,46 @@ npx tlc-claude-code
 ```
 
 Lives in `.claude/commands/tlc/`
+
+---
+
+## Agents
+
+TLC includes specialized AI agents that handle research, planning, execution, and verification. Most are invoked automatically by commands.
+
+### Research Agents
+
+| Agent | Invoked By | Purpose |
+|-------|------------|---------|
+| `tlc-competitor-analyst` | `/tlc:new-project` | Competitive analysis |
+| `tlc-market-researcher` | `/tlc:new-project` | Market landscape, user needs |
+| `tlc-tech-researcher` | `/tlc:new-project`, `/tlc:plan` | Evaluate tech choices |
+| `tlc-oss-reviewer` | `/tlc:new-project` | Learn from open source |
+| `tlc-ux-researcher` | `/tlc:new-project` | UX patterns, accessibility |
+| `tlc-security-researcher` | `/tlc:plan` | Security best practices |
+| `tlc-api-analyst` | `/tlc:plan` | API design, integrations |
+| `tlc-architecture-analyst` | `/tlc:new-project` | System architecture |
+
+### Build Agents
+
+| Agent | Invoked By | Purpose |
+|-------|------------|---------|
+| `tlc-planner` | `/tlc:plan` | Create test-first plans |
+| `tlc-executor` | `/tlc:build` | Red → Green → Refactor |
+| `tlc-coverage-analyzer` | `/tlc:coverage` | Find untested code |
+| `tlc-verifier` | `/tlc:verify` | Goal-backward verification |
+| `tlc-integration-checker` | `/tlc:verify` | E2E flow verification |
+| `tlc-debugger` | Manual | Systematic debugging |
+
+### Manual Agent Invocation
+
+```
+Task(subagent_type="tlc-{agent}", prompt="...")
+```
+
+Example:
+```
+Task(subagent_type="tlc-competitor-analyst", prompt="Analyze CRM market competitors")
+```
+
+Agent definitions are in the `agents/` folder.

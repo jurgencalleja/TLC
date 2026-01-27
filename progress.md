@@ -82,6 +82,23 @@ Tests: 47 total | 45 passing | 2 failing
 Suggested: /tlc:build 4
 ```
 
+### Step 5b: Team Status (Multi-User)
+
+If task markers (`[>@user]`, `[x@user]`) exist in PLAN.md, show team activity:
+
+```
+Team Activity:
+  @alice: Task 1 (done), Task 5 (working)
+  @bob: Task 3 (working)
+  @you: Task 2 (working)
+
+Available: Task 4, Task 6
+```
+
+Parse `[>@user]` and `[x@user]` markers from current phase PLAN.md to build this view.
+
+If no markers exist, skip this section (single-user mode).
+
 ### Step 6: Suggest Next Action
 
 Based on state:
