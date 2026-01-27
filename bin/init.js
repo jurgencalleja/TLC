@@ -57,7 +57,7 @@ powershell -ExecutionPolicy Bypass -File "%TLC_DIR%\\start-dev.ps1" -ProjectPath
 pause
 `;
 
-// macOS/Linux shell script (placeholder for future)
+// macOS/Linux shell script
 const shContent = `#!/bin/bash
 # ========================================
 # TLC Dev Server Launcher
@@ -68,15 +68,48 @@ const shContent = `#!/bin/bash
 # Database:  localhost:5433
 # ========================================
 
-echo "[TLC] macOS/Linux support coming soon!"
-echo "[TLC] For now, run manually:"
-echo ""
-echo "  export PROJECT_DIR=\\$(pwd)"
-echo "  export COMPOSE_PROJECT_NAME=\\$(basename \\$(pwd) | tr -cd 'a-z0-9')"
-echo "  docker-compose -f /path/to/TLC/docker-compose.dev.yml up"
+set -e
+
+# Find TLC installation
+TLC_DIR=""
+LOCATIONS=(
+    "$HOME/.nvm/versions/node/*/lib/node_modules/tlc-claude-code"
+    "/usr/local/lib/node_modules/tlc-claude-code"
+    "/usr/lib/node_modules/tlc-claude-code"
+    "$HOME/.npm-global/lib/node_modules/tlc-claude-code"
+)
+
+# Check npm global
+NPM_ROOT=$(npm root -g 2>/dev/null || echo "")
+if [ -n "$NPM_ROOT" ] && [ -f "$NPM_ROOT/tlc-claude-code/start-dev.sh" ]; then
+    TLC_DIR="$NPM_ROOT/tlc-claude-code"
+fi
+
+# Check common locations
+if [ -z "$TLC_DIR" ]; then
+    for pattern in "\${LOCATIONS[@]}"; do
+        for dir in $pattern; do
+            if [ -f "$dir/start-dev.sh" ]; then
+                TLC_DIR="$dir"
+                break 2
+            fi
+        done
+    done
+fi
+
+if [ -z "$TLC_DIR" ]; then
+    echo "[TLC] ERROR: Could not find TLC installation"
+    echo "[TLC] Install with: npm install -g tlc-claude-code"
+    exit 1
+fi
+
+PROJECT_PATH="$(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
+
+echo "[TLC] Found TLC at: $TLC_DIR"
+echo "[TLC] Starting dev server for: $PROJECT_PATH"
 echo ""
 
-# TODO: Implement full macOS/Linux support
+exec "$TLC_DIR/start-dev.sh" "$PROJECT_PATH"
 `;
 
 // Detect OS - WSL counts as Windows since user will double-click .bat from Explorer

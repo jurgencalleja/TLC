@@ -172,8 +172,6 @@ tlc rebuild      # After package.json changes or to get a clean slate
 
 **Requirements:** [Docker Desktop](https://www.docker.com/products/docker-desktop)
 
-> **Note:** Windows only for now. macOS/Linux support coming soon.
-
 ---
 
 ## Test Quality

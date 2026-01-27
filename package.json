@@ -1,6 +1,6 @@
 {
   "name": "tlc-claude-code",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "TLC - Test Led Coding for Claude Code",
   "bin": {
     "tlc": "./bin/tlc.js",
@@ -13,6 +13,7 @@
     "server/",
     "docker-compose.dev.yml",
     "start-dev.ps1",
+    "start-dev.sh",
     "start-dev.bat",
     "*.md",
     "install.sh"

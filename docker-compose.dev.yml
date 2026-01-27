@@ -79,5 +79,21 @@ services:
       - app
     restart: on-failure
 
+  # Playwright E2E Tests (optional - starts on demand)
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.40.0-jammy
+    container_name: tlc-${COMPOSE_PROJECT_NAME:-dev}-playwright
+    working_dir: /app
+    profiles:
+      - test
+    command: npx playwright test
+    environment:
+      - BASE_URL=http://app:5000
+      - CI=true
+    volumes:
+      - ${PROJECT_DIR:-.}:/app
+    depends_on:
+      - app
+
 volumes:
   postgres-data:
