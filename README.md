@@ -154,7 +154,7 @@ tlc init
 | URL | Service |
 |-----|---------|
 | http://localhost:3147 | Dashboard — Live preview, logs, tasks |
-| http://localhost:5000 | App — Your running application |
+| http://localhost:5001 | App — Your running application |
 | http://localhost:8080 | DB Admin — Database GUI (Adminer) |
 | localhost:5433 | Database — PostgreSQL |
 

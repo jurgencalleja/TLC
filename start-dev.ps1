@@ -81,7 +81,7 @@ Set-Location $scriptDir
 Write-Host ""
 Write-Host "[TLC] Starting services..." -ForegroundColor Yellow
 Write-Host "      Dashboard: http://localhost:3147" -ForegroundColor White
-Write-Host "      App:       http://localhost:5000" -ForegroundColor White
+Write-Host "      App:       http://localhost:5001" -ForegroundColor White
 Write-Host "      DB Admin:  http://localhost:8080" -ForegroundColor White
 Write-Host "      Database:  localhost:5433 (postgres/postgres)" -ForegroundColor Gray
 Write-Host ""

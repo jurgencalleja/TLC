@@ -26,7 +26,7 @@ To start your dev environment:
 
 Services when running:
   Dashboard:  http://localhost:3147
-  App:        http://localhost:5000
+  App:        http://localhost:5001
   DB Admin:   http://localhost:8080
   Database:   localhost:5433
 

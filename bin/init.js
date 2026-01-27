@@ -18,7 +18,7 @@ const batContent = `@echo off
 :: Double-click to start your dev environment
 ::
 :: Dashboard: http://localhost:3147
-:: App:       http://localhost:5000
+:: App:       http://localhost:5001
 :: DB Admin:  http://localhost:8080
 :: Database:  localhost:5433
 :: ========================================
@@ -63,7 +63,7 @@ const shContent = `#!/bin/bash
 # TLC Dev Server Launcher
 # ========================================
 # Dashboard: http://localhost:3147
-# App:       http://localhost:5000
+# App:       http://localhost:5001
 # DB Admin:  http://localhost:8080
 # Database:  localhost:5433
 # ========================================
@@ -191,7 +191,7 @@ if (!fs.existsSync(tlcConfigPath)) {
                 const match = pkg.scripts.dev.match(/--port[=\\s]+(\\d+)/);
                 if (match) appPort = parseInt(match[1]);
             }
-            if (pkg.scripts?.dev?.includes('5000')) appPort = 5000;
+            if (pkg.scripts?.dev?.includes('5001')) appPort = 5001;
             if (pkg.scripts?.dev?.includes('3000')) appPort = 3000;
             if (pkg.scripts?.dev?.includes('5173')) appPort = 5173;
         } catch (e) {
@@ -228,7 +228,7 @@ if (isWindows) {
 console.log('');
 console.log('[TLC] Services when running:');
 console.log('      Dashboard: http://localhost:3147');
-console.log('      App:       http://localhost:5000');
+console.log('      App:       http://localhost:5001');
 console.log('      DB Admin:  http://localhost:8080');
 console.log('      Database:  localhost:5433');
 console.log('');
