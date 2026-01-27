@@ -118,12 +118,16 @@ const isWindows = process.platform === 'win32' || isWSL;
 const launcherFile = isWindows ? 'tlc-start.bat' : 'tlc-start.sh';
 const launcherPath = path.join(projectDir, launcherFile);
 
-// FAST PATH: If already initialized, just confirm and exit
-if (fs.existsSync(launcherPath) && fs.existsSync(path.join(projectDir, '.tlc.json'))) {
+// FAST PATH: If launcher exists for this OS, just confirm and exit
+if (fs.existsSync(launcherPath)) {
     console.log('');
     console.log(`[TLC] Already initialized. ${launcherFile} exists.`);
     console.log('');
-    console.log('[TLC] To start: Double-click ' + launcherFile);
+    if (isWindows) {
+        console.log('[TLC] To start: Double-click ' + launcherFile);
+    } else {
+        console.log('[TLC] To start: ./' + launcherFile);
+    }
     console.log('[TLC] To rebuild: tlc rebuild');
     console.log('');
     process.exit(0);
