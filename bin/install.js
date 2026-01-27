@@ -134,6 +134,12 @@ function install(targetDir, installType) {
 async function main() {
   const args = process.argv.slice(2);
 
+  // Handle 'init' subcommand - delegate to init.js
+  if (args[0] === 'init') {
+    require('./init.js');
+    return;
+  }
+
   printBanner();
 
   if (args.includes('--global') || args.includes('-g')) {

@@ -23,7 +23,7 @@
       border-bottom: 1px solid #30363d;
     }
     .header h1 {
-      font-size: 16px;
+      font-size: 18px;
       color: #58a6ff;
       display: flex;
       align-items: center;
@@ -31,8 +31,9 @@
     }
     .header h1 .logo {
       font-family: monospace;
-      font-size: 14px;
+      font-size: 16px;
       color: #7ee787;
+      font-weight: bold;
     }
     .header .status {
       display: flex;
@@ -46,274 +47,310 @@
     }
     .header .status .dot.running { background: #3fb950; }
     .header .status .dot.stopped { background: #f85149; }
-    .header button {
-      padding: 6px 14px;
-      background: #21262d;
-      border: 1px solid #30363d;
-      border-radius: 6px;
-      color: #e6edf3;
-      cursor: pointer;
-      font-size: 13px;
-    }
-    .header button:hover {
-      background: #30363d;
+    .header .phase-badge {
+      padding: 4px 10px;
+      background: #238636;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
     }
 
-    .main {
+    .container {
       display: grid;
-      grid-template-columns: 1fr 380px;
-      grid-template-rows: 1fr 1fr;
-      height: calc(100vh - 50px);
+      grid-template-columns: 1fr 300px;
+      height: calc(100vh - 54px);
     }
 
-    .preview {
-      grid-row: 1 / 3;
-      border-right: 1px solid #30363d;
+    .main-content {
       display: flex;
       flex-direction: column;
+      overflow: hidden;
     }
-    .preview-header {
-      padding: 8px 12px;
+
+    .tabs {
+      display: flex;
+      gap: 0;
       background: #161b22;
+      border-bottom: 1px solid #30363d;
+    }
+    .tab {
+      padding: 12px 20px;
+      background: transparent;
+      border: none;
+      color: #8b949e;
+      cursor: pointer;
+      font-size: 14px;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .tab:hover {
+      color: #e6edf3;
+      background: #21262d;
+    }
+    .tab.active {
+      color: #58a6ff;
+      border-bottom-color: #58a6ff;
+    }
+    .tab .badge {
+      background: #f85149;
+      color: white;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-size: 11px;
+      margin-left: 6px;
+    }
+
+    .tab-content {
+      flex: 1;
+      overflow: hidden;
+    }
+    .tab-panel {
+      display: none;
+      height: 100%;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    .tab-panel.active {
+      display: block;
+    }
+
+    /* Plan Panel */
+    .plan-content {
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+    .plan-content h1, .plan-content h2, .plan-content h3 {
+      font-family: system-ui, sans-serif;
+      color: #58a6ff;
+      margin: 20px 0 10px 0;
+    }
+    .plan-content h1 { font-size: 20px; }
+    .plan-content h2 { font-size: 16px; }
+    .plan-content h3 { font-size: 14px; }
+    .plan-content .task-done { color: #3fb950; }
+    .plan-content .task-working { color: #58a6ff; }
+    .plan-content .task-todo { color: #8b949e; }
+
+    /* Tests Panel */
+    .test-section {
+      margin-bottom: 30px;
+    }
+    .test-section h3 {
+      font-size: 14px;
+      color: #58a6ff;
+      margin-bottom: 15px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #30363d;
+    }
+    .test-item {
+      padding: 12px 15px;
+      background: #161b22;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .test-item .checkbox {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #30363d;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .test-item .checkbox.checked {
+      background: #238636;
+      border-color: #238636;
+    }
+    .test-item .checkbox.checked::after {
+      content: '✓';
+      color: white;
+      font-size: 12px;
+    }
+    .test-item .text {
+      flex: 1;
+    }
+    .test-actions {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    /* Bugs Panel */
+    .bug-item {
+      padding: 15px;
+      background: #161b22;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      border-left: 3px solid #f85149;
+    }
+    .bug-item.closed {
+      border-left-color: #3fb950;
+      opacity: 0.6;
+    }
+    .bug-item .bug-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #30363d;
-      gap: 10px;
+      margin-bottom: 8px;
     }
-    .preview-header .label {
-      font-size: 12px;
+    .bug-item .bug-id {
+      font-weight: bold;
+      color: #f85149;
+    }
+    .bug-item.closed .bug-id { color: #3fb950; }
+    .bug-item .bug-date {
       color: #8b949e;
-      text-transform: uppercase;
+      font-size: 12px;
     }
-    .preview-header input {
-      flex: 1;
-      padding: 6px 10px;
+    .bug-item .bug-desc {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .bug-form {
+      background: #161b22;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .bug-form h3 {
+      font-size: 14px;
+      margin-bottom: 15px;
+      color: #e6edf3;
+    }
+    .bug-form textarea {
+      width: 100%;
+      height: 80px;
+      padding: 10px;
       background: #0d1117;
       border: 1px solid #30363d;
       border-radius: 6px;
       color: #e6edf3;
-      font-size: 13px;
+      resize: vertical;
+      margin-bottom: 10px;
+      font-family: inherit;
+      font-size: 14px;
     }
-    .preview-header button {
-      padding: 6px 12px;
-      background: transparent;
-      border: 1px solid #30363d;
-      border-radius: 6px;
-      color: #8b949e;
-      cursor: pointer;
-      font-size: 12px;
-    }
-    .preview-header button:hover {
-      color: #e6edf3;
+    .bug-form textarea:focus {
+      outline: none;
       border-color: #58a6ff;
     }
-    .preview iframe {
-      flex: 1;
-      border: none;
-      background: white;
-    }
-    .preview .loading {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #1a1a2e;
-      color: #8b949e;
+    .bug-form select {
+      padding: 8px 12px;
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #e6edf3;
+      margin-right: 10px;
     }
 
-    .logs {
-      border-bottom: 1px solid #30363d;
-      display: flex;
-      flex-direction: column;
-    }
-    .logs-header {
-      padding: 8px 12px;
-      background: #161b22;
+    /* Logs Panel */
+    .logs-tabs {
       display: flex;
       gap: 8px;
-      border-bottom: 1px solid #30363d;
+      margin-bottom: 15px;
     }
-    .logs-header button {
-      padding: 4px 12px;
-      background: transparent;
+    .logs-tabs button {
+      padding: 6px 14px;
+      background: #21262d;
       border: 1px solid #30363d;
       border-radius: 4px;
       color: #8b949e;
       cursor: pointer;
       font-size: 12px;
     }
-    .logs-header button.active {
-      background: #21262d;
+    .logs-tabs button.active {
+      background: #30363d;
       color: #e6edf3;
       border-color: #58a6ff;
     }
-    .logs-header button:hover:not(.active) {
-      background: #21262d;
-    }
     .logs-content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 10px;
+      background: #010409;
+      border-radius: 6px;
+      padding: 15px;
       font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
       font-size: 12px;
-      background: #010409;
-      line-height: 1.5;
+      line-height: 1.6;
+      height: calc(100% - 60px);
+      overflow-y: auto;
     }
-    .log-line { padding: 1px 0; white-space: pre-wrap; word-break: break-word; }
+    .log-line { padding: 2px 0; white-space: pre-wrap; word-break: break-word; }
     .log-line.error { color: #f85149; }
     .log-line.success { color: #3fb950; }
     .log-line.info { color: #58a6ff; }
     .log-line.warn { color: #d29922; }
 
+    /* Changelog Panel */
+    .commit {
+      padding: 15px;
+      background: #161b22;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      display: flex;
+      gap: 15px;
+    }
+    .commit .hash {
+      font-family: monospace;
+      color: #58a6ff;
+      font-size: 12px;
+    }
+    .commit .message {
+      flex: 1;
+    }
+    .commit .message .title {
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .commit .message .meta {
+      font-size: 12px;
+      color: #8b949e;
+    }
+
+    /* Sidebar */
     .sidebar {
+      background: #161b22;
+      border-left: 1px solid #30363d;
       display: flex;
       flex-direction: column;
     }
 
-    .tasks {
-      flex: 1;
-      overflow-y: auto;
-      padding: 12px;
+    .sidebar-section {
+      padding: 20px;
+      border-bottom: 1px solid #30363d;
     }
-    .tasks-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    .tasks h2 {
+    .sidebar-section h3 {
       font-size: 11px;
       text-transform: uppercase;
       color: #8b949e;
+      margin-bottom: 15px;
       letter-spacing: 0.5px;
     }
-    .tasks .phase-name {
-      font-size: 13px;
-      color: #e6edf3;
-      font-weight: 500;
-    }
-    .task {
-      padding: 10px 12px;
-      background: #161b22;
-      border-radius: 6px;
-      margin-bottom: 8px;
-      border-left: 3px solid transparent;
-      cursor: default;
-    }
-    .task.done {
-      border-left-color: #3fb950;
-      opacity: 0.6;
-    }
-    .task.working {
-      border-left-color: #58a6ff;
-      background: #1c2128;
-    }
-    .task.available {
-      border-left-color: #484f58;
-    }
-    .task .title {
-      font-weight: 500;
-      font-size: 13px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .task .title .icon {
-      font-size: 12px;
-    }
-    .task.done .icon { color: #3fb950; }
-    .task.working .icon { color: #58a6ff; }
-    .task.available .icon { color: #484f58; }
-    .task .meta {
-      font-size: 11px;
-      color: #8b949e;
-      margin-top: 4px;
-      margin-left: 20px;
-    }
 
-    .bug-form {
-      padding: 12px;
-      background: #161b22;
-      border-top: 1px solid #30363d;
-    }
-    .bug-form h2 {
-      font-size: 11px;
-      text-transform: uppercase;
-      color: #8b949e;
-      margin-bottom: 10px;
-      letter-spacing: 0.5px;
-    }
-    .bug-form textarea {
-      width: 100%;
-      height: 60px;
-      padding: 8px;
-      background: #0d1117;
-      border: 1px solid #30363d;
-      border-radius: 6px;
-      color: #e6edf3;
-      resize: none;
-      margin-bottom: 8px;
-      font-family: inherit;
-      font-size: 13px;
-    }
-    .bug-form textarea:focus {
-      outline: none;
-      border-color: #58a6ff;
-    }
-    .bug-form .actions {
-      display: flex;
-      gap: 8px;
-    }
-    .bug-form button {
-      padding: 8px 14px;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 500;
-    }
-    .bug-form .screenshot {
-      background: #21262d;
-      color: #e6edf3;
-      flex: 1;
-      border: 1px solid #30363d;
-    }
-    .bug-form .screenshot:hover {
-      background: #30363d;
-    }
-    .bug-form .submit {
-      background: #238636;
-      color: white;
-      padding-left: 20px;
-      padding-right: 20px;
-    }
-    .bug-form .submit:hover {
-      background: #2ea043;
-    }
-
-    .stats {
+    .stats-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      padding: 12px;
-      background: #161b22;
-      border-top: 1px solid #30363d;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
     }
     .stat {
       text-align: center;
-      padding: 10px;
+      padding: 15px 10px;
       background: #0d1117;
       border-radius: 6px;
     }
     .stat-value {
-      font-size: 22px;
+      font-size: 24px;
       font-weight: bold;
       font-variant-numeric: tabular-nums;
     }
     .stat-value.green { color: #3fb950; }
     .stat-value.red { color: #f85149; }
     .stat-value.blue { color: #58a6ff; }
+    .stat-value.yellow { color: #d29922; }
     .stat-label {
       font-size: 10px;
       color: #8b949e;
@@ -321,20 +358,92 @@
       margin-top: 4px;
     }
 
-    /* Responsive */
-    @media (max-width: 900px) {
-      .main {
-        grid-template-columns: 1fr;
-        grid-template-rows: 1fr auto auto;
-      }
-      .preview {
-        grid-row: auto;
-        min-height: 300px;
-      }
-      .logs {
-        max-height: 200px;
-      }
+    .quick-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
+    .action-btn {
+      padding: 10px 15px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .action-btn.primary {
+      background: #238636;
+      color: white;
+    }
+    .action-btn.primary:hover { background: #2ea043; }
+    .action-btn.secondary {
+      background: #21262d;
+      color: #e6edf3;
+      border: 1px solid #30363d;
+    }
+    .action-btn.secondary:hover { background: #30363d; }
+    .action-btn .icon { font-size: 16px; }
+
+    .links {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .link {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      background: #0d1117;
+      border-radius: 6px;
+      text-decoration: none;
+      color: #e6edf3;
+      font-size: 13px;
+    }
+    .link:hover {
+      background: #21262d;
+    }
+    .link .url {
+      color: #8b949e;
+      font-family: monospace;
+      font-size: 11px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #8b949e;
+    }
+    .empty-state .icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+      opacity: 0.5;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .btn-primary {
+      background: #238636;
+      color: white;
+    }
+    .btn-primary:hover { background: #2ea043; }
+    .btn-secondary {
+      background: #21262d;
+      color: #e6edf3;
+      border: 1px solid #30363d;
+    }
+    .btn-secondary:hover { background: #30363d; }
   </style>
 </head>
 <body>
@@ -344,62 +453,154 @@
       Dev Server
     </h1>
     <div class="status">
+      <span class="phase-badge" id="phase-badge">Phase 1</span>
       <span class="dot" id="status-dot"></span>
       <span id="status-text">Connecting...</span>
-      <button onclick="runTests()">Run Tests</button>
-      <button onclick="restartApp()">Restart App</button>
     </div>
   </div>
 
-  <div class="main">
-    <div class="preview">
-      <div class="preview-header">
-        <span class="label">Preview</span>
-        <input type="text" id="url-bar" value="http://localhost:3000/" onkeypress="if(event.key==='Enter')navigateTo(this.value)">
-        <button onclick="refreshPreview()">Refresh</button>
-        <button onclick="openInTab()">Open in Tab</button>
+  <div class="container">
+    <div class="main-content">
+      <div class="tabs">
+        <button class="tab active" data-tab="plan">Plan</button>
+        <button class="tab" data-tab="tests">Tests</button>
+        <button class="tab" data-tab="bugs">Bugs <span class="badge" id="bugs-badge" style="display:none">0</span></button>
+        <button class="tab" data-tab="logs">Logs</button>
+        <button class="tab" data-tab="changelog">Changelog</button>
       </div>
-      <iframe id="app-frame" src="/app/"></iframe>
-    </div>
 
-    <div class="logs">
-      <div class="logs-header">
-        <button class="active" data-type="app" onclick="showLogs('app')">App</button>
-        <button data-type="test" onclick="showLogs('test')">Tests</button>
-        <button data-type="git" onclick="showLogs('git')">Git</button>
+      <div class="tab-content">
+        <!-- Plan Panel -->
+        <div class="tab-panel active" id="panel-plan">
+          <div class="plan-content" id="plan-content">
+            <div class="empty-state">
+              <div class="icon">📋</div>
+              <p>Loading plan...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tests Panel -->
+        <div class="tab-panel" id="panel-tests">
+          <div class="test-actions">
+            <button class="btn btn-primary" onclick="runTests()">▶ Run Unit Tests</button>
+            <button class="btn btn-secondary" onclick="runPlaywright()">🎭 Run Playwright</button>
+          </div>
+          <div class="test-section">
+            <h3>QA Test Checklist</h3>
+            <div id="test-checklist">
+              <div class="empty-state">
+                <div class="icon">✓</div>
+                <p>No test plan found. Create .planning/phases/{N}-TESTS.md</p>
+              </div>
+            </div>
+          </div>
+          <div class="test-section">
+            <h3>Test Results</h3>
+            <div id="test-results" class="logs-content" style="height: 300px;">
+              <div class="log-line info">Run tests to see results...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bugs Panel -->
+        <div class="tab-panel" id="panel-bugs">
+          <div class="bug-form">
+            <h3>Report New Bug</h3>
+            <textarea id="bug-desc" placeholder="Describe the bug..."></textarea>
+            <div>
+              <select id="bug-severity">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </select>
+              <button class="btn btn-primary" onclick="submitBug()">Submit Bug</button>
+            </div>
+          </div>
+          <div id="bugs-list">
+            <div class="empty-state">
+              <div class="icon">🐛</div>
+              <p>No bugs reported</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Logs Panel -->
+        <div class="tab-panel" id="panel-logs">
+          <div class="logs-tabs">
+            <button class="active" data-logtype="app" onclick="showLogs('app')">App</button>
+            <button data-logtype="test" onclick="showLogs('test')">Tests</button>
+            <button data-logtype="git" onclick="showLogs('git')">Git</button>
+          </div>
+          <div class="logs-content" id="logs-output"></div>
+        </div>
+
+        <!-- Changelog Panel -->
+        <div class="tab-panel" id="panel-changelog">
+          <div id="changelog-content">
+            <div class="empty-state">
+              <div class="icon">📝</div>
+              <p>Loading changelog...</p>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="logs-content" id="logs"></div>
     </div>
 
     <div class="sidebar">
-      <div class="tasks" id="tasks">
-        <div class="tasks-header">
-          <h2>Tasks</h2>
-          <span class="phase-name" id="phase-name">Loading...</span>
+      <div class="sidebar-section">
+        <h3>Stats</h3>
+        <div class="stats-grid">
+          <div class="stat">
+            <div class="stat-value green" id="stat-pass">-</div>
+            <div class="stat-label">Passing</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value red" id="stat-fail">-</div>
+            <div class="stat-label">Failing</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value blue" id="stat-tasks">-</div>
+            <div class="stat-label">Tasks</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value yellow" id="stat-bugs">-</div>
+            <div class="stat-label">Open Bugs</div>
+          </div>
         </div>
       </div>
 
-      <div class="bug-form">
-        <h2>Report Bug</h2>
-        <textarea id="bug-desc" placeholder="Describe the issue..."></textarea>
-        <div class="actions">
-          <button class="screenshot" onclick="takeScreenshot()">Screenshot</button>
-          <button class="submit" onclick="submitBug()">Submit Bug</button>
+      <div class="sidebar-section">
+        <h3>Quick Actions</h3>
+        <div class="quick-actions">
+          <button class="action-btn primary" onclick="runTests()">
+            <span class="icon">▶</span> Run Tests
+          </button>
+          <button class="action-btn secondary" onclick="runPlaywright()">
+            <span class="icon">🎭</span> Run Playwright
+          </button>
+          <button class="action-btn secondary" onclick="refreshAll()">
+            <span class="icon">🔄</span> Refresh All
+          </button>
         </div>
       </div>
 
-      <div class="stats">
-        <div class="stat">
-          <div class="stat-value green" id="tests-pass">-</div>
-          <div class="stat-label">Passing</div>
-        </div>
-        <div class="stat">
-          <div class="stat-value red" id="tests-fail">-</div>
-          <div class="stat-label">Failing</div>
-        </div>
-        <div class="stat">
-          <div class="stat-value blue" id="bugs-open">-</div>
-          <div class="stat-label">Open Bugs</div>
+      <div class="sidebar-section">
+        <h3>Links</h3>
+        <div class="links">
+          <a class="link" href="http://localhost:5000" target="_blank">
+            <span>App</span>
+            <span class="url">:5000</span>
+          </a>
+          <a class="link" href="http://localhost:8080" target="_blank">
+            <span>Database Admin</span>
+            <span class="url">:8080</span>
+          </a>
+          <a class="link" href="http://localhost:5433" target="_blank" onclick="event.preventDefault(); alert('Connect with: postgres://postgres:postgres@localhost:5433/app')">
+            <span>PostgreSQL</span>
+            <span class="url">:5433</span>
+          </a>
         </div>
       </div>
     </div>
@@ -409,8 +610,17 @@
     let ws;
     const logs = { app: [], test: [], git: [] };
     let currentLogType = 'app';
-    let appPort = 3000;
     let reconnectAttempts = 0;
+
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+      });
+    });
 
     function connect() {
       ws = new WebSocket(`ws://${location.host}`);
@@ -423,20 +633,12 @@
       };
 
       ws.onclose = () => {
-        console.log('Disconnected from TLC server');
+        console.log('Disconnected');
         updateStatus(false);
-        addLog('app', 'Disconnected from server', 'error');
-
-        // Reconnect with backoff
         if (reconnectAttempts < 10) {
-          const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
-          setTimeout(connect, delay);
+          setTimeout(connect, Math.min(1000 * Math.pow(2, reconnectAttempts), 30000));
           reconnectAttempts++;
         }
-      };
-
-      ws.onerror = (err) => {
-        console.error('WebSocket error:', err);
       };
 
       ws.onmessage = (event) => {
@@ -448,56 +650,29 @@
     function handleMessage(msg) {
       switch(msg.type) {
         case 'init':
-          // Restore logs from server
           Object.assign(logs, msg.data.logs || {});
-          appPort = msg.data.appPort || 3000;
-          document.getElementById('url-bar').value = `http://localhost:${appPort}/`;
           renderLogs();
           break;
-
         case 'app-log':
           addLog('app', msg.data.data, msg.data.level || detectLogLevel(msg.data.data));
           break;
-
         case 'test-output':
           addLog('test', msg.data.data, msg.data.stream === 'stderr' ? 'error' : '');
+          document.getElementById('test-results').innerHTML +=
+            `<div class="log-line ${msg.data.stream === 'stderr' ? 'error' : ''}">${escapeHtml(msg.data.data)}</div>`;
           break;
-
         case 'test-complete':
           const result = msg.data.exitCode === 0 ? 'passed' : 'failed';
           addLog('test', `Tests ${result}`, msg.data.exitCode === 0 ? 'success' : 'error');
           refreshStats();
           break;
-
         case 'git-activity':
           addLog('git', msg.data.entry, 'info');
+          refreshChangelog();
           break;
-
-        case 'app-restart':
-          addLog('app', '--- App restarting ---', 'warn');
-          setTimeout(refreshPreview, 2000);
-          break;
-
-        case 'app-start':
-          appPort = msg.data.port;
-          document.getElementById('url-bar').value = `http://localhost:${appPort}/`;
-          setTimeout(refreshPreview, 1000);
-          break;
-
-        case 'file-change':
-          addLog('app', `File changed: ${msg.data.path}`, 'info');
-          break;
-
-        case 'task-update':
-          refreshTasks();
-          break;
-
         case 'bug-created':
           addLog('app', `Bug ${msg.data.bugId} created`, 'warn');
-          refreshStats();
-          break;
-
-        case 'bug-update':
+          refreshBugs();
           refreshStats();
           break;
       }
@@ -506,50 +681,43 @@
     function updateStatus(connected) {
       const dot = document.getElementById('status-dot');
       const text = document.getElementById('status-text');
-
-      if (connected) {
-        dot.className = 'dot running';
-        text.textContent = 'Running';
-      } else {
-        dot.className = 'dot stopped';
-        text.textContent = 'Disconnected';
-      }
+      dot.className = 'dot ' + (connected ? 'running' : 'stopped');
+      text.textContent = connected ? 'Running' : 'Disconnected';
     }
 
     function detectLogLevel(text) {
-      if (/error|fail|exception|ECONNREFUSED/i.test(text)) return 'error';
+      if (/error|fail|exception/i.test(text)) return 'error';
       if (/warn/i.test(text)) return 'warn';
-      if (/success|✓|pass|ready|started|listening/i.test(text)) return 'success';
-      if (/info|GET|POST|PUT|DELETE/i.test(text)) return 'info';
+      if (/success|✓|pass|ready|started/i.test(text)) return 'success';
+      if (/info|GET|POST/i.test(text)) return 'info';
       return '';
     }
 
     function addLog(type, text, level = '') {
-      if (!text || !text.trim()) return;
-
-      const lines = text.split('\n');
-      for (const line of lines) {
+      if (!text?.trim()) return;
+      text.split('\n').forEach(line => {
         if (line.trim()) {
-          logs[type].push({ text: line, level: level || detectLogLevel(line), time: new Date() });
+          logs[type].push({ text: line, level: level || detectLogLevel(line) });
         }
-      }
-
-      // Keep last 1000 lines per type
-      while (logs[type].length > 1000) {
-        logs[type].shift();
-      }
-
-      if (type === currentLogType) {
-        renderLogs();
-      }
+      });
+      while (logs[type].length > 1000) logs[type].shift();
+      if (type === currentLogType) renderLogs();
     }
 
     function renderLogs() {
-      const container = document.getElementById('logs');
+      const container = document.getElementById('logs-output');
       container.innerHTML = logs[currentLogType].map(l =>
         `<div class="log-line ${l.level}">${escapeHtml(l.text)}</div>`
       ).join('');
       container.scrollTop = container.scrollHeight;
+    }
+
+    function showLogs(type) {
+      currentLogType = type;
+      document.querySelectorAll('.logs-tabs button').forEach(b => {
+        b.classList.toggle('active', b.dataset.logtype === type);
+      });
+      renderLogs();
     }
 
     function escapeHtml(text) {
@@ -558,31 +726,9 @@
       return div.innerHTML;
     }
 
-    function showLogs(type) {
-      currentLogType = type;
-      document.querySelectorAll('.logs-header button').forEach(b => {
-        b.classList.toggle('active', b.dataset.type === type);
-      });
-      renderLogs();
-    }
-
-    function navigateTo(url) {
-      const proxyUrl = url.replace(/^http:\/\/localhost:\d+/, '/app');
-      document.getElementById('app-frame').src = proxyUrl;
-    }
-
-    function refreshPreview() {
-      const frame = document.getElementById('app-frame');
-      frame.src = frame.src;
-    }
-
-    function openInTab() {
-      window.open(`http://localhost:${appPort}`, '_blank');
-    }
-
     async function runTests() {
+      document.getElementById('test-results').innerHTML = '<div class="log-line info">Running tests...</div>';
       addLog('test', '--- Running tests ---', 'info');
-      showLogs('test');
       try {
         await fetch('/api/test', { method: 'POST' });
       } catch (e) {
@@ -590,96 +736,133 @@
       }
     }
 
-    async function restartApp() {
+    async function runPlaywright() {
+      document.getElementById('test-results').innerHTML = '<div class="log-line info">Running Playwright tests...</div>';
+      addLog('test', '--- Running Playwright ---', 'info');
       try {
-        await fetch('/api/restart', { method: 'POST' });
+        await fetch('/api/playwright', { method: 'POST' });
       } catch (e) {
-        addLog('app', 'Failed to restart app', 'error');
+        addLog('test', 'Playwright not configured. Add playwright container to docker-compose.', 'warn');
       }
     }
 
     async function submitBug() {
       const desc = document.getElementById('bug-desc').value.trim();
-      if (!desc) {
-        alert('Please describe the bug');
-        return;
-      }
+      const severity = document.getElementById('bug-severity').value;
+      if (!desc) { alert('Please describe the bug'); return; }
 
       try {
         const res = await fetch('/api/bug', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            description: desc,
-            url: document.getElementById('url-bar').value,
-            screenshot: window.lastScreenshot || null
-          })
+          body: JSON.stringify({ description: desc, severity })
         });
         const data = await res.json();
-
         if (data.success) {
           alert(`Bug ${data.bugId} created!`);
           document.getElementById('bug-desc').value = '';
-          window.lastScreenshot = null;
-        } else {
-          alert('Failed to create bug: ' + (data.error || 'Unknown error'));
+          refreshBugs();
         }
       } catch (e) {
         alert('Failed to submit bug');
       }
     }
 
-    async function takeScreenshot() {
-      // For now, just indicate screenshot capture
-      // Full implementation would use html2canvas or server-side puppeteer
-      alert('Screenshot feature: Click Submit to log bug with current URL');
-      window.lastScreenshot = 'url-only';
+    async function refreshPlan() {
+      try {
+        const res = await fetch('/api/plan');
+        const data = await res.json();
+
+        document.getElementById('phase-badge').textContent = `Phase ${data.phase || '?'}`;
+
+        if (data.content) {
+          // Simple markdown-ish rendering
+          let html = escapeHtml(data.content)
+            .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+            .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+            .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+            .replace(/\[x@(\w+)\]/g, '<span class="task-done">[✓ @$1]</span>')
+            .replace(/\[>@(\w+)\]/g, '<span class="task-working">[→ @$1]</span>')
+            .replace(/\[ \]/g, '<span class="task-todo">[ ]</span>');
+          document.getElementById('plan-content').innerHTML = html;
+        } else {
+          document.getElementById('plan-content').innerHTML = `
+            <div class="empty-state">
+              <div class="icon">📋</div>
+              <p>No plan found. Run /tlc:plan to create one.</p>
+            </div>`;
+        }
+      } catch (e) {
+        console.error('Failed to load plan:', e);
+      }
     }
 
-    async function refreshTasks() {
+    async function refreshTests() {
       try {
-        const res = await fetch('/api/tasks');
-        const tasks = await res.json();
+        const res = await fetch('/api/tests');
+        const data = await res.json();
 
-        const container = document.getElementById('tasks');
-        const phaseName = document.getElementById('phase-name');
-
-        if (tasks.phase) {
-          phaseName.textContent = `Phase ${tasks.phase}: ${tasks.phaseName || ''}`;
-        } else {
-          phaseName.textContent = 'No active phase';
+        if (data.items?.length) {
+          document.getElementById('test-checklist').innerHTML = data.items.map((t, i) => `
+            <div class="test-item">
+              <div class="checkbox ${t.checked ? 'checked' : ''}" onclick="toggleTest(${i})"></div>
+              <span class="text">${escapeHtml(t.text)}</span>
+            </div>
+          `).join('');
         }
-
-        const taskList = tasks.items || [];
-        if (taskList.length === 0) {
-          container.innerHTML = `
-            <div class="tasks-header">
-              <h2>Tasks</h2>
-              <span class="phase-name" id="phase-name">${phaseName.textContent}</span>
-            </div>
-            <div style="color: #8b949e; font-size: 13px; padding: 20px 0;">
-              No tasks found. Run /tlc:plan to create tasks.
-            </div>
-          `;
-          return;
-        }
-
-        container.innerHTML = `
-          <div class="tasks-header">
-            <h2>Tasks</h2>
-            <span class="phase-name" id="phase-name">${phaseName.textContent}</span>
-          </div>
-        ` + taskList.map(t => `
-          <div class="task ${t.status}">
-            <div class="title">
-              <span class="icon">${t.status === 'done' ? '✓' : t.status === 'working' ? '→' : '○'}</span>
-              ${escapeHtml(t.title)}
-            </div>
-            <div class="meta">${t.owner ? '@' + t.owner : 'Available'}</div>
-          </div>
-        `).join('');
       } catch (e) {
-        console.error('Failed to refresh tasks:', e);
+        console.error('Failed to load tests:', e);
+      }
+    }
+
+    async function refreshBugs() {
+      try {
+        const res = await fetch('/api/bugs');
+        const data = await res.json();
+
+        const openBugs = data.filter(b => b.status === 'open').length;
+        const badge = document.getElementById('bugs-badge');
+        if (openBugs > 0) {
+          badge.textContent = openBugs;
+          badge.style.display = 'inline';
+        } else {
+          badge.style.display = 'none';
+        }
+
+        if (data.length) {
+          document.getElementById('bugs-list').innerHTML = data.map(b => `
+            <div class="bug-item ${b.status}">
+              <div class="bug-header">
+                <span class="bug-id">${b.id}</span>
+                <span class="bug-date">${b.date || ''}</span>
+              </div>
+              <div class="bug-desc">${escapeHtml(b.description)}</div>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        console.error('Failed to load bugs:', e);
+      }
+    }
+
+    async function refreshChangelog() {
+      try {
+        const res = await fetch('/api/changelog');
+        const data = await res.json();
+
+        if (data.commits?.length) {
+          document.getElementById('changelog-content').innerHTML = data.commits.map(c => `
+            <div class="commit">
+              <span class="hash">${c.hash?.slice(0, 7) || '---'}</span>
+              <div class="message">
+                <div class="title">${escapeHtml(c.message || '')}</div>
+                <div class="meta">${c.author || ''} • ${c.date || ''}</div>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        console.error('Failed to load changelog:', e);
       }
     }
 
@@ -688,20 +871,26 @@
         const res = await fetch('/api/status');
         const data = await res.json();
 
-        document.getElementById('tests-pass').textContent = data.testsPass || 0;
-        document.getElementById('tests-fail').textContent = data.testsFail || 0;
-        document.getElementById('bugs-open').textContent = data.bugsOpen || 0;
+        document.getElementById('stat-pass').textContent = data.testsPass || 0;
+        document.getElementById('stat-fail').textContent = data.testsFail || 0;
+        document.getElementById('stat-tasks').textContent = data.tasks || 0;
+        document.getElementById('stat-bugs').textContent = data.bugsOpen || 0;
       } catch (e) {
-        console.error('Failed to refresh stats:', e);
+        console.error('Failed to load stats:', e);
       }
+    }
+
+    function refreshAll() {
+      refreshPlan();
+      refreshTests();
+      refreshBugs();
+      refreshChangelog();
+      refreshStats();
     }
 
     // Initialize
     connect();
-    refreshTasks();
-    refreshStats();
-
-    // Refresh periodically
+    refreshAll();
     setInterval(refreshStats, 30000);
   </script>
 </body>
