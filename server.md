@@ -1,110 +1,89 @@
 # /tlc:server - TLC Development Server
 
-Launch a unified development environment with live app preview, real-time logs, and team collaboration.
+Launch a Docker-based development environment with dashboard, database, and live reload.
 
 ## Instructions for Claude
 
-**DO NOT generate server code. Run the pre-built server from the TLC package.**
+### Step 1: Run tlc init
 
-### Step 1: Start Server
-
-Run this command in the user's project directory:
+Run this command in the user's project directory to create the Docker launcher:
 
 ```bash
-npx -p tlc-claude-code tlc-server
+npx tlc-claude-code init
 ```
 
-That's it. The server will:
-- Auto-detect the project type
-- Start the user's app
-- Open dashboard at http://localhost:3147
+This creates `tlc-start.bat` in the project folder.
 
-### Step 2: Show User the URLs
+### Step 2: Show User Instructions
 
 ```
-TLC Dev Server running!
+TLC Dev Server Setup Complete!
 
-  Dashboard: http://localhost:3147
-  Share:     http://{local-ip}:3147
+Created: tlc-start.bat
 
-Open dashboard in browser to see:
-  - Live app preview
-  - Real-time logs (App / Tests / Git)
-  - Task board
-  - Bug submission form
+To start your dev environment:
+  1. Double-click tlc-start.bat (Windows)
+  2. Wait for Docker containers to start
+
+Services:
+  Dashboard:  http://localhost:3147
+  App:        http://localhost:5000
+  DB Admin:   http://localhost:8080
+  Database:   localhost:5433
+
+Requirements: Docker Desktop (https://docker.com/products/docker-desktop)
+
+Other commands:
+  tlc rebuild    # Full rebuild after package.json changes
 ```
 
 ---
 
-## What the Server Does
+## What You Get
 
-- **Auto-detects** project type (Node, Python, Go, Ruby, Rust)
-- **Starts your app** using detected dev command
-- **Proxies** app at `/app/` to avoid CORS
-- **Streams logs** via WebSocket
-- **Shows tasks** from `.planning/phases/*-PLAN.md`
-- **Accepts bugs** via web form → `.planning/BUGS.md`
+| URL | Service |
+|-----|---------|
+| http://localhost:3147 | Dashboard - Logs, tasks, bugs |
+| http://localhost:5000 | App - Your running application |
+| http://localhost:8080 | DB Admin - Adminer database GUI |
+| localhost:5433 | PostgreSQL database |
+
+## Features
+
+- **Hot reload** - Code changes apply instantly
+- **Real-time logs** - App, tests, git activity
+- **Bug submission** - Web form for QA
+- **Task board** - Who's working on what
+- **Multi-project** - Run multiple projects simultaneously
 
 ## Configuration
 
-Override auto-detection in `.tlc.json`:
+Override settings in `.tlc.json`:
 
 ```json
 {
   "server": {
     "startCommand": "npm run dev",
-    "appPort": 3000,
-    "dashboardPort": 3147
+    "appPort": 3000
   }
 }
 ```
 
-## Supported Project Types
+## Rebuild
 
-| File | Detected As | Command |
-|------|-------------|---------|
-| `package.json` (next) | Next.js | `npm run dev` |
-| `package.json` (vite) | Vite | `npm run dev` |
-| `package.json` (express) | Express | `npm start` |
-| `pyproject.toml` | FastAPI | `uvicorn main:app --reload` |
-| `requirements.txt` | Flask | `flask run` |
-| `go.mod` | Go | `go run .` |
-| `Gemfile` (rails) | Rails | `rails server` |
-| `Cargo.toml` | Rust | `cargo run` |
+After changing `package.json` or dependencies:
 
-## Dashboard Features
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  TLC Dev Server                              [Run Tests] [Restart] │
-├─────────────────────────────────────────────────────────────────┤
-│                          │                                      │
-│   ┌─────────────────┐    │    ┌────────────────────────────┐   │
-│   │  LIVE PREVIEW   │    │    │  LOGS  [App] [Tests] [Git] │   │
-│   │   (your app)    │    │    │  > Server started :3000    │   │
-│   └─────────────────┘    │    │  > GET /api/users 200 12ms │   │
-│                          │    └────────────────────────────┘   │
-│   ┌─────────────────┐    │    ┌────────────────────────────┐   │
-│   │  REPORT BUG     │    │    │  TASKS (from PLAN.md)      │   │
-│   │  [textarea]     │    │    │  ✓ Task 1 @alice           │   │
-│   │  [Submit]       │    │    │  → Task 2 @bob             │   │
-│   └─────────────────┘    │    │  ○ Task 3 (available)      │   │
-│                          │    └────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
+```bash
+tlc rebuild
 ```
 
-## QA Workflow
+Or manually:
+```bash
+# Stop containers (Ctrl+C in the terminal)
+# Double-click tlc-start.bat again
+```
 
-1. Engineer runs `/tlc:server`
-2. QA opens `http://192.168.x.x:3147` in browser
-3. QA tests app in live preview
-4. QA submits bugs via web form
-5. Bugs appear in `.planning/BUGS.md`
-6. Engineer fixes, app hot-reloads
-7. QA re-tests
+## Requirements
 
-## Notes
-
-- Works on local network (share IP with QA)
-- For remote: `ngrok http 3147`
-- All data flows through git
+- [Docker Desktop](https://www.docker.com/products/docker-desktop)
+- Windows (macOS/Linux support coming soon)
