@@ -1,15 +1,17 @@
 {
   "name": "tlc-claude-code",
-  "version": "0.6.4",
+  "version": "0.7.0",
   "description": "TLC - Test Led Coding for Claude Code",
   "bin": {
     "tlc-claude-code": "./bin/install.js",
-    "tlc-dashboard": "./dashboard/dist/index.js"
+    "tlc-dashboard": "./dashboard/dist/index.js",
+    "tlc-server": "./server/index.js"
   },
   "files": [
     "bin/",
     "dashboard/dist/",
     "dashboard/package.json",
+    "server/",
     "*.md",
     "install.sh"
   ],
