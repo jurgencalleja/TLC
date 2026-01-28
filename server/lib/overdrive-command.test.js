@@ -33,9 +33,9 @@ describe('overdrive-command', () => {
       expect(options.agents).toBe(4);
     });
 
-    it('caps agents at 5', () => {
-      const options = parseOverdriveArgs('--agents 10');
-      expect(options.agents).toBe(5);
+    it('caps agents at 10', () => {
+      const options = parseOverdriveArgs('--agents 15');
+      expect(options.agents).toBe(10);
     });
 
     it('parses --mode flag', () => {

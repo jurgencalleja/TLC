@@ -631,7 +631,7 @@ Phase 2 complete. Ready for /tlc:verify 2
 | Flag | Description |
 |------|-------------|
 | `--sequential` | Force sequential execution even if tasks are independent |
-| `--agents N` | Set max parallel agents (default: 3, max: 5) |
+| `--agents N` | Set max parallel agents (default: 3, max: 10) |
 
 ## When Overdrive is NOT Used
 

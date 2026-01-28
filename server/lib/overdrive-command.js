@@ -31,7 +31,7 @@ function parseOverdriveArgs(args = '') {
     if (/^\d+$/.test(part)) {
       options.phase = parseInt(part, 10);
     } else if (part === '--agents' && parts[i + 1]) {
-      options.agents = Math.min(parseInt(parts[++i], 10), 5); // Max 5 agents
+      options.agents = Math.min(parseInt(parts[++i], 10), 10); // Max 10 agents
     } else if (part === '--mode' && parts[i + 1]) {
       options.mode = parts[++i];
     } else if (part === '--dry-run') {
