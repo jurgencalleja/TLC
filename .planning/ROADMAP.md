@@ -166,13 +166,15 @@ TLC is the **only AI coding tool that enforces test-first development**. While c
   - [x] Sample request/response payloads
   - [x] Error response documentation
 - [x] Docs generator orchestrator
-- [ ] Auth flow documentation
-  - [ ] Token formats and flows
-  - [ ] Permission/role documentation
-  - [ ] Security scheme definitions
-- [ ] Dashboard integration
+- [x] Auth flow documentation
+  - [x] Token formats and flows (JWT, OAuth2, API key, basic, session)
+  - [x] Permission/role detection
+  - [x] Security scheme generation
+  - [x] Markdown documentation generation
+- [x] Dashboard integration
+  - [x] DocsPane component
+  - [x] `/tlc:docs` command
   - [ ] Swagger UI embedded in dashboard
-  - [ ] `/tlc:docs` command
 - [ ] AI-agent-friendly format
   - [ ] Structured for MCP tool use
   - [ ] Machine-readable endpoints
@@ -184,7 +186,10 @@ TLC is the **only AI coding tool that enforces test-first development**. While c
 - [x] orm-schema-parser: 32 tests
 - [x] example-generator: 35 tests
 - [x] docs-generator: 13 tests
-- Total: 195 new tests
+- [x] docs-command: 28 tests
+- [x] auth-flow-docs: 34 tests
+- [x] DocsPane: 21 tests
+- Total: 278 new tests (Phase 4)
 
 **Success Criteria:**
 - API docs viewable in dashboard next to live app
