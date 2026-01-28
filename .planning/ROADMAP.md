@@ -202,21 +202,46 @@ TLC is the **only AI coding tool that enforces test-first development**. While c
 
 ---
 
-### Phase 5: CI/CD Integration [ ]
+### Phase 5: CI/CD Integration [>]
 
 **Goal:** Enforce test-first in automated pipelines.
 
 **Deliverables:**
-- GitHub Actions template (`/tlc:ci`)
-- Block merges when tests fail
-- Coverage threshold enforcement
-- Auto-run `/tlc:coverage` on PRs
-- PR test report comments
-- **Regression test suite on merge/import:**
-  - `/tlc:merge` - Run full regression before completing merge
-  - Pre-merge hooks that require test pass
-  - Import detection (new dependencies, breaking changes)
-  - Automatic rollback if regression fails
+- [x] GitHub Actions workflow generator (github-actions.js)
+  - [x] Test workflow generation with matrix support
+  - [x] PR workflow generation
+  - [x] Custom YAML serializer (no external deps)
+  - [x] Package manager detection (npm, pnpm, yarn, python, go)
+- [x] `/tlc:ci` command (ci-command.js)
+  - [x] --test, --pr, --both workflow types
+  - [x] --threshold for coverage limits
+  - [x] --dry-run preview mode
+  - [x] Auto-detect package manager
+- [x] Coverage threshold enforcement (coverage-threshold.js)
+  - [x] Parse Istanbul/Vitest/Jest coverage JSON
+  - [x] Parse pytest coverage output
+  - [x] Parse Go coverage output
+  - [x] Per-file threshold checks
+- [x] PR test report generation (pr-report.js)
+  - [x] Parse Vitest/Jest/pytest/Go test output
+  - [x] Generate PR comment markdown
+  - [x] Generate GitHub step summary
+  - [x] Collapsible failure details
+- [x] Block merges when tests fail (via merge-command)
+- [x] **Regression test suite on merge/import:**
+  - [x] `/tlc:merge` - Run full regression before completing merge
+  - [x] Pre-merge checks (uncommitted changes, branch validation)
+  - [x] Import detection (new dependencies, breaking changes)
+  - [x] Merge summary generation
+  - [ ] Pre-merge hooks (git hooks integration)
+
+**Test Progress:**
+- [x] github-actions: 50 tests
+- [x] ci-command: 31 tests
+- [x] coverage-threshold: 36 tests
+- [x] pr-report: 41 tests
+- [x] merge-command: 20 tests
+- Total: 178 new tests (856 server + 149 dashboard = 1005 total)
 
 **Merge Workflow:**
 ```
@@ -240,38 +265,69 @@ Fail → Abort merge, show failures
 
 ---
 
-### Phase 6: Issue Tracker Integration [ ]
+### Phase 6: Issue Tracker Integration [x]
 
 **Goal:** Connect TLC to external project management.
 
 **Deliverables:**
-- Linear MCP integration
-- `/tlc:issue` - Import requirements from issue tracker
-- Auto-generate test specs from issue descriptions
-- Update issue status when tests pass
-- Bi-directional sync (bugs → issues)
+- [x] Issue tracker core module (issue-tracker.js)
+  - [x] Support for Linear, GitHub, Jira, GitLab
+  - [x] Status normalization across trackers
+  - [x] Priority normalization
+  - [x] Acceptance criteria extraction from descriptions
+  - [x] Test case extraction (Given/When/Then support)
+- [x] `/tlc:issue` command (issue-command.js)
+  - [x] Import issues and generate test specs
+  - [x] List issues from tracker
+  - [x] Show issue status
+  - [x] Sync task statuses to issues
+  - [x] Support for markdown and JSON output
+- [x] Auto-generate test specs from issue descriptions
+  - [x] Extract acceptance criteria from checkboxes and "should" statements
+  - [x] Generate test spec markdown with test cases
+- [x] Bi-directional sync (bugs → issues) (bug-sync.js)
+  - [x] Parse BUGS.md format
+  - [x] Convert bugs to issue tracker format
+  - [x] Convert issues to bug format
+  - [x] Find status updates between bugs and issues
+  - [x] Generate sync reports
+
+**Test Progress:**
+- [x] issue-tracker: 39 tests
+- [x] issue-command: 34 tests
+- [x] bug-sync: 35 tests
+- Total: 108 new tests (964 server + 149 dashboard = 1113 total)
 
 **Success Criteria:**
-- PO creates issues, engineers get test specs
-- Issue status reflects actual test state
-- Bugs flow back to issue tracker
+- [x] PO creates issues, engineers get test specs
+- [x] Issue status reflects actual test state
+- [x] Bugs flow back to issue tracker
 
 ---
 
-### Phase 7: Team Workflow Documentation [ ]
+### Phase 7: Team Workflow Documentation [>]
 
 **Goal:** Document how teams of 3+ engineers collaborate with TLC.
 
 **Deliverables:**
-- Team workflow paper
-- Role-specific guides (Engineer, PO, QA)
-- Video tutorials
-- Example project walkthrough
+- [x] Team workflow paper (generateTeamWorkflow)
+- [x] Role-specific guides (Engineer, PO, QA, Lead)
+- [x] Onboarding guide (generateOnboardingGuide)
+- [x] `/tlc:docs` command for generation
+- [x] Common pitfalls by role
+- [x] Quick start per role
+- [ ] Video tutorials (external)
+- [ ] Example project walkthrough (external)
+
+**Test Progress:**
+- [x] team-docs: 36 tests
+- [x] team-docs-command: 24 tests
+- Total: 60 new tests (1024 server + 149 dashboard = 1173 total)
 
 **Success Criteria:**
-- New team can onboard in <1 hour
-- Clear role boundaries documented
-- Common pitfalls addressed
+- [x] New team can onboard in <1 hour (onboarding guide)
+- [x] Clear role boundaries documented (role guides)
+- [x] Common pitfalls addressed (PITFALLS per role)
 
 ---
 
