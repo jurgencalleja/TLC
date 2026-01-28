@@ -76,7 +76,8 @@ Launches the visual dashboard. Detects where you are, shows what's next.
 
 | Command | What It Does |
 |---------|--------------|
-| `/tlc:docs` | Generate project docs (API, architecture, onboarding) |
+| `/tlc:docs` | Generate API docs (OpenAPI, MCP, examples) |
+| `/tlc:team-docs` | Generate team workflow, role guides, onboarding |
 
 ### Multi-Tool & Deployment
 
