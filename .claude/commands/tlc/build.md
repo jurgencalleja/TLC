@@ -12,10 +12,13 @@ Write failing tests, then implement to make them pass.
 
 This is the core TLC command. Tests before code, one task at a time.
 
+**Overdrive Mode:** When tasks are independent, TLC auto-detects and offers parallel execution with multiple agents.
+
 ## Usage
 
 ```
 /tlc:build <phase_number>
+/tlc:build <phase_number> --sequential   # Force sequential mode
 ```
 
 ## Process
@@ -24,7 +27,96 @@ This is the core TLC command. Tests before code, one task at a time.
 
 Read all `.planning/phases/{phase}-*-PLAN.md` files for this phase.
 
-### Step 1b: Sync and Claim (Multi-User)
+### Step 1a: Overdrive Detection (Auto-Parallel)
+
+After loading plans, analyze task dependencies to determine if parallel execution is possible.
+
+**Check for dependencies:**
+```javascript
+// Patterns that indicate dependencies:
+// - "depends on task N"
+// - "after task N"
+// - "requires task N"
+// - "blocked by task N"
+// - "## Dependencies" section with task relationships
+```
+
+**Decision logic:**
+1. Parse all tasks from plan
+2. Look for dependency markers in task descriptions
+3. Check "## Dependencies" section if present
+4. Identify independent tasks (no dependencies)
+
+**If 2+ independent tasks found:**
+```
+🚀 Overdrive Mode Available
+
+Phase 3 has 4 independent tasks that can run in parallel:
+  - Task 1: Create user schema
+  - Task 2: Add validation helpers
+  - Task 3: Write migration scripts
+  - Task 4: Create seed data
+
+Recommended: 3 agents (optimal parallelism)
+
+Options:
+1) Overdrive mode (parallel agents) [Recommended]
+2) Sequential mode (one task at a time)
+3) Let me pick which tasks to parallelize
+```
+
+**If tasks have dependencies (waterfall):**
+```
+📋 Sequential Mode
+
+Phase 3 tasks have dependencies:
+  Task 2 depends on Task 1
+  Task 3 depends on Task 2
+
+Running in sequential order.
+```
+
+### Step 1b: Execute Overdrive (if selected)
+
+When overdrive mode is selected, spawn parallel agents:
+
+```
+🚀 Launching Overdrive Mode
+
+Spawning 3 agents in parallel...
+
+Agent 1: Task 1 - Create user schema
+Agent 2: Task 2 - Add validation helpers
+Agent 3: Task 3 - Write migration scripts
+
+[All agents spawned - working in background]
+[Task 4 queued for next available agent]
+```
+
+**Agent execution rules:**
+- Each agent gets one task
+- Agents work autonomously (no confirmation prompts)
+- Each agent commits after completing their task
+- When an agent finishes, it can pick up queued tasks
+- All agents follow test-first methodology
+
+**CRITICAL: Spawn all agents in a SINGLE message using multiple Task tool calls.**
+
+```
+Task(description="Agent 1: Task 1", prompt="...", subagent_type="gsd-executor", run_in_background=true)
+Task(description="Agent 2: Task 2", prompt="...", subagent_type="gsd-executor", run_in_background=true)
+Task(description="Agent 3: Task 3", prompt="...", subagent_type="gsd-executor", run_in_background=true)
+```
+
+**After all agents complete:**
+1. Run full test suite
+2. Verify all tasks pass
+3. Report results
+4. Continue to Step 8 (verification)
+
+### Step 1c: Sync and Claim (Multi-User, Sequential Only)
+
+**Note:** Skip this step if using Overdrive mode - agents handle claiming automatically.
 
 Before starting work, coordinate with teammates:
 
@@ -435,44 +527,80 @@ python_functions = test_*
 
 ## Example Run
 
+### Sequential Mode (Tasks with Dependencies)
+
 ```
 User: /tlc:build 1
 
 Claude: Loading phase 1 plans...
-Found 2 plans:
-- 01-01-PLAN.md: User authentication
-- 01-02-PLAN.md: Session management
+Found: 1-PLAN.md (3 tasks)
+
+📋 Sequential Mode
+Task 2 depends on Task 1, Task 3 depends on Task 2.
+Running in sequential order.
 
 Checking test framework... Vitest detected.
 
-Writing tests for 01-01-PLAN.md...
-Created: tests/auth/login.test.ts (4 tests)
-Created: tests/auth/logout.test.ts (2 tests)
+Writing tests for Task 1: User schema...
+Created: tests/db/schema.test.ts (4 tests)
+❌ Tests failing (expected)
+Committed: test: add schema tests (red)
 
-Writing tests for 01-02-PLAN.md...
-Created: tests/session/session.test.ts (5 tests)
+Implementing Task 1: User schema...
+✅ tests/db/schema.test.ts passing
+Committed: feat: user schema - phase 1
 
-Running tests...
-❌ 11 tests failing (expected - no implementation yet)
-
-Created 01-TESTS.md
-
-Implementing task 1/3: User login...
-✅ tests/auth/login.test.ts passing
-Committed: feat: user login - phase 1
-
-Implementing task 2/3: User registration...
-✅ tests/auth/register.test.ts passing
-Committed: feat: user registration - phase 1
-
-Implementing task 3/3: Session management...
-✅ tests/session/session.test.ts passing
-Committed: feat: session management - phase 1
-
-Running tests again...
-✅ 11 tests passing
+Writing tests for Task 2: Validation...
+[continues sequentially...]
 
 Phase 1 complete. Ready for /tlc:verify 1
+```
+
+### Overdrive Mode (Independent Tasks)
+
+```
+User: /tlc:build 2
+
+Claude: Loading phase 2 plans...
+Found: 2-PLAN.md (4 tasks)
+
+🚀 Overdrive Mode Available
+
+Phase 2 has 4 independent tasks:
+  - Task 1: Create API routes
+  - Task 2: Add input validation
+  - Task 3: Write error handlers
+  - Task 4: Add rate limiting
+
+Recommended: 3 agents
+
+Options:
+1) Overdrive mode (parallel) [Recommended]
+2) Sequential mode
+3) Pick tasks to parallelize
+
+User: 1
+
+Claude: 🚀 Launching Overdrive Mode
+
+Spawning 3 agents...
+[Agent 1] Task 1: Create API routes - STARTED
+[Agent 2] Task 2: Add input validation - STARTED
+[Agent 3] Task 3: Write error handlers - STARTED
+[Queued] Task 4: Add rate limiting
+
+... agents working in background ...
+
+[Agent 2] ✅ Task 2 complete (3 commits)
+[Agent 2] Task 4: Add rate limiting - STARTED
+[Agent 1] ✅ Task 1 complete (4 commits)
+[Agent 3] ✅ Task 3 complete (2 commits)
+[Agent 2] ✅ Task 4 complete (2 commits)
+
+All agents complete. Running full test suite...
+✅ 24 tests passing
+
+Phase 2 complete. Ready for /tlc:verify 2
 ```
 
 ## Error Recovery
@@ -491,3 +619,24 @@ Phase 1 complete. Ready for /tlc:verify 1
 - Report specific failures
 - Suggest running `/tlc:build {phase}` again to retry
 - Or manually fix and run `/tlc:status` to verify
+
+**Overdrive mode issues:**
+- Agent stuck → Check with `TaskOutput` tool
+- Merge conflicts → Agents working on same files (rare if tasks are truly independent)
+- One agent failed → Other agents continue; fix failed task manually
+- Want sequential instead → Use `--sequential` flag: `/tlc:build 2 --sequential`
+
+## Flags
+
+| Flag | Description |
+|------|-------------|
+| `--sequential` | Force sequential execution even if tasks are independent |
+| `--agents N` | Set max parallel agents (default: 3, max: 5) |
+
+## When Overdrive is NOT Used
+
+Overdrive auto-detects but won't activate when:
+- Only 1 task in phase
+- All tasks have dependencies (waterfall)
+- Tasks modify the same files
+- User passes `--sequential`
