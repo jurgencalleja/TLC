@@ -83,7 +83,9 @@ Launches the visual dashboard. Detects where you are, shows what's next.
 
 | Command | What It Does |
 |---------|--------------|
-| `/tlc:export` | Export rules for Cursor, Copilot, Continue, Cody |
+| `/tlc:export` | Export TLC rules for AI tools (Cursor, Copilot, Cody, etc.) |
+| `/tlc:export --list` | Show all supported AI tools |
+| `/tlc:export --detect` | Detect which AI tool is running |
 | `/tlc:deploy` | VPS deployment with branch previews |
 
 ---
