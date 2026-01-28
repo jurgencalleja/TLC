@@ -140,39 +140,51 @@ TLC is the **only AI coding tool that enforces test-first development**. While c
 
 ---
 
-### Phase 4: API Documentation Generation [ ]
+### Phase 4: API Documentation Generation [>]
 
 **Goal:** Auto-generate comprehensive API docs for humans, AI coders, and deployed AI agents.
 
 **Deliverables:**
-- Swagger/OpenAPI integration (`/tlc:docs`)
-  - **Adopt existing specs first** (swagger.json, openapi.yaml, etc.)
-  - Auto-detect routes if no spec exists (Express, Fastify, Hono, etc.)
-  - Generate OpenAPI 3.x specification
-  - Swagger UI embedded in dashboard
-  - Merge: existing spec + detected routes not in spec
-- ORM schema documentation
-  - Drizzle, Prisma, TypeORM support
-  - JSON Schema export for models
-  - Relationship diagrams
-- Example requests/responses
-  - Auto-generate curl examples
-  - Sample request/response payloads
-  - Error response documentation
-- Auth flow documentation
-  - Token formats and flows
-  - Permission/role documentation
-  - Security scheme definitions
-- AI-agent-friendly format
-  - Structured for MCP tool use
-  - Machine-readable endpoints
-  - Type definitions for code generation
+- [x] Route detection module
+  - [x] Detect Express, Fastify, Hono, Koa frameworks
+  - [x] Extract routes from code patterns
+  - [x] Parse path parameters
+- [x] OpenAPI generator
+  - [x] Generate OpenAPI 3.x specification
+  - [x] JSON and YAML serialization
+  - [x] Validation
+- [x] Spec merger
+  - [x] Find existing swagger/openapi specs
+  - [x] Merge detected routes into existing specs
+  - [x] Filter duplicates
+- [x] ORM schema parser
+  - [x] Drizzle, Prisma, TypeORM support
+  - [x] JSON Schema export for models
+  - [ ] Relationship diagrams
+- [x] Example generator
+  - [x] Auto-generate curl examples
+  - [x] Sample request/response payloads
+  - [x] Error response documentation
+- [x] Docs generator orchestrator
+- [ ] Auth flow documentation
+  - [ ] Token formats and flows
+  - [ ] Permission/role documentation
+  - [ ] Security scheme definitions
+- [ ] Dashboard integration
+  - [ ] Swagger UI embedded in dashboard
+  - [ ] `/tlc:docs` command
+- [ ] AI-agent-friendly format
+  - [ ] Structured for MCP tool use
+  - [ ] Machine-readable endpoints
 
-**Triggers:**
-- `/tlc:docs` - Generate/regenerate all documentation
-- Auto-run on new routes detected
-- Auto-run on schema changes
-- Serve in dashboard alongside app preview
+**Test Progress:**
+- [x] route-detector: 33 tests
+- [x] openapi-generator: 48 tests
+- [x] spec-merger: 34 tests
+- [x] orm-schema-parser: 32 tests
+- [x] example-generator: 35 tests
+- [x] docs-generator: 13 tests
+- Total: 195 new tests
 
 **Success Criteria:**
 - API docs viewable in dashboard next to live app
