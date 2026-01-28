@@ -84,21 +84,25 @@ TLC is the **only AI coding tool that enforces test-first development**. While c
 
 ---
 
-### Phase 3: TLC Dev Server (Mini-Replit) [ ]
+### Phase 3: TLC Dev Server (Mini-Replit) [>]
 
 **Goal:** Unified development environment with live preview and team collaboration.
 
 **Deliverables:**
-- Auto-detect project type (Next.js, Express, Python, Go, etc.)
-- Start app server automatically
-- Embed running app in dashboard (iframe with proxy)
-- Real-time log streaming:
-  - App stdout/stderr
-  - Test output
-  - Git activity
-- Screenshot capture for bug reports
-- Hot reload on file changes
-- Single URL for PO/QA (no technical setup)
+- [x] Auto-detect project type (Next.js, Express, Python, Go, etc.)
+- [x] Dockerfile generation per service type
+- [x] Docker-compose generation with infrastructure (postgres, redis, minio)
+- [x] Service proxy configuration for routing to containers
+- [x] Container lifecycle management (start/stop/restart/logs)
+- [x] Log formatting, filtering, and buffering
+- [x] ServicesPane dashboard component (container status)
+- [x] LogsPane dashboard component (real-time logs)
+- [ ] Start app server automatically (`/tlc:start`)
+- [ ] Embed running app in dashboard (iframe with proxy)
+- [ ] Real-time log streaming via WebSocket
+- [ ] Screenshot capture for bug reports
+- [ ] Hot reload on file changes
+- [ ] Single URL for PO/QA (no technical setup)
 
 **Architecture:**
 ```
@@ -112,6 +116,16 @@ TLC is the **only AI coding tool that enforces test-first development**. While c
 │  localhost:3000 (Your App)          │
 └─────────────────────────────────────┘
 ```
+
+**Test Progress:**
+- [x] docker-manager: 20 tests
+- [x] log-streamer: 15 tests
+- [x] service-proxy: 17 tests
+- [x] container-orchestrator: 33 tests
+- [x] dev-server-command: 25 tests
+- [x] ServicesPane: 13 tests
+- [x] LogsPane: 18 tests
+- Total: 141 new tests (233 server + 108 dashboard = 341 total)
 
 **Success Criteria:**
 - QA tests real app in browser, submits bugs with screenshots
