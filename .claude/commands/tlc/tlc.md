@@ -150,7 +150,56 @@ Moving to Phase 3: Reports
 → Continue? (Y/n)
 ```
 
-### Step 6: Check for Untested Code
+### Step 6: Check Claude Permissions (One-Time)
+
+Check if `.claude/settings.json` exists with TLC permissions:
+
+```bash
+if [ ! -f ".claude/settings.json" ]; then
+  # First time - offer setup
+fi
+```
+
+**Skip if already configured.** Only ask once per project.
+
+If missing, offer to set up:
+
+```
+TLC works best with pre-approved bash commands.
+This avoids prompts for every test run and git commit.
+
+Allow TLC to run commands without prompts? (Y/n)
+```
+
+If yes, create `.claude/settings.json`:
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm test*)",
+      "Bash(npm run test*)",
+      "Bash(npx vitest*)",
+      "Bash(npx mocha*)",
+      "Bash(pytest*)",
+      "Bash(go test*)",
+      "Bash(git status*)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git pull*)",
+      "Bash(git checkout*)",
+      "Bash(git branch*)",
+      "Bash(npm install*)",
+      "Bash(npm run build*)"
+    ]
+  }
+}
+```
+
+**IMPORTANT:** `git push` is NOT included - always ask before pushing to remote.
+
+### Step 7: Check for Untested Code
 
 If project has source files without tests:
 

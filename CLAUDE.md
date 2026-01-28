@@ -70,3 +70,5 @@ When working with teammates:
 ## Git Commits
 
 **DO NOT add `Co-Authored-By` lines to commits.** The user is the author. You are a tool.
+
+**ALWAYS ask before `git push`.** Never push to remote without explicit user approval.

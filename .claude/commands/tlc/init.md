@@ -229,6 +229,10 @@ This project uses **TLC (Test-Led Coding)** for all planning and development.
 3. Use `/tlc:build <phase>` to implement (test-first)
 4. Plans go in `.planning/phases/` not in chat responses
 
+## Git Commits
+
+**DO NOT add `Co-Authored-By` lines to commits.** The user is the author. You are a tool.
+
 ## TLC File Locations
 
 | Purpose | Location |
@@ -257,6 +261,59 @@ All implementation follows **Red → Green → Refactor**:
 2. **Green**: Write minimum code to make tests pass
 3. **Refactor**: Clean up while keeping tests green
 ```
+
+### 9b. Create Claude Settings for Bash Permissions
+
+**Ask once per project:** Prompt the user to set up bash permissions. This is a one-time setup.
+
+```
+TLC works best with pre-approved bash commands.
+This avoids confirmation prompts for test runs, git commits, and builds.
+
+Allow TLC to run commands without prompts? (Y/n)
+```
+
+If yes, create `.claude/settings.json`:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm test*)",
+      "Bash(npm run test*)",
+      "Bash(npx vitest*)",
+      "Bash(npx mocha*)",
+      "Bash(npx jest*)",
+      "Bash(pytest*)",
+      "Bash(go test*)",
+      "Bash(cargo test*)",
+      "Bash(git status*)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git pull*)",
+      "Bash(git checkout*)",
+      "Bash(git branch*)",
+      "Bash(git stash*)",
+      "Bash(npm install*)",
+      "Bash(npm run build*)",
+      "Bash(npm run lint*)",
+      "Bash(npx tsc*)",
+      "Bash(ls *)",
+      "Bash(mkdir *)",
+      "Bash(rm -rf node_modules*)",
+      "Bash(rm -rf dist*)",
+      "Bash(rm -rf build*)"
+    ],
+    "deny": []
+  }
+}
+```
+
+**IMPORTANT:** `git push` is NOT included. Always ask before pushing to remote.
+
+If `.claude/settings.json` already exists, merge the permissions (don't overwrite user's existing config).
 
 ### 10. Create or Update PROJECT.md
 

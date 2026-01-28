@@ -148,6 +148,17 @@ Lives in `.claude/commands/tlc/`
 
 ---
 
+## Bash Permissions
+
+On first run, TLC offers to set up pre-approved bash commands. This avoids confirmation prompts for:
+- Test runs (`npm test`, `vitest`, `pytest`, etc.)
+- Git operations (except `push` - always asks)
+- Build commands (`npm run build`, `tsc`, etc.)
+
+Settings stored in `.claude/settings.json`. One-time setup per project.
+
+---
+
 ## Agents
 
 TLC includes specialized AI agents that handle research, planning, execution, and verification. Most are invoked automatically by commands.
