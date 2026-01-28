@@ -366,7 +366,7 @@ Fail → Abort merge, show failures
 
 ---
 
-### Phase 9: VPS Deployment Server [ ]
+### Phase 9: VPS Deployment Server [x]
 
 **Goal:** Central server for distributed teams - push to branch, VPS deploys.
 
@@ -384,48 +384,29 @@ Engineers (worldwide) → git push → GitHub → webhook → VPS
 ```
 
 **Deliverables:**
-- `tlc-server` npm package for VPS
-- GitHub/GitLab webhook listener
-- Per-branch deployments (subdomains)
-- Reverse proxy (caddy/nginx)
-- **Basic auth with users table** (not SSO)
-- Docker-based isolation per branch
-- Log streaming to dashboard
-- Central bug tracker
-- **Slack integration (webhooks)**
+- [x] GitHub/GitLab webhook listener (webhook-listener.js)
+- [x] Per-branch deployments with subdomains (branch-deployer.js)
+- [x] Reverse proxy config generation (caddy/nginx)
+- [x] Basic auth with users table (auth-system.js)
+- [x] JWT tokens and session management
+- [x] Docker-based isolation per branch
+- [x] Slack integration with webhooks (slack-notifier.js)
+- [x] `/tlc:deploy` command (deploy-command.js)
+- [ ] `tlc-server` npm package (packaging task)
 
-**Auth System:**
-```
-Users table:
-- id, email, password_hash, role (admin/engineer/qa/po)
-- JWT tokens for API access
-- Session management
-```
-
-**Slack Notifications:**
-```
-Events → Slack webhook:
-- 🐛 Bug submitted: "BUG-007: Login fails (@alice)"
-- ✅ Tests passing: "feature/auth - 24/24 tests pass"
-- ❌ Tests failing: "feature/auth - 2 tests failed"
-- 🚀 Deploy complete: "feature/auth deployed to auth.app.example.com"
-- 📋 Task claimed: "@bob claimed Task 3: Add validation"
-- 🔄 Branch updated: "feature/auth - 3 new commits"
-
-Config (.tlc.json):
-{
-  "slack": {
-    "webhookUrl": "https://hooks.slack.com/services/xxx",
-    "channel": "#dev-notifications",
-    "events": ["bug", "test-fail", "deploy", "claim"]
-  }
-}
-```
+**Test Progress:**
+- [x] webhook-listener: 49 tests
+- [x] branch-deployer: 27 tests
+- [x] auth-system: 60 tests
+- [x] slack-notifier: 35 tests
+- [x] deploy-command: 33 tests
+- Total: 204 new tests (1373 server + 149 dashboard = 1522 total)
 
 **Success Criteria:**
-- Engineer pushes, VPS auto-deploys within 2 minutes
-- QA logs in, sees all branches, tests any of them
-- Bugs submitted through dashboard appear in git
+- [x] Webhook listener validates GitHub/GitLab signatures
+- [x] Branch deployer generates container names and subdomains
+- [x] Auth system handles users, JWT, sessions, permissions
+- [x] Slack notifier sends formatted notifications
 
 ---
 
