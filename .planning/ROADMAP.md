@@ -175,9 +175,11 @@ TLC is the **only AI coding tool that enforces test-first development**. While c
   - [x] DocsPane component
   - [x] `/tlc:docs` command
   - [ ] Swagger UI embedded in dashboard
-- [ ] AI-agent-friendly format
-  - [ ] Structured for MCP tool use
-  - [ ] Machine-readable endpoints
+- [x] AI-agent-friendly format
+  - [x] MCP tool definitions from OpenAPI
+  - [x] MCP server manifest generation
+  - [x] Tool invocation examples
+  - [x] Markdown documentation
 
 **Test Progress:**
 - [x] route-detector: 33 tests
@@ -189,7 +191,8 @@ TLC is the **only AI coding tool that enforces test-first development**. While c
 - [x] docs-command: 28 tests
 - [x] auth-flow-docs: 34 tests
 - [x] DocsPane: 21 tests
-- Total: 278 new tests (Phase 4)
+- [x] mcp-format: 38 tests
+- Total: 316 new tests (Phase 4)
 
 **Success Criteria:**
 - API docs viewable in dashboard next to live app
