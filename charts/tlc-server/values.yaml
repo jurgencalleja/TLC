@@ -1,0 +1,142 @@
+# TLC Server Helm Chart Values
+
+# Domain configuration
+domain: ""  # Required: e.g., project.example.com
+
+# Image configuration
+image:
+  repository: ghcr.io/jurgencalleja/tlc-server
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+# Replica count
+replicaCount: 1
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 3147
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+  tls:
+    enabled: true
+    secretName: tlc-tls
+
+# PostgreSQL configuration
+postgresql:
+  enabled: true
+  auth:
+    username: tlc
+    database: tlc
+    existingSecret: ""  # Use existing secret for password
+  primary:
+    persistence:
+      enabled: true
+      size: 10Gi
+
+# External PostgreSQL (if postgresql.enabled is false)
+externalPostgresql:
+  host: ""
+  port: 5432
+  username: tlc
+  database: tlc
+  existingSecret: ""
+
+# TLC configuration
+tlc:
+  # Admin credentials
+  admin:
+    email: ""  # Required
+    existingSecret: ""  # Secret with 'password' key
+
+  # JWT configuration
+  jwt:
+    existingSecret: ""  # Secret with 'secret' key
+    expiresIn: "7d"
+
+  # Webhook configuration
+  webhook:
+    existingSecret: ""  # Secret with 'secret' key
+
+  # Slack integration (optional)
+  slack:
+    webhookUrl: ""
+    existingSecret: ""  # Secret with 'webhookUrl' key
+
+# Branch deployments
+deployments:
+  enabled: true
+  # Resource limits per branch deployment
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  # Max concurrent deployments
+  maxConcurrent: 10
+  # Namespace for branch deployments
+  namespace: tlc-deployments
+
+# Resource limits for TLC server
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 200m
+    memory: 256Mi
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
+
+# Pod security context
+podSecurityContext:
+  fsGroup: 1000
+
+# Container security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+
+# Liveness and readiness probes
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 5
+
+# Service account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Persistent volume for deployments
+persistence:
+  enabled: true
+  storageClass: ""
+  size: 50Gi
+  accessModes:
+    - ReadWriteOnce

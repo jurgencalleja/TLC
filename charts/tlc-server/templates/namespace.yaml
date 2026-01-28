@@ -1,0 +1,9 @@
+{{- if .Values.deployments.enabled }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.deployments.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/part-of: {{ include "tlc-server.name" . }}
+{{- end }}

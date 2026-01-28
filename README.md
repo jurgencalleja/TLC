@@ -290,10 +290,91 @@ Commands install to `.claude/commands/tlc/`
 
 ---
 
+## VPS Deployment
+
+Deploy TLC server for your team on any VPS.
+
+### Quick Setup (Ubuntu)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/jurgencalleja/TLC/main/scripts/vps-setup.sh | bash
+```
+
+### What You Get
+
+| URL | Service |
+|-----|---------|
+| `https://dashboard.project.com` | TLC Dashboard with auth |
+| `https://main.project.com` | Main branch deployment |
+| `https://feat-x.project.com` | Feature branch deployment |
+
+### Requirements
+
+- Ubuntu 22.04+ VPS (2GB+ RAM)
+- Domain with wildcard DNS (`*.project.com → VPS_IP`)
+- GitHub/GitLab repo access
+
+### Manual Setup
+
+1. **Install dependencies**
+   ```bash
+   apt install docker.io nginx certbot nodejs npm postgresql
+   ```
+
+2. **Clone and configure**
+   ```bash
+   git clone https://github.com/jurgencalleja/TLC.git /opt/tlc
+   cd /opt/tlc && npm install
+   cp .env.example .env  # Edit with your settings
+   ```
+
+3. **Setup nginx + SSL**
+   ```bash
+   certbot --nginx -d "*.project.com" -d "dashboard.project.com"
+   ```
+
+4. **Start server**
+   ```bash
+   systemctl enable tlc && systemctl start tlc
+   ```
+
+5. **Configure webhook** in GitHub/GitLab repo settings
+
+[**Full VPS Guide →**](docs/vps-deployment.md)
+
+---
+
+## Kubernetes Deployment
+
+For teams using Kubernetes:
+
+```bash
+# Add Helm repo
+helm repo add tlc https://jurgencalleja.github.io/TLC/charts
+
+# Install
+helm install tlc tlc/tlc-server \
+  --set domain=project.example.com \
+  --set slack.webhookUrl=https://hooks.slack.com/...
+```
+
+### Kubernetes Features
+
+- **Auto-scaling** branch deployments per namespace
+- **Ingress** with wildcard TLS
+- **Persistent volumes** for deployment state
+- **ConfigMaps** for environment config
+
+[**Full K8s Guide →**](docs/kubernetes-deployment.md)
+
+---
+
 ## Documentation
 
 - **[Help / All Commands](help.md)** — Complete command reference
 - **[Team Workflow](docs/team-workflow.md)** — Guide for teams (engineers + PO + QA)
+- **[VPS Deployment](docs/vps-deployment.md)** — Deploy on Ubuntu VPS
+- **[Kubernetes Deployment](docs/kubernetes-deployment.md)** — Deploy on K8s
 
 ---
 
