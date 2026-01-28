@@ -331,23 +331,29 @@ Fail → Abort merge, show failures
 
 ---
 
-### Phase 8: Multi-Tool Support [ ]
+### Phase 8: Multi-Tool Support [x]
 
 **Goal:** Support Cursor, Antigravity, Copilot, Continue, and other AI coding tools.
 
 **Deliverables:**
-- `/tlc:export-rules` - Generate tool-specific config files:
-  - `AGENTS.md` (universal standard)
-  - `.cursor/rules/tlc.mdc` (Cursor)
-  - `.antigravity/rules.md` (Google Antigravity)
-  - `.windsurfrules` (Windsurf)
-  - `.github/copilot-instructions.md` (Copilot)
-  - `.continue/rules/tlc.md` (Continue)
-  - `.cody/instructions.md` (Cody)
-  - `.amazonq/rules/tlc.md` (Amazon Q)
-  - `.aider.conf.yml` (Aider)
-- Runtime detection (which AI tool is running)
-- TLC MCP Server (works with any MCP-compatible tool)
+- [x] `/tlc:export` - Generate tool-specific config files:
+  - [x] `AGENTS.md` (universal standard)
+  - [x] `.cursor/rules/tlc.mdc` (Cursor)
+  - [x] `.antigravity/rules.md` (Google Antigravity)
+  - [x] `.windsurfrules` (Windsurf)
+  - [x] `.github/copilot-instructions.md` (Copilot)
+  - [x] `.continue/rules/tlc.md` (Continue)
+  - [x] `.cody/instructions.md` (Cody)
+  - [x] `.amazonq/rules/tlc.md` (Amazon Q)
+  - [x] `.aider.conf.yml` (Aider)
+- [x] Runtime detection (which AI tool is running)
+- [ ] TLC MCP Server (works with any MCP-compatible tool) - deferred to v1.1
+
+**Test Progress:**
+- [x] tool-rules: 62 tests
+- [x] tool-detector: 47 tests
+- [x] export-command: 36 tests
+- Total: 145 new tests (1169 server + 149 dashboard = 1318 total)
 
 **Why This Matters:**
 - Teams use different tools (Cursor, Antigravity, VS Code + Copilot)
@@ -355,8 +361,8 @@ Fail → Abort merge, show failures
 - `AGENTS.md` is backed by Google, OpenAI, Sourcegraph, Cursor
 
 **Success Criteria:**
-- Engineer using Cursor/Antigravity gets same TLC workflow as Claude Code
-- Test-first enforcement works across all supported tools
+- [x] Engineer using Cursor/Antigravity gets same TLC workflow as Claude Code
+- [x] Test-first enforcement works across all supported tools
 
 ---
 
