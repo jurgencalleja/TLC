@@ -446,6 +446,64 @@ Status: ✅ All tests passing (Green)
 {test runner output showing all pass}
 ```
 
+### Step 10: Auto-Review (Mandatory)
+
+**This step runs automatically. Do not skip.**
+
+Before completing the phase, run a full code review:
+
+```bash
+# Review current branch vs main
+git diff --name-status main...HEAD
+```
+
+**Checks performed:**
+
+1. **Test Coverage** - Every implementation file has a test file
+2. **TDD Compliance** - Commits show test-first pattern (score ≥ 50%)
+3. **Security Scan** - No hardcoded secrets, eval(), innerHTML, etc.
+
+**Review output:**
+
+```
+───────────────────────────────
+🔍 Auto-Review Results
+
+Test Coverage: ✅ 5/5 files covered
+TDD Score: 75% ✅
+Security: ✅ No issues
+
+Verdict: ✅ APPROVED
+───────────────────────────────
+```
+
+**If review fails:**
+
+```
+───────────────────────────────
+🔍 Auto-Review Results
+
+Test Coverage: ❌ 2 files missing tests
+├── src/utils.js → needs src/utils.test.js
+└── src/helpers.js → needs src/helpers.test.js
+
+TDD Score: 25% ❌ (target: 50%)
+Security: ❌ 1 high severity issue
+└── Hardcoded password in src/config.js
+
+Verdict: ❌ CHANGES REQUESTED
+
+⚠️ Phase cannot complete until issues are fixed.
+───────────────────────────────
+```
+
+**Actions on failure:**
+1. Add missing test files
+2. Fix security issues
+3. Re-run `/tlc:build {phase}` to retry
+
+**CRITICAL: Phase is NOT complete until review passes.**
+
 ## Framework Defaults
 
 ### TLC Default: Mocha Stack
