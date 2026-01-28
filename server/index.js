@@ -218,6 +218,25 @@ app.get('/api/status', (req, res) => {
   });
 });
 
+app.get('/api/progress', (req, res) => {
+  const plan = parsePlan(PROJECT_DIR);
+
+  // Calculate progress from tasks
+  let progress = 0;
+  if (plan.tasks && plan.tasks.length > 0) {
+    const completed = plan.tasks.filter(t => t.status === 'done' || t.status === 'complete').length;
+    progress = Math.round((completed / plan.tasks.length) * 100);
+  }
+
+  res.json({
+    phase: plan.currentPhase,
+    phaseName: plan.currentPhaseName,
+    totalTasks: plan.tasks?.length || 0,
+    completedTasks: plan.tasks?.filter(t => t.status === 'done' || t.status === 'complete').length || 0,
+    progress
+  });
+});
+
 app.get('/api/logs/:type', (req, res) => {
   const type = req.params.type;
   if (logs[type]) {

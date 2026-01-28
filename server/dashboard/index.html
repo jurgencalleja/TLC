@@ -424,6 +424,65 @@
       opacity: 0.5;
     }
 
+    /* App Preview */
+    .app-preview-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .app-preview-toolbar {
+      display: flex;
+      gap: 10px;
+      padding: 10px 0;
+      align-items: center;
+      border-bottom: 1px solid #30363d;
+      margin-bottom: 10px;
+    }
+    .app-preview-toolbar .app-url {
+      margin-left: auto;
+      font-family: monospace;
+      font-size: 12px;
+      color: #8b949e;
+    }
+    .app-iframe {
+      flex: 1;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      background: white;
+      width: 100%;
+      min-height: 500px;
+    }
+
+    /* Progress Bar */
+    .progress-container {
+      margin-bottom: 20px;
+    }
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+    .progress-header .phase-name {
+      color: #58a6ff;
+      font-weight: 500;
+    }
+    .progress-header .progress-pct {
+      color: #3fb950;
+    }
+    .progress-bar {
+      height: 8px;
+      background: #21262d;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #238636, #3fb950);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
     /* Buttons */
     .btn {
       padding: 8px 16px;
@@ -462,7 +521,8 @@
   <div class="container">
     <div class="main-content">
       <div class="tabs">
-        <button class="tab active" data-tab="plan">Plan</button>
+        <button class="tab active" data-tab="app">🖥️ App</button>
+        <button class="tab" data-tab="plan">Plan</button>
         <button class="tab" data-tab="tests">Tests</button>
         <button class="tab" data-tab="bugs">Bugs <span class="badge" id="bugs-badge" style="display:none">0</span></button>
         <button class="tab" data-tab="logs">Logs</button>
@@ -470,8 +530,21 @@
       </div>
 
       <div class="tab-content">
+        <!-- App Preview Panel -->
+        <div class="tab-panel active" id="panel-app">
+          <div class="app-preview-container">
+            <div class="app-preview-toolbar">
+              <button class="btn btn-secondary" onclick="reloadApp()">🔄 Reload</button>
+              <button class="btn btn-secondary" onclick="openAppNewTab()">↗️ Open in New Tab</button>
+              <button class="btn btn-primary" onclick="captureScreenshot()">📸 Screenshot for Bug</button>
+              <span class="app-url" id="app-url">Loading...</span>
+            </div>
+            <iframe id="app-iframe" src="/app" class="app-iframe"></iframe>
+          </div>
+        </div>
+
         <!-- Plan Panel -->
-        <div class="tab-panel active" id="panel-plan">
+        <div class="tab-panel" id="panel-plan">
           <div class="plan-content" id="plan-content">
             <div class="empty-state">
               <div class="icon">📋</div>
@@ -550,6 +623,19 @@
 
     <div class="sidebar">
       <div class="sidebar-section">
+        <h3>Progress</h3>
+        <div class="progress-container">
+          <div class="progress-header">
+            <span class="phase-name" id="progress-phase">Phase 1</span>
+            <span class="progress-pct" id="progress-pct">0%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
         <h3>Stats</h3>
         <div class="stats-grid">
           <div class="stat">
@@ -589,15 +675,15 @@
       <div class="sidebar-section">
         <h3>Links</h3>
         <div class="links">
-          <a class="link" href="http://localhost:5001" target="_blank">
-            <span>App</span>
-            <span class="url">:5001</span>
+          <a class="link" id="link-app" href="#" target="_blank">
+            <span>App (Direct)</span>
+            <span class="url" id="link-app-port">:3000</span>
           </a>
           <a class="link" href="http://localhost:8080" target="_blank">
             <span>Database Admin</span>
             <span class="url">:8080</span>
           </a>
-          <a class="link" href="http://localhost:5433" target="_blank" onclick="event.preventDefault(); alert('Connect with: postgres://postgres:postgres@localhost:5433/app')">
+          <a class="link" href="#" onclick="event.preventDefault(); alert('Connect with: postgres://postgres:postgres@localhost:5433/app')">
             <span>PostgreSQL</span>
             <span class="url">:5433</span>
           </a>
@@ -611,6 +697,8 @@
     const logs = { app: [], test: [], git: [] };
     let currentLogType = 'app';
     let reconnectAttempts = 0;
+    let appPort = 3000;
+    let screenshotData = null;
 
     // Tab switching
     document.querySelectorAll('.tab').forEach(tab => {
@@ -651,7 +739,16 @@
       switch(msg.type) {
         case 'init':
           Object.assign(logs, msg.data.logs || {});
+          if (msg.data.appPort) {
+            updateAppPort(msg.data.appPort);
+          }
           renderLogs();
+          break;
+        case 'app-start':
+          if (msg.data.port) {
+            updateAppPort(msg.data.port);
+            reloadApp();
+          }
           break;
         case 'app-log':
           addLog('app', msg.data.data, msg.data.level || detectLogLevel(msg.data.data));
@@ -886,12 +983,85 @@
       refreshBugs();
       refreshChangelog();
       refreshStats();
+      refreshProgress();
+    }
+
+    // App Preview functions
+    function reloadApp() {
+      const iframe = document.getElementById('app-iframe');
+      iframe.src = iframe.src;
+    }
+
+    function openAppNewTab() {
+      window.open(`http://localhost:${appPort}`, '_blank');
+    }
+
+    async function captureScreenshot() {
+      try {
+        // Use html2canvas-like approach via the iframe
+        const iframe = document.getElementById('app-iframe');
+
+        // For cross-origin iframes, we can't capture directly
+        // Instead, prompt user to use browser screenshot or provide manual upload
+        const desc = prompt('Describe the bug (screenshot will be from current app view):');
+        if (!desc) return;
+
+        // Create bug with current URL
+        const res = await fetch('/api/bug', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            description: desc,
+            severity: 'medium',
+            url: iframe.src
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert(`Bug ${data.bugId} created!\n\nTip: Use browser's screenshot tool (Cmd+Shift+4 on Mac, Win+Shift+S on Windows) to capture and attach manually.`);
+          refreshBugs();
+        }
+      } catch (e) {
+        alert('Failed to create bug: ' + e.message);
+      }
+    }
+
+    async function refreshProgress() {
+      try {
+        const res = await fetch('/api/progress');
+        const data = await res.json();
+
+        const phaseName = `Phase ${data.phase || '?'}: ${data.phaseName || 'Unknown'}`;
+        const pct = data.progress || 0;
+
+        document.getElementById('progress-phase').textContent = phaseName;
+        document.getElementById('progress-pct').textContent = `${pct}%`;
+        document.getElementById('progress-fill').style.width = `${pct}%`;
+      } catch (e) {
+        // Fallback to stats-based progress
+        try {
+          const res = await fetch('/api/status');
+          const data = await res.json();
+          const phaseName = `Phase ${data.phase || '?'}`;
+          document.getElementById('progress-phase').textContent = phaseName;
+        } catch (e2) {
+          console.error('Failed to load progress:', e2);
+        }
+      }
+    }
+
+    function updateAppPort(port) {
+      appPort = port;
+      document.getElementById('app-url').textContent = `localhost:${port}`;
+      document.getElementById('link-app').href = `http://localhost:${port}`;
+      document.getElementById('link-app-port').textContent = `:${port}`;
     }
 
     // Initialize
     connect();
     refreshAll();
     setInterval(refreshStats, 30000);
+    setInterval(refreshProgress, 30000);
   </script>
 </body>
 </html>

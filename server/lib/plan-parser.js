@@ -108,11 +108,32 @@ function parseBugs(projectDir) {
 
   let match;
   while ((match = bugRegex.exec(content)) !== null) {
-    const [, id, title, status] = match;
+    const [fullMatch, id, title, status] = match;
+
+    // Try to extract date and description from following lines
+    const afterBug = content.slice(match.index + fullMatch.length);
+    const nextBugIndex = afterBug.search(/###\s+BUG-/);
+    const bugSection = nextBugIndex > 0 ? afterBug.slice(0, nextBugIndex) : afterBug;
+
+    // Extract date
+    const dateMatch = bugSection.match(/\*\*Reported:\*\*\s*(\S+)/);
+    const date = dateMatch ? dateMatch[1] : null;
+
+    // Extract severity
+    const severityMatch = bugSection.match(/\*\*Severity:\*\*\s*(\w+)/);
+    const severity = severityMatch ? severityMatch[1].toLowerCase() : 'medium';
+
+    // Extract description (text after metadata, before ---)
+    const lines = bugSection.split('\n').filter(l => l.trim() && !l.startsWith('-') && !l.startsWith('*'));
+    const description = lines.slice(0, 2).join(' ').trim().slice(0, 200);
+
     bugs.push({
       id,
       title: title.trim(),
-      status: status.toLowerCase()
+      status: status.toLowerCase(),
+      date,
+      severity,
+      description: description || title.trim()
     });
   }
 

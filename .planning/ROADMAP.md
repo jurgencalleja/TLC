@@ -84,7 +84,7 @@ TLC is the **only AI coding tool that enforces test-first development**. While c
 
 ---
 
-### Phase 3: TLC Dev Server (Mini-Replit) [>]
+### Phase 3: TLC Dev Server (Mini-Replit) [x]
 
 **Goal:** Unified development environment with live preview and team collaboration.
 
@@ -103,7 +103,7 @@ TLC is the **only AI coding tool that enforces test-first development**. While c
 - [x] Dev server runtime integration
 - [x] AppPreview component for embedded app viewing
 - [x] Start app server automatically (`/tlc:start`) - command exists
-- [ ] Single URL for PO/QA (no technical setup) - needs web dashboard
+- [x] Single URL for PO/QA (no technical setup) - web dashboard with app preview
 
 **Architecture:**
 ```
