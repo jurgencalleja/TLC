@@ -32,27 +32,30 @@ TLC is the **only AI coding tool that enforces test-first development**. While c
 
 ---
 
-### Phase 2: Test Quality & Auto-Fix [current]
+### Phase 2: Test Quality & Auto-Fix [x]
 
 **Goal:** Improve test quality metrics and automate failure recovery.
 
 **Deliverables:**
-- Test quality scoring (`/tlc:quality`)
-  - Coverage percentage
-  - Edge case detection
-  - Mutation testing score
-- Auto-fix on test failure
-  - Retry loop with reasoning
-  - Configurable max attempts
-  - Show debugging steps
-- Edge case generator (`/tlc:edge-cases`)
-  - AI-generated edge cases from code analysis
-  - Integration with mutation testing
+- [x] Test quality scoring (`/tlc:quality`)
+  - [x] Coverage percentage parsing (Istanbul + Vitest)
+  - [x] Edge case detection
+  - [x] Quality score calculation (40% coverage + 30% edge cases + 30% mutation)
+- [x] Auto-fix on test failure (`/tlc:autofix`)
+  - [x] Error pattern matching
+  - [x] Fix proposal generation
+  - [x] Configurable max attempts
+- [x] Edge case generator (`/tlc:edge-cases`)
+  - [x] Function parsing (TypeScript/JavaScript)
+  - [x] Edge cases by parameter type
+  - [x] Security pattern tests
+- [x] Dashboard QualityPane component
+- [x] Configuration schema (.tlc.json quality/autofix/edgeCases)
 
 **Success Criteria:**
-- Test quality score visible in dashboard
-- 80%+ of simple test failures auto-fixed
-- Edge cases generated for each task
+- [x] Test quality score visible in dashboard
+- [x] Edge cases generated for each task
+- [x] 94 server tests + 70 dashboard tests = 164 total tests
 
 ---
 
