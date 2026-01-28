@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+server/node_modules/
+dashboard/node_modules/
+
+# Dev files
+.git/
+.github/
+.planning/
+.claude/
+*.log
+
+# Test files
+*.test.js
+*.test.ts
+*.test.tsx
+*.spec.js
+*.spec.ts
+__tests__/
+coverage/
+
+# Build artifacts
+.nyc_output/
+*.tsbuildinfo
