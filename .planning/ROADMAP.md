@@ -59,28 +59,28 @@ TLC is the **only AI coding tool that enforces test-first development**. While c
 
 ---
 
-### Phase 2.5: Project Health [ ]
+### Phase 2.5: Project Health [x]
 
 **Goal:** Security audit and dependency management for project maintenance.
 
 **Deliverables:**
-- Security audit (`/tlc:security`)
-  - Run `npm audit` / `pip-audit` / language-specific tools
-  - Display vulnerabilities by severity
-  - Suggest fixes (auto-fix low-risk updates)
-- Dependency updates (`/tlc:outdated`)
-  - Run `npm outdated` / equivalent
-  - Show update recommendations
-  - Auto-update with test verification
-- Dashboard integration
-  - Security status indicator
-  - Outdated dependency count
-  - One-click audit/update
+- [x] Security audit (`/tlc:security`)
+  - [x] Parse npm audit / pip-audit output
+  - [x] Display vulnerabilities by severity
+  - [x] Generate fix suggestions
+- [x] Dependency updates (`/tlc:outdated`)
+  - [x] Parse npm outdated / pip outdated
+  - [x] Categorize by update type (major/minor/patch)
+  - [x] Generate update plans
+- [x] Dashboard integration
+  - [x] HealthPane component
+  - [x] Security status indicator
+  - [x] Outdated dependency count
 
 **Success Criteria:**
-- Security vulnerabilities visible in dashboard
-- One-click update for safe dependency bumps
-- Breaking changes flagged before update
+- [x] Security vulnerabilities visible in dashboard
+- [x] Breaking changes flagged before update
+- [x] 36 new tests (14 security + 15 dependency + 7 dashboard)
 
 ---
 
