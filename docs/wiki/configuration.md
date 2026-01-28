@@ -101,6 +101,27 @@ Custom commands TLC will use for various operations.
 | `backoffMs` | 1000 | Delay between attempts |
 | `patterns` | [...] | Error patterns to match |
 
+### Git Settings
+
+```json
+{
+  "git": {
+    "mainBranch": "main"
+  }
+}
+```
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| `mainBranch` | "main" | Trunk branch for rebasing and merges |
+
+The `mainBranch` is used by:
+- `/tlc:claim` - rebases from this branch before claiming a task
+- `/tlc:build` - suggests merging back to this branch after completion
+- PR reviews - compares changes against this branch
+
+Set during `/tlc:init` based on your repository's default branch.
+
 ### Team Settings
 
 ```json

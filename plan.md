@@ -124,7 +124,55 @@ Create `.planning/phases/{N}-PLAN.md`:
 - Tests: ~{N} (estimated)
 ```
 
-### Step 5: Review Plan
+### Step 5: Detect File Overlaps (Parallel Safety)
+
+Analyze tasks for file conflicts to prevent merge issues:
+
+```
+Analyzing task dependencies...
+
+Files by task:
+  Task 1: src/db/schema.ts, src/db/migrations/001.sql
+  Task 2: src/api/users.ts, src/db/schema.ts  ← overlap!
+  Task 3: src/api/auth.ts
+  Task 4: src/api/users.ts  ← overlap with Task 2!
+```
+
+When overlaps detected, auto-sequence:
+
+```
+⚠️ File overlaps detected:
+
+  src/db/schema.ts → Task 1, Task 2
+  src/api/users.ts → Task 2, Task 4
+
+Restructuring for parallel safety:
+  Task 1: Create schema        [independent]
+  Task 2: Add user endpoints   [after: 1]  ← must wait for schema
+  Task 3: Add auth middleware  [independent]
+  Task 4: Add user validation  [after: 2]  ← must wait for endpoints
+
+Tasks 1 and 3 can be worked in parallel.
+Tasks 2 and 4 are sequential.
+```
+
+Add dependencies to PLAN.md:
+
+```markdown
+## Dependencies
+
+| Task | Depends On | Reason |
+|------|------------|--------|
+| 2 | 1 | Both modify src/db/schema.ts |
+| 4 | 2 | Both modify src/api/users.ts |
+
+**Parallel groups:**
+- Group A: Tasks 1, 3 (can work simultaneously)
+- Group B: Task 2 (after Group A)
+- Group C: Task 4 (after Task 2)
+```
+
+### Step 6: Review Plan
 
 Present plan summary:
 
@@ -144,7 +192,7 @@ Proceed with this plan? (Y/n)
 
 Allow refinement if needed.
 
-### Step 6: Save and Continue
+### Step 7: Save and Continue
 
 ```
 Plan saved to .planning/phases/{N}-PLAN.md

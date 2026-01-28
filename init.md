@@ -242,7 +242,48 @@ Tests are written BEFORE implementation, not after.
 
 If PROJECT.md exists, append the TLC section only.
 
-### 10. Report Summary
+### 10. Detect Main Branch
+
+Identify the trunk branch for rebasing and merges:
+
+```bash
+# Try to detect from git
+if git rev-parse --verify main >/dev/null 2>&1; then
+  detected="main"
+elif git rev-parse --verify master >/dev/null 2>&1; then
+  detected="master"
+elif git rev-parse --verify develop >/dev/null 2>&1; then
+  detected="develop"
+else
+  detected=$(git rev-parse --abbrev-ref HEAD)
+fi
+```
+
+Confirm with user:
+```
+Detected main branch: main
+
+Is this your trunk branch for merges? (Y/n/other):
+>
+
+If "other", prompt for branch name.
+```
+
+Add to `.tlc.json`:
+```json
+{
+  "git": {
+    "mainBranch": "main"
+  }
+}
+```
+
+This branch is used by:
+- `/tlc:claim` - rebases from this branch before claiming
+- `/tlc:build` - suggests merging back to this branch
+- PR reviews - compares against this branch
+
+### 11. Report Summary
 
 ```
 TLC initialized for [project name]

@@ -24,15 +24,37 @@ else
 fi
 ```
 
-### Step 2: Sync Latest State
+### Step 2: Sync with Main Branch
 
-Pull latest changes to get current task claims:
+Get the configured trunk branch from `.tlc.json`:
 
 ```bash
-git pull --rebase
+mainBranch=$(jq -r '.git.mainBranch // "main"' .tlc.json 2>/dev/null || echo "main")
 ```
 
-If pull fails due to conflicts, abort and notify user to resolve manually.
+Rebase from trunk to minimize conflicts:
+
+```bash
+git fetch origin
+git rebase origin/$mainBranch
+```
+
+Output:
+```
+Syncing with main...
+  ↳ Rebased 2 commits from origin/main
+```
+
+If rebase fails due to conflicts:
+```
+⚠️ Rebase conflict detected.
+
+Your branch has diverged from main. Resolve conflicts first:
+  git rebase --continue   (after fixing conflicts)
+  git rebase --abort      (to cancel)
+
+Then run /tlc:claim again.
+```
 
 ### Step 3: Find Current Phase Plan
 
