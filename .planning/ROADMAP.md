@@ -254,25 +254,29 @@ Fail → Abort merge, show failures
 
 ### Phase 8: Multi-Tool Support [ ]
 
-**Goal:** Support Cursor, Copilot, Continue, and other AI coding tools.
+**Goal:** Support Cursor, Antigravity, Copilot, Continue, and other AI coding tools.
 
 **Deliverables:**
 - `/tlc:export-rules` - Generate tool-specific config files:
   - `AGENTS.md` (universal standard)
   - `.cursor/rules/tlc.mdc` (Cursor)
+  - `.antigravity/rules.md` (Google Antigravity)
+  - `.windsurfrules` (Windsurf)
   - `.github/copilot-instructions.md` (Copilot)
   - `.continue/rules/tlc.md` (Continue)
+  - `.cody/instructions.md` (Cody)
   - `.amazonq/rules/tlc.md` (Amazon Q)
+  - `.aider.conf.yml` (Aider)
 - Runtime detection (which AI tool is running)
 - TLC MCP Server (works with any MCP-compatible tool)
 
 **Why This Matters:**
-- Teams use different tools (some prefer Cursor, some VS Code + Copilot)
+- Teams use different tools (Cursor, Antigravity, VS Code + Copilot)
 - TLC workflow should be tool-agnostic
 - `AGENTS.md` is backed by Google, OpenAI, Sourcegraph, Cursor
 
 **Success Criteria:**
-- Engineer using Cursor gets same TLC workflow as Claude Code
+- Engineer using Cursor/Antigravity gets same TLC workflow as Claude Code
 - Test-first enforcement works across all supported tools
 
 ---

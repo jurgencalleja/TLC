@@ -256,10 +256,12 @@ C:\Code\TLC\                  (or your install location)
 |------|---------|
 | **Claude Code** | Native (slash commands) |
 | **Cursor** | Via `/tlc:export` → `.cursorrules` |
+| **Google Antigravity** | Via `/tlc:export` → `.antigravity/rules.md` |
 | **GitHub Copilot** | Via `/tlc:export` → `.github/copilot-instructions.md` |
 | **Continue** | Via `/tlc:export` → `.continue/config.json` |
 | **Cody** | Via `/tlc:export` → `.cody/instructions.md` |
 | **Aider** | Via `/tlc:export` → `.aider.conf.yml` |
+| **Windsurf** | Via `/tlc:export` → `.windsurfrules` |
 
 ---
 
