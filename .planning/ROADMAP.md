@@ -140,7 +140,7 @@ TLC is the **only AI coding tool that enforces test-first development**. While c
 
 ---
 
-### Phase 4: API Documentation Generation [>]
+### Phase 4: API Documentation Generation [x]
 
 **Goal:** Auto-generate comprehensive API docs for humans, AI coders, and deployed AI agents.
 
@@ -202,7 +202,7 @@ TLC is the **only AI coding tool that enforces test-first development**. While c
 
 ---
 
-### Phase 5: CI/CD Integration [>]
+### Phase 5: CI/CD Integration [x]
 
 **Goal:** Enforce test-first in automated pipelines.
 
@@ -305,7 +305,7 @@ Fail → Abort merge, show failures
 
 ---
 
-### Phase 7: Team Workflow Documentation [>]
+### Phase 7: Team Workflow Documentation [x]
 
 **Goal:** Document how teams of 3+ engineers collaborate with TLC.
 
