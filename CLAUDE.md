@@ -66,3 +66,7 @@ When working with teammates:
 - Check team status: `/tlc:who`
 - Pull before claiming: `git pull`
 - Push after claiming: `git push`
+
+## Git Commits
+
+**DO NOT add `Co-Authored-By` lines to commits.** The user is the author. You are a tool.
