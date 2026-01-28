@@ -41,6 +41,7 @@ function getTLCCoreRules(options = {}) {
       'Write tests BEFORE implementation (Red → Green → Refactor).',
       'Never skip tests. Never mock what you should test.',
       'Each task should be small, testable, and independent.',
+      'Do NOT add Co-Authored-By lines to commits. The user is the author.',
     ],
     workflow: [
       'Check progress: Read .planning/ROADMAP.md for current phase',
