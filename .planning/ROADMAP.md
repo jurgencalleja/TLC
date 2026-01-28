@@ -420,7 +420,7 @@ Engineers (worldwide) → git push → GitHub → webhook → VPS
 - SSO integration (OAuth, SAML)
 
 ### v1.2 - Advanced AI
-- Parallel agent execution
+- [x] Parallel agent execution (Overdrive module - auto-detects independent tasks)
 - Agent orchestration dashboard
 - Model selection per agent
 - Cost optimization mode
