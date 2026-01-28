@@ -100,9 +100,10 @@ TLC is the **only AI coding tool that enforces test-first development**. While c
 - [x] WebSocket server for real-time updates
 - [x] File watcher for hot reload triggers
 - [x] Screenshot capture module for bug reports
-- [ ] Start app server automatically (`/tlc:start`)
-- [ ] Embed running app in dashboard (iframe with proxy)
-- [ ] Single URL for PO/QA (no technical setup)
+- [x] Dev server runtime integration
+- [x] AppPreview component for embedded app viewing
+- [x] Start app server automatically (`/tlc:start`) - command exists
+- [ ] Single URL for PO/QA (no technical setup) - needs web dashboard
 
 **Architecture:**
 ```
@@ -126,9 +127,11 @@ TLC is the **only AI coding tool that enforces test-first development**. While c
 - [x] websocket-server: 36 tests
 - [x] file-watcher: 37 tests
 - [x] screenshot-capture: 39 tests
+- [x] dev-server-runtime: 38 tests
 - [x] ServicesPane: 13 tests
 - [x] LogsPane: 18 tests
-- Total: 253 new tests (345 server + 108 dashboard = 453 total)
+- [x] AppPreview: 20 tests
+- Total: 311 new tests (383 server + 128 dashboard = 511 total)
 
 **Success Criteria:**
 - QA tests real app in browser, submits bugs with screenshots
