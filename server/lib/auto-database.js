@@ -5,6 +5,7 @@ const { execSync, spawn, spawnSync } = require('child_process');
 let pgServer = null;
 let pgliteInstance = null;
 let dockerContainer = null;
+let minioContainer = null;
 
 /**
  * Install Docker automatically with sudo prompt
@@ -150,6 +151,65 @@ function detectDatabaseNeed(projectDir) {
   }
 
   return null;
+}
+
+/**
+ * Detect if project needs S3-compatible storage (MinIO)
+ */
+function detectStorageNeed(projectDir) {
+  // Check package.json for S3/storage dependencies
+  const pkgPath = path.join(projectDir, 'package.json');
+  if (fs.existsSync(pkgPath)) {
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+    const allDeps = { ...pkg.dependencies, ...pkg.devDependencies };
+
+    // AWS S3 SDK indicators
+    if (allDeps['aws-sdk'] || allDeps['@aws-sdk/client-s3'] || allDeps['@aws-sdk/s3-request-presigner']) {
+      return 'minio';
+    }
+
+    // MinIO client
+    if (allDeps['minio']) {
+      return 'minio';
+    }
+
+    // Common S3-compatible libraries
+    if (allDeps['multer-s3'] || allDeps['s3-blob-store'] || allDeps['@smithy/node-http-handler']) {
+      return 'minio';
+    }
+  }
+
+  // Check for S3/storage environment variable references in code
+  const serverDir = path.join(projectDir, 'server');
+  const srcDir = path.join(projectDir, 'src');
+
+  const dirsToCheck = [serverDir, srcDir, projectDir];
+  for (const dir of dirsToCheck) {
+    if (fs.existsSync(dir)) {
+      try {
+        const files = fs.readdirSync(dir).filter(f => f.endsWith('.ts') || f.endsWith('.js'));
+        for (const file of files) {
+          const content = fs.readFileSync(path.join(dir, file), 'utf-8');
+          if (content.includes('S3_ENDPOINT') || content.includes('S3_BUCKET') ||
+              content.includes('MINIO_ENDPOINT') || content.includes('AWS_S3_') ||
+              content.includes('S3Client') || content.includes('new Minio')) {
+            return 'minio';
+          }
+        }
+      } catch (e) {
+        // Ignore errors
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Check if S3/MinIO is already configured
+ */
+function hasStorageConfig() {
+  return !!(process.env.S3_ENDPOINT || process.env.MINIO_ENDPOINT || process.env.AWS_ENDPOINT_URL_S3);
 }
 
 /**
@@ -698,6 +758,244 @@ async function provisionPostgres(projectDir, logger) {
 }
 
 /**
+ * Provision MinIO using Docker
+ */
+async function provisionDockerMinio(projectDir, logger) {
+  const containerName = 'tlc-minio';
+  const apiPort = 9000;
+  const consolePort = 9001;
+  const accessKey = 'minioadmin';
+  const secretKey = 'minioadmin';
+  const defaultBucket = 'uploads';
+
+  // Check if container already exists and is running
+  try {
+    const status = execSync(`docker inspect -f '{{.State.Running}}' ${containerName} 2>/dev/null`, { encoding: 'utf-8' }).trim();
+    if (status === 'true') {
+      logger('Using existing MinIO container');
+      return getMinioEnvVars(apiPort, accessKey, secretKey, defaultBucket);
+    }
+  } catch {
+    // Container doesn't exist, create it
+  }
+
+  // Remove existing stopped container if any
+  try {
+    execSync(`docker rm -f ${containerName} 2>/dev/null`, { stdio: 'ignore' });
+  } catch {
+    // Ignore
+  }
+
+  logger('Starting MinIO container...');
+
+  // Create data directory for persistence
+  const dataDir = path.join(projectDir, '.tlc', 'minio-data');
+  const tlcDir = path.join(projectDir, '.tlc');
+  if (!fs.existsSync(tlcDir)) {
+    fs.mkdirSync(tlcDir, { recursive: true });
+    const gitignorePath = path.join(projectDir, '.gitignore');
+    if (fs.existsSync(gitignorePath)) {
+      const content = fs.readFileSync(gitignorePath, 'utf-8');
+      if (!content.includes('.tlc')) {
+        fs.appendFileSync(gitignorePath, '\n# TLC local data\n.tlc/\n');
+      }
+    }
+  }
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+
+  // Start MinIO container
+  const dockerCmd = [
+    'docker', 'run', '-d',
+    '--name', containerName,
+    '-e', `MINIO_ROOT_USER=${accessKey}`,
+    '-e', `MINIO_ROOT_PASSWORD=${secretKey}`,
+    '-p', `${apiPort}:9000`,
+    '-p', `${consolePort}:9001`,
+    '-v', `${dataDir}:/data`,
+    'minio/minio:latest',
+    'server', '/data', '--console-address', ':9001'
+  ].join(' ');
+
+  execSync(dockerCmd, { stdio: 'inherit' });
+  minioContainer = containerName;
+
+  // Wait for MinIO to be ready
+  logger('Waiting for MinIO to start...');
+  for (let i = 0; i < 30; i++) {
+    try {
+      execSync(`docker exec ${containerName} curl -sf http://127.0.0.1:9000/minio/health/live`, { stdio: 'ignore', timeout: 2000 });
+      break;
+    } catch {
+      await new Promise(r => setTimeout(r, 1000));
+    }
+  }
+
+  // Create default bucket
+  await createMinioBucket(containerName, defaultBucket, logger);
+
+  logger(`MinIO ready: http://127.0.0.1:${apiPort} (console: http://127.0.0.1:${consolePort})`);
+
+  return getMinioEnvVars(apiPort, accessKey, secretKey, defaultBucket);
+}
+
+/**
+ * Create a bucket in MinIO
+ */
+async function createMinioBucket(containerName, bucketName, logger, useSudo = false) {
+  const sudoPrefix = useSudo ? 'sudo ' : '';
+  try {
+    // Use mc (MinIO Client) inside the container to create bucket
+    execSync(
+      `${sudoPrefix}docker exec ${containerName} mc alias set local http://127.0.0.1:9000 minioadmin minioadmin`,
+      { stdio: 'ignore', timeout: 5000 }
+    );
+    execSync(
+      `${sudoPrefix}docker exec ${containerName} mc mb --ignore-existing local/${bucketName}`,
+      { stdio: 'ignore', timeout: 5000 }
+    );
+    logger(`Created bucket: ${bucketName}`);
+  } catch (err) {
+    // Bucket might already exist or mc not available, that's OK
+    logger(`Bucket setup: ${bucketName} (may already exist)`);
+  }
+}
+
+/**
+ * Get MinIO environment variables
+ */
+function getMinioEnvVars(port, accessKey, secretKey, bucket) {
+  return {
+    S3_ENDPOINT: `http://127.0.0.1:${port}`,
+    S3_ACCESS_KEY: accessKey,
+    S3_SECRET_KEY: secretKey,
+    S3_BUCKET: bucket,
+    S3_REGION: 'us-east-1',
+    S3_FORCE_PATH_STYLE: 'true',
+    // Also set AWS-style vars for broader compatibility
+    AWS_ENDPOINT_URL_S3: `http://127.0.0.1:${port}`,
+    AWS_ACCESS_KEY_ID: accessKey,
+    AWS_SECRET_ACCESS_KEY: secretKey,
+    AWS_REGION: 'us-east-1'
+  };
+}
+
+/**
+ * Provision MinIO with sudo (for fresh Docker installs)
+ */
+async function provisionDockerMinioWithSudo(projectDir, logger) {
+  const containerName = 'tlc-minio';
+  const apiPort = 9000;
+  const consolePort = 9001;
+  const accessKey = 'minioadmin';
+  const secretKey = 'minioadmin';
+  const defaultBucket = 'uploads';
+
+  // Check if container already exists and is running
+  try {
+    const status = execSync(`sudo docker inspect -f '{{.State.Running}}' ${containerName} 2>/dev/null`, { encoding: 'utf-8' }).trim();
+    if (status === 'true') {
+      logger('Using existing MinIO container');
+      return getMinioEnvVars(apiPort, accessKey, secretKey, defaultBucket);
+    }
+  } catch {
+    // Container doesn't exist
+  }
+
+  // Remove existing stopped container
+  try {
+    execSync(`sudo docker rm -f ${containerName} 2>/dev/null`, { stdio: 'ignore' });
+  } catch {
+    // Ignore
+  }
+
+  logger('Starting MinIO container...');
+
+  // Create data directory
+  const dataDir = path.join(projectDir, '.tlc', 'minio-data');
+  const tlcDir = path.join(projectDir, '.tlc');
+  if (!fs.existsSync(tlcDir)) {
+    fs.mkdirSync(tlcDir, { recursive: true });
+    const gitignorePath = path.join(projectDir, '.gitignore');
+    if (fs.existsSync(gitignorePath)) {
+      const content = fs.readFileSync(gitignorePath, 'utf-8');
+      if (!content.includes('.tlc')) {
+        fs.appendFileSync(gitignorePath, '\n# TLC local data\n.tlc/\n');
+      }
+    }
+  }
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+
+  // Start MinIO container with sudo
+  execSync(
+    `sudo docker run -d --name ${containerName} -e MINIO_ROOT_USER=${accessKey} -e MINIO_ROOT_PASSWORD=${secretKey} -p ${apiPort}:9000 -p ${consolePort}:9001 -v ${dataDir}:/data minio/minio:latest server /data --console-address :9001`,
+    { stdio: 'inherit' }
+  );
+  minioContainer = containerName;
+
+  // Wait for MinIO to be ready
+  logger('Waiting for MinIO to start...');
+  for (let i = 0; i < 30; i++) {
+    try {
+      execSync(`sudo docker exec ${containerName} curl -sf http://127.0.0.1:9000/minio/health/live`, { stdio: 'ignore', timeout: 2000 });
+      break;
+    } catch {
+      await new Promise(r => setTimeout(r, 1000));
+    }
+  }
+
+  // Create default bucket
+  await createMinioBucket(containerName, defaultBucket, logger, true);
+
+  logger(`MinIO ready: http://127.0.0.1:${apiPort} (console: http://127.0.0.1:${consolePort})`);
+
+  return getMinioEnvVars(apiPort, accessKey, secretKey, defaultBucket);
+}
+
+/**
+ * Provision MinIO - try Docker, with fallback handling
+ */
+async function provisionMinio(projectDir, logger) {
+  // Try Docker first
+  if (isDockerAvailable()) {
+    try {
+      return await provisionDockerMinio(projectDir, logger);
+    } catch (err) {
+      logger(`Docker MinIO failed: ${err.message}`);
+      throw err;
+    }
+  } else if (isDockerInstalled()) {
+    // Docker is installed but not running - try to start it
+    const started = await startDockerService(logger);
+    if (started) {
+      try {
+        return await provisionDockerMinio(projectDir, logger);
+      } catch (err) {
+        logger(`Docker MinIO failed: ${err.message}`);
+        throw err;
+      }
+    }
+  }
+
+  // Try with sudo if Docker was just installed
+  if (isDockerInstalled()) {
+    logger('Trying MinIO with elevated permissions...');
+    try {
+      return await provisionDockerMinioWithSudo(projectDir, logger);
+    } catch (err) {
+      logger(`Docker MinIO with sudo failed: ${err.message}`);
+      throw err;
+    }
+  }
+
+  // No fallback for MinIO - it requires Docker
+  throw new Error('MinIO requires Docker. Please install Docker to use S3-compatible storage.');
+}
+
+/**
  * Stop the database if running
  */
 async function stopDatabase() {
@@ -727,35 +1025,52 @@ async function stopDatabase() {
 }
 
 /**
- * Auto-provision database if needed
+ * Auto-provision database and storage if needed
  * Returns environment variables to add
  */
 async function autoProvision(projectDir, logger = console.log) {
+  const envVars = {};
+
+  // Check for database needs
   const dbType = detectDatabaseNeed(projectDir);
-
-  if (!dbType) {
-    return {}; // No database needed
+  if (dbType) {
+    if (hasDatabaseUrl()) {
+      logger('Using existing DATABASE_URL');
+    } else {
+      logger(`Detected ${dbType} database requirement`);
+      if (dbType === 'postgres') {
+        const databaseUrl = await provisionPostgres(projectDir, logger);
+        envVars.DATABASE_URL = databaseUrl;
+      } else {
+        logger(`Auto-provisioning for ${dbType} not yet supported`);
+      }
+    }
   }
 
-  if (hasDatabaseUrl()) {
-    logger('Using existing DATABASE_URL');
-    return {}; // Already configured
+  // Check for storage needs
+  const storageType = detectStorageNeed(projectDir);
+  if (storageType) {
+    if (hasStorageConfig()) {
+      logger('Using existing S3/MinIO configuration');
+    } else {
+      logger(`Detected ${storageType} storage requirement`);
+      if (storageType === 'minio') {
+        try {
+          const storageEnv = await provisionMinio(projectDir, logger);
+          Object.assign(envVars, storageEnv);
+        } catch (err) {
+          logger(`Storage provisioning failed: ${err.message}`);
+        }
+      }
+    }
   }
 
-  logger(`Detected ${dbType} database requirement`);
-
-  if (dbType === 'postgres') {
-    const databaseUrl = await provisionPostgres(projectDir, logger);
-    return { DATABASE_URL: databaseUrl };
-  }
-
-  // For other database types, we could add support later
-  logger(`Auto-provisioning for ${dbType} not yet supported`);
-  return {};
+  return envVars;
 }
 
 module.exports = {
   detectDatabaseNeed,
+  detectStorageNeed,
   autoProvision,
   stopDatabase
 };

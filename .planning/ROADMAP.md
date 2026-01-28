@@ -12,7 +12,7 @@ TLC is the **only AI coding tool that enforces test-first development**. While c
 
 ## Milestone: v1.0 - Team Collaboration Release
 
-### Phase 1: Core Infrastructure [current]
+### Phase 1: Core Infrastructure [x]
 
 **Goal:** Establish TLC as source of truth for planning, ensure consistent usage.
 
@@ -28,9 +28,11 @@ TLC is the **only AI coding tool that enforces test-first development**. While c
 - Multiple engineers can coordinate without conflicts
 - QA can submit bugs through web UI
 
+**Note:** Dashboard UI exists but many features are placeholders. Full functionality comes in Phase 3 (Dev Server) and Phase 4 (API Docs).
+
 ---
 
-### Phase 2: Test Quality & Auto-Fix [ ]
+### Phase 2: Test Quality & Auto-Fix [current]
 
 **Goal:** Improve test quality metrics and automate failure recovery.
 
@@ -51,6 +53,31 @@ TLC is the **only AI coding tool that enforces test-first development**. While c
 - Test quality score visible in dashboard
 - 80%+ of simple test failures auto-fixed
 - Edge cases generated for each task
+
+---
+
+### Phase 2.5: Project Health [ ]
+
+**Goal:** Security audit and dependency management for project maintenance.
+
+**Deliverables:**
+- Security audit (`/tlc:security`)
+  - Run `npm audit` / `pip-audit` / language-specific tools
+  - Display vulnerabilities by severity
+  - Suggest fixes (auto-fix low-risk updates)
+- Dependency updates (`/tlc:outdated`)
+  - Run `npm outdated` / equivalent
+  - Show update recommendations
+  - Auto-update with test verification
+- Dashboard integration
+  - Security status indicator
+  - Outdated dependency count
+  - One-click audit/update
+
+**Success Criteria:**
+- Security vulnerabilities visible in dashboard
+- One-click update for safe dependency bumps
+- Breaking changes flagged before update
 
 ---
 
@@ -90,7 +117,49 @@ TLC is the **only AI coding tool that enforces test-first development**. While c
 
 ---
 
-### Phase 4: CI/CD Integration [ ]
+### Phase 4: API Documentation Generation [ ]
+
+**Goal:** Auto-generate comprehensive API docs for humans, AI coders, and deployed AI agents.
+
+**Deliverables:**
+- Swagger/OpenAPI integration (`/tlc:docs`)
+  - **Adopt existing specs first** (swagger.json, openapi.yaml, etc.)
+  - Auto-detect routes if no spec exists (Express, Fastify, Hono, etc.)
+  - Generate OpenAPI 3.x specification
+  - Swagger UI embedded in dashboard
+  - Merge: existing spec + detected routes not in spec
+- ORM schema documentation
+  - Drizzle, Prisma, TypeORM support
+  - JSON Schema export for models
+  - Relationship diagrams
+- Example requests/responses
+  - Auto-generate curl examples
+  - Sample request/response payloads
+  - Error response documentation
+- Auth flow documentation
+  - Token formats and flows
+  - Permission/role documentation
+  - Security scheme definitions
+- AI-agent-friendly format
+  - Structured for MCP tool use
+  - Machine-readable endpoints
+  - Type definitions for code generation
+
+**Triggers:**
+- `/tlc:docs` - Generate/regenerate all documentation
+- Auto-run on new routes detected
+- Auto-run on schema changes
+- Serve in dashboard alongside app preview
+
+**Success Criteria:**
+- API docs viewable in dashboard next to live app
+- AI agents can discover and call APIs from docs
+- Human developers get curl examples + auth info
+- ORM schemas documented with relationships
+
+---
+
+### Phase 5: CI/CD Integration [ ]
 
 **Goal:** Enforce test-first in automated pipelines.
 
@@ -128,7 +197,7 @@ Fail → Abort merge, show failures
 
 ---
 
-### Phase 5: Issue Tracker Integration [ ]
+### Phase 6: Issue Tracker Integration [ ]
 
 **Goal:** Connect TLC to external project management.
 
@@ -146,7 +215,7 @@ Fail → Abort merge, show failures
 
 ---
 
-### Phase 6: Team Workflow Documentation [ ]
+### Phase 7: Team Workflow Documentation [ ]
 
 **Goal:** Document how teams of 3+ engineers collaborate with TLC.
 
@@ -163,9 +232,7 @@ Fail → Abort merge, show failures
 
 ---
 
----
-
-### Phase 7: Multi-Tool Support [ ]
+### Phase 8: Multi-Tool Support [ ]
 
 **Goal:** Support Cursor, Copilot, Continue, and other AI coding tools.
 
@@ -190,7 +257,7 @@ Fail → Abort merge, show failures
 
 ---
 
-### Phase 8: VPS Deployment Server [ ]
+### Phase 9: VPS Deployment Server [ ]
 
 **Goal:** Central server for distributed teams - push to branch, VPS deploys.
 
@@ -286,6 +353,7 @@ Config (.tlc.json):
 | Coverage tracking | ✅ | ❌ | ❌ | ❌ |
 | QA bug submission | ✅ | ❌ | ❌ | ❌ |
 | Real-time log streaming | ✅ | ❌ | ❌ | ⚠️ |
+| AI-ready API docs | ✅ | ❌ | ❌ | ❌ |
 
 ---
 
