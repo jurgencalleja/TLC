@@ -4,7 +4,16 @@
 
 This project uses **TLC (Test-Led Coding)** for all planning and development.
 
-**DO NOT use Claude's internal task tools** (TaskCreate, TaskUpdate, TaskList) for project planning.
+**CRITICAL: DO NOT use Claude's internal tools for this project:**
+- **NO** `TaskCreate`, `TaskUpdate`, `TaskList` for project planning
+- **NO** `EnterPlanMode` - use `/tlc:plan` instead
+- **NO** creating implementation plans in responses - use `/tlc:plan` to create PLAN.md files
+
+**When asked to plan or implement features:**
+1. Run `/tlc:progress` first to see current state
+2. Use `/tlc:plan <phase>` to create plans (not EnterPlanMode)
+3. Use `/tlc:build <phase>` to implement (test-first)
+4. Plans go in `.planning/phases/` not in chat responses
 
 Instead, use TLC's file-based system:
 

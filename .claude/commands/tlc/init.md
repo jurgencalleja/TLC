@@ -207,7 +207,58 @@ Start writing tests now, or save backlog for later?
 
 **If "Start now":** Begin writing tests for the first critical path item using Red-Green-Refactor (but code already exists, so focus on capturing current behavior).
 
-### 9. Create or Update PROJECT.md
+### 9. Create CLAUDE.md
+
+Create `CLAUDE.md` to enforce TLC workflow over Claude's default behaviors:
+
+```markdown
+# CLAUDE.md - TLC Project Instructions
+
+## Planning System: TLC
+
+This project uses **TLC (Test-Led Coding)** for all planning and development.
+
+**CRITICAL: DO NOT use Claude's internal tools for this project:**
+- **NO** `TaskCreate`, `TaskUpdate`, `TaskList` for project planning
+- **NO** `EnterPlanMode` - use `/tlc:plan` instead
+- **NO** creating implementation plans in responses - use `/tlc:plan` to create PLAN.md files
+
+**When asked to plan or implement features:**
+1. Run `/tlc:progress` first to see current state
+2. Use `/tlc:plan <phase>` to create plans (not EnterPlanMode)
+3. Use `/tlc:build <phase>` to implement (test-first)
+4. Plans go in `.planning/phases/` not in chat responses
+
+## TLC File Locations
+
+| Purpose | Location |
+|---------|----------|
+| Project overview | `PROJECT.md` |
+| Roadmap & phases | `.planning/ROADMAP.md` |
+| Phase plans | `.planning/phases/{N}-PLAN.md` |
+| Task status | Markers: `[ ]`, `[>@user]`, `[x@user]` |
+| Bugs/feedback | `.planning/BUGS.md` |
+| Config | `.tlc.json` |
+
+## Quick Commands
+
+| Action | Command |
+|--------|---------|
+| See status | `/tlc` or `/tlc:progress` |
+| Plan a phase | `/tlc:plan` |
+| Build (test-first) | `/tlc:build` |
+| Verify with human | `/tlc:verify` |
+| Log a bug | `/tlc:bug` |
+
+## Test-First Development
+
+All implementation follows **Red → Green → Refactor**:
+1. **Red**: Write failing tests that define expected behavior
+2. **Green**: Write minimum code to make tests pass
+3. **Refactor**: Clean up while keeping tests green
+```
+
+### 10. Create or Update PROJECT.md
 
 If PROJECT.md doesn't exist, create it with:
 
@@ -242,7 +293,7 @@ Tests are written BEFORE implementation, not after.
 
 If PROJECT.md exists, append the TLC section only.
 
-### 10. Report Summary
+### 11. Report Summary
 
 ```
 TLC initialized for [project name]
