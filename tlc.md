@@ -34,45 +34,35 @@ if [ ! -f ".tlc.json" ]; then
   echo "This configures test framework, team settings, quality gates, and more."
   echo ""
   echo "Run setup now? (Y/n)"
-  # If yes → Run /tlc:sync inline (first-time flow)
+  # If yes → Run sync.md "Scenario 1: First-Time Adoption" ONLY
+  # DO NOT run Scenario 2
   # Then continue to Step 1
+  exit  # Don't fall through to other checks
 fi
 
-# Check for rebase marker
-if [ -f ".tlc-rebase-marker" ]; then
-  echo "⚠️ Rebase detected since last sync."
-  echo ""
-  echo "TLC needs to reconcile incoming changes."
-  echo "This ensures new code meets TLC standards."
-  echo ""
-  echo "Run sync now? (Y/n)"
-  # If yes → Run /tlc:sync inline (post-rebase flow)
-  # Then continue to Step 1
-fi
-
-# Check if HEAD matches lastSync
+# .tlc.json exists - check sync state
 lastSync=$(jq -r '.lastSync // ""' .tlc.json)
 currentHead=$(git rev-parse HEAD 2>/dev/null)
 
-# If lastSync missing, initialize it (existing config, first sync tracking)
+# If lastSync missing, initialize it
 if [ -z "$lastSync" ]; then
   echo "Initializing sync tracking..."
-  # Update .tlc.json with current HEAD as lastSync
   jq ".lastSync = \"$currentHead\"" .tlc.json > .tlc.json.tmp && mv .tlc.json.tmp .tlc.json
   echo "✓ Synced (initialized to ${currentHead:0:7})"
-  # Continue to Step 1
+  # Continue to Step 1 - NO sync needed
 fi
 
-if [ -n "$lastSync" ] && [ "$lastSync" != "$currentHead" ]; then
+# Check for rebase marker OR HEAD mismatch
+if [ -f ".tlc-rebase-marker" ] || [ "$lastSync" != "$currentHead" ]; then
   echo "⚠️ Codebase changed since last sync."
   echo "   Last sync: ${lastSync:0:7}"
   echo "   Current:   ${currentHead:0:7}"
-  echo ""
   changedCount=$(git diff --name-only $lastSync $currentHead 2>/dev/null | wc -l)
   echo "   $changedCount files changed"
   echo ""
   echo "Run sync now? (Y/n)"
-  # If yes → Run /tlc:sync inline (post-rebase flow)
+  # If yes → Run sync.md "Scenario 2: Post-Rebase Reconciliation" ONLY
+  # DO NOT run Scenario 1 (no questionnaire!)
   # Then continue to Step 1
 fi
 
@@ -80,11 +70,15 @@ fi
 echo "✓ Synced"
 ```
 
-**Key behavior:**
-- Detects if sync needed
-- Asks for confirmation
-- Runs sync flow inline (not separate command)
-- Then continues to dashboard/status
+**CRITICAL - Which sync scenario to run:**
+
+| Condition | Action |
+|-----------|--------|
+| No `.tlc.json` | Run sync.md **Scenario 1** (questionnaire) |
+| `.tlc.json` exists, HEAD changed | Run sync.md **Scenario 2** (reconciliation only, NO questionnaire) |
+| `.tlc.json` exists, HEAD matches | Already synced, skip to dashboard |
+
+**The questionnaire ONLY runs on first-time setup, NEVER after rebase.**
 
 User never needs to know about `/tlc:sync` as a separate command - `/tlc` handles everything.
 

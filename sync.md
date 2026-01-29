@@ -16,19 +16,31 @@ The unified entry point for TLC adoption and codebase synchronization.
 
 No arguments. TLC auto-detects the scenario.
 
-## Scenario Detection
+## CRITICAL: Execution Flow
+
+**You MUST detect the scenario FIRST, then execute ONLY that scenario.**
 
 ```
-Check for .tlc.json:
-  ├── Not found → First-time adoption
-  └── Found → Check for changes
-                 ├── HEAD matches lastSync → Already synced
-                 └── HEAD differs → Post-rebase reconciliation
+Step 1: Check for .tlc.json
+        │
+        ├── NOT FOUND → Execute "Scenario 1: First-Time Adoption" ONLY
+        │               (Skip Scenario 2 entirely)
+        │
+        └── FOUND → Step 2: Compare HEAD with lastSync
+                    │
+                    ├── HEAD == lastSync → Print "✓ Already synced" and STOP
+                    │
+                    └── HEAD != lastSync → Execute "Scenario 2: Post-Rebase" ONLY
+                                           (Skip Scenario 1 entirely)
 ```
+
+**DO NOT run both scenarios. Pick ONE based on detection.**
 
 ---
 
 ## Scenario 1: First-Time Adoption
+
+**ONLY run this if .tlc.json does NOT exist.**
 
 Complete onboarding questionnaire. All settings in one flow so nothing gets forgotten.
 
@@ -293,6 +305,8 @@ Happy testing! 🧪
 
 ## Scenario 2: Post-Rebase Reconciliation
 
+**ONLY run this if .tlc.json EXISTS and HEAD differs from lastSync.**
+
 Detect and handle code changes from rebase.
 
 ### Step 2.1: Detect Changes
@@ -358,241 +372,48 @@ Changes detected:
   Tests for new code: 0 found ⚠️
 ```
 
-### Step 2.3: Choose Reconciliation Strategy
+### Step 2.3: Auto-Sync (Default Behavior)
+
+**DO NOT ask about individual files. Just sync automatically.**
 
 ```
-─────────────────────────────────────────────────────
- RECONCILIATION STRATEGY
-─────────────────────────────────────────────────────
+Syncing...
 
-How should TLC handle the incoming code?
+✓ Updated lastSync to ${currentHead:0:7}
+✓ Removed rebase marker (if present)
 
-[1] CONFORM TO TLC (Recommended)
-    → Analyze incoming code
-    → Generate tests for new files
-    → Apply TLC patterns (if needed)
-    → May modify incoming files
-
-    Best when: You want all code to follow TLC standards
-
-[2] PRESERVE INCOMING
-    → Keep incoming code exactly as-is
-    → Update YOUR existing code to work with it
-    → Incoming files are untouched
-
-    Best when: Incoming code is reviewed/approved,
-    you just need to integrate
-
-[3] MANUAL REVIEW
-    → Show detailed diff
-    → Let me decide file-by-file
-
-    Best when: Mixed situation, some files need
-    conforming, others should be preserved
-
-Choice [1/2/3]: _
+Sync complete.
 ```
 
-### Step 2.4a: Strategy - Conform to TLC
+That's it. The sync just updates the tracking. Tests are written when you run `/tlc:build`.
 
-```
-─────────────────────────────────────────────────────
- CONFORMING INCOMING CODE TO TLC
-─────────────────────────────────────────────────────
+**Why no file-by-file questions?**
+- Incoming code was already reviewed in the PR
+- Tests will be written during the build phase
+- Asking about every file is annoying and slow
 
-Analyzing 4 new files...
+### Step 2.4: Optional - Add Tests for Untested Code
 
-src/api/payments.ts
-  → No tests found
-  → Generating: tests/api/payments.test.ts
-  → 6 test cases identified
+If `.tlc.json` has `existingCode.strategy: "backlog"`, silently note any new untested files:
 
-src/api/webhooks.ts
-  → No tests found
-  → Generating: tests/api/webhooks.test.ts
-  → 4 test cases identified
+```bash
+# Find new source files without tests
+newUntested=$(for f in $newFiles; do
+  if [[ $f == src/* ]] && ! [ -f "tests/${f#src/}" ]; then
+    echo "$f"
+  fi
+done)
 
-src/services/stripe.ts
-  → No tests found
-  → Generating: tests/services/stripe.test.ts
-  → 8 test cases identified (mocking Stripe API)
-
-src/utils/currency.ts
-  → No tests found
-  → Generating: tests/utils/currency.test.ts
-  → 5 test cases identified
-
-Analyzing 7 modified files...
-
-src/api/users.ts
-  → Existing tests: tests/api/users.test.ts
-  → 2 new functions added, need 3 new test cases
-  → Updating test file
-
-src/db/schema.ts
-  → Existing tests cover changes ✓
-
-...
-
-─────────────────────────────────────────────────────
- PROPOSED CHANGES
-─────────────────────────────────────────────────────
-
-Will create:
-  + tests/api/payments.test.ts (6 tests)
-  + tests/api/webhooks.test.ts (4 tests)
-  + tests/services/stripe.test.ts (8 tests)
-  + tests/utils/currency.test.ts (5 tests)
-
-Will update:
-  ~ tests/api/users.test.ts (+3 tests)
-
-Total: 26 new tests
-
-Apply changes? (Y/n): _
+if [ -n "$newUntested" ]; then
+  echo "Note: $(echo "$newUntested" | wc -l) new files added to test backlog"
+fi
 ```
 
-If confirmed, write tests and run them:
+DO NOT ask about them. Just note and continue.
 
-```
-Creating tests...
+### Step 2.6: Update Sync State
 
-✓ tests/api/payments.test.ts
-  Running... 6 passing
-
-✓ tests/api/webhooks.test.ts
-  Running... 4 passing
-
-✓ tests/services/stripe.test.ts
-  Running... 7 passing, 1 failing
-
-  ⚠️ stripe.test.ts:45 - handleRefund expects different response
-
-  Options:
-    [1] Fix the test (incoming code is correct)
-    [2] Fix the code (test expectation is correct)
-    [3] Skip for now (add to backlog)
-
-  Choice: _
-
-✓ tests/utils/currency.test.ts
-  Running... 5 passing
-
-✓ tests/api/users.test.ts (updated)
-  Running... 12 passing
-
-─────────────────────────────────────────────────────
-
-Sync complete!
-  → 25 tests passing
-  → 1 issue added to backlog
-  → Committed: "sync: add tests for rebased code"
-
-Updated .tlc.json lastSync to def456
-```
-
-### Step 2.4b: Strategy - Preserve Incoming
-
-```
-─────────────────────────────────────────────────────
- PRESERVING INCOMING CODE
-─────────────────────────────────────────────────────
-
-Incoming files will NOT be modified.
-Checking integration points...
-
-Analyzing impact on existing TLC code...
-
-src/api/users.ts (incoming) affects:
-  → tests/api/users.test.ts (yours)
-    3 tests now failing due to API changes
-
-src/db/schema.ts (incoming) affects:
-  → tests/db/schema.test.ts (yours)
-    1 test failing - new required field
-  → src/api/auth.ts (yours)
-    Type error - User type changed
-
-─────────────────────────────────────────────────────
- REQUIRED UPDATES TO YOUR CODE
-─────────────────────────────────────────────────────
-
-To integrate incoming changes, TLC needs to update:
-
-  tests/api/users.test.ts
-    → Update 3 test expectations to match new API
-
-  tests/db/schema.test.ts
-    → Add required field to test fixtures
-
-  src/api/auth.ts
-    → Update User type usage (line 45, 67)
-
-Apply updates? (Y/n): _
-```
-
-If confirmed:
-
-```
-Updating your code to integrate...
-
-✓ tests/api/users.test.ts - 3 expectations updated
-✓ tests/db/schema.test.ts - fixture updated
-✓ src/api/auth.ts - type usage fixed
-
-Running all tests...
-✓ 47 passing
-
-Sync complete!
-  → Incoming code preserved
-  → Your code updated to integrate
-  → Committed: "sync: integrate rebased changes"
-
-Updated .tlc.json lastSync to def456
-```
-
-### Step 2.4c: Strategy - Manual Review
-
-```
-─────────────────────────────────────────────────────
- MANUAL FILE-BY-FILE REVIEW
-─────────────────────────────────────────────────────
-
-Review each changed file:
-
-[1/4] src/api/payments.ts (NEW)
-
-      No tests. 142 lines. Payment processing logic.
-
-      Action:
-        [C] Conform - generate tests
-        [P] Preserve - add to backlog for later
-        [S] Skip - ignore this file
-
-      Choice: _
-
-[2/4] src/api/webhooks.ts (NEW)
-      ...
-
-[3/4] src/api/users.ts (MODIFIED)
-
-      Changes: +45 lines, -12 lines
-      2 new functions: updateProfile, deleteAccount
-
-      Existing tests: tests/api/users.test.ts
-      Tests affected: 3 failing
-
-      Action:
-        [C] Conform - update tests for new behavior
-        [P] Preserve - update your code to match
-        [V] View diff
-
-      Choice: _
-```
-
-### Step 2.5: Update Sync State
-
-After any strategy completes:
+After sync completes:
 
 ```bash
 # Update lastSync in .tlc.json
@@ -655,26 +476,7 @@ Run: git init
 **Uncommitted changes:**
 ```
 ⚠️ You have uncommitted changes.
-
-TLC sync works best with a clean working tree.
-Options:
-  [1] Stash changes, sync, then restore
-  [2] Commit changes first
-  [3] Continue anyway (not recommended)
-
-Choice: _
+Commit or stash them before syncing.
 ```
 
-**Merge conflicts during reconciliation:**
-```
-⚠️ Conflict in tests/api/users.test.ts
-
-The incoming code and your tests have conflicting changes.
-
-Options:
-  [1] Keep yours (incoming tests discarded)
-  [2] Keep theirs (your tests replaced)
-  [3] Open in editor to resolve manually
-
-Choice: _
-```
+Then stop. Don't offer choices.
