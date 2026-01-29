@@ -27,15 +27,41 @@ Instead, use TLC's file-based system:
 | Test status | `.planning/phases/{N}-TESTS.md` |
 | Config | `.tlc.json` |
 
-## Before Starting Work
+## FIRST THING - Always Run /tlc
 
-Always run `/tlc:progress` or `/tlc` to understand current state.
+**MANDATORY: Before ANY work, run `/tlc`**
+
+This single command handles everything automatically:
+
+```
+/tlc   ← ALWAYS run this first, every time
+```
+
+**What happens:**
+
+| Scenario | /tlc Does |
+|----------|-----------|
+| No `.tlc.json` | "Welcome! Run setup now? (Y/n)" → Full config wizard |
+| After rebase | "Changes detected. Run sync? (Y/n)" → Reconcile code |
+| Already synced | "✓ Synced" → Shows dashboard/status |
+
+**You never need to remember separate commands.** Just run `/tlc` and it:
+- Detects what's needed
+- Asks for go-ahead
+- Runs the appropriate flow inline
+- Then shows you what's next
+
+**Why this matters:**
+- One command to rule them all
+- Can't accidentally work on out-of-sync code
+- All config happens upfront, nothing forgotten
+- Handles first-time setup AND post-rebase reconciliation
 
 ## Workflow Commands
 
 | Action | Command |
 |--------|---------|
-| See status | `/tlc` or `/tlc:progress` |
+| **START HERE** | **`/tlc`** ← Handles setup, sync, and status automatically |
 | Plan a phase | `/tlc:plan` |
 | Build (test-first) | `/tlc:build` |
 | Verify with human | `/tlc:verify` |
@@ -43,6 +69,15 @@ Always run `/tlc:progress` or `/tlc` to understand current state.
 | Claim a task | `/tlc:claim` |
 | Release a task | `/tlc:release` |
 | See team status | `/tlc:who` |
+
+## What /tlc Does Automatically
+
+1. **Checks sync status** - Is setup done? Any changes since last sync?
+2. **Asks for go-ahead** - "Run setup/sync now? (Y/n)"
+3. **Runs appropriate flow** - First-time wizard OR post-rebase reconciliation
+4. **Shows dashboard** - Current phase, tests, next actions
+
+**Never skip the go-ahead prompt.** It ensures code is properly synced before work begins.
 
 ## Test-First Development
 

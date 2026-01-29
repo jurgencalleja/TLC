@@ -8,24 +8,34 @@ Launches the TLC dashboard - a visual interface showing project state, phases, t
 
 ## Process
 
-### Step 0: Check Sync Status (ALWAYS FIRST)
+### Step 0: Auto-Sync Check (ALWAYS FIRST)
 
-Before anything else, check if codebase is synced:
+Before anything else, check if sync is needed and handle it automatically:
 
 ```bash
 # Check if .tlc.json exists
 if [ ! -f ".tlc.json" ]; then
   # No TLC config - need first-time setup
-  echo "No TLC configuration found."
-  echo "→ Run /tlc:sync to set up TLC"
-  exit
+  echo "Welcome to TLC!"
+  echo ""
+  echo "No configuration found. Let's set up your project."
+  echo "This configures test framework, team settings, quality gates, and more."
+  echo ""
+  echo "Run setup now? (Y/n)"
+  # If yes → Run /tlc:sync inline (first-time flow)
+  # Then continue to Step 1
 fi
 
 # Check for rebase marker
 if [ -f ".tlc-rebase-marker" ]; then
   echo "⚠️ Rebase detected since last sync."
-  echo "→ Run /tlc:sync to reconcile changes"
-  exit
+  echo ""
+  echo "TLC needs to reconcile incoming changes."
+  echo "This ensures new code meets TLC standards."
+  echo ""
+  echo "Run sync now? (Y/n)"
+  # If yes → Run /tlc:sync inline (post-rebase flow)
+  # Then continue to Step 1
 fi
 
 # Check if HEAD matches lastSync
@@ -37,12 +47,25 @@ if [ -n "$lastSync" ] && [ "$lastSync" != "$currentHead" ]; then
   echo "   Last sync: ${lastSync:0:7}"
   echo "   Current:   ${currentHead:0:7}"
   echo ""
-  echo "→ Run /tlc:sync to reconcile changes"
-  exit
+  changedCount=$(git diff --name-only $lastSync $currentHead 2>/dev/null | wc -l)
+  echo "   $changedCount files changed"
+  echo ""
+  echo "Run sync now? (Y/n)"
+  # If yes → Run /tlc:sync inline (post-rebase flow)
+  # Then continue to Step 1
 fi
+
+# If we get here, sync is current
+echo "✓ Synced"
 ```
 
-Only proceed if synced. This prevents working on out-of-sync code.
+**Key behavior:**
+- Detects if sync needed
+- Asks for confirmation
+- Runs sync flow inline (not separate command)
+- Then continues to dashboard/status
+
+User never needs to know about `/tlc:sync` as a separate command - `/tlc` handles everything.
 
 ### Step 1: Launch Dashboard
 

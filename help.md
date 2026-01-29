@@ -22,7 +22,8 @@ Launches the visual dashboard. Detects where you are, shows what's next.
 
 | Command | What It Does |
 |---------|--------------|
-| `/tlc:sync` | **One command to rule them all.** First-time setup or post-rebase reconciliation |
+| `/tlc` | **Start here.** Auto-detects setup/sync needs, asks, then runs |
+| `/tlc:sync` | Direct access to setup/sync (usually not needed - /tlc handles it) |
 | `/tlc:new-project` | Start new project (discusses stack, creates roadmap) |
 | `/tlc:init` | Add TLC to existing code |
 | `/tlc:import-project` | Import multi-repo microservices architecture |
@@ -98,31 +99,28 @@ Launches the visual dashboard. Detects where you are, shows what's next.
 
 ## Workflow
 
-**Simple version:**
+**Just one command:**
 ```
-/tlc:sync               <- First time or after rebase
-/tlc                    <- Then just keep running this
+/tlc                    <- Always start here
 ```
 
-**Detailed version:**
+That's it. `/tlc` handles everything:
+
 ```
-/tlc:sync               First-time setup (all config in one go)
-    ↓                   Or: post-rebase reconciliation
-/tlc:new-project        New project (or /tlc:init for existing)
-    ↓
-/tlc                    Guides you through each phase:
-                        → discuss → plan → build → verify
-    ↓
-/tlc:complete           Tag release
+/tlc
+ ↓
+ No config? → "Run setup? (Y/n)" → Full wizard
+ ↓
+ Rebase detected? → "Run sync? (Y/n)" → Reconcile
+ ↓
+ Already synced? → Dashboard + next actions
 ```
 
 **After rebasing:**
 ```
-git rebase origin/main  TLC detects changes
+git rebase origin/main
     ↓
-/tlc:sync               Reconcile incoming code
-    ↓
-/tlc                    Continue working
+/tlc                    ← Detects changes, asks, syncs, continues
 ```
 
 ---
