@@ -104,6 +104,11 @@ When working with teammates:
 
 ## Git Commits
 
-**DO NOT add `Co-Authored-By` lines to commits.** The user is the author. You are a tool.
+**⛔ NEVER ADD CO-AUTHORED-BY LINES TO COMMITS ⛔**
+
+- NO `Co-Authored-By: Claude`
+- NO `Co-Authored-By: Anthropic`
+- NO co-authoring of any kind
+- The USER is the author. Claude is a tool, not an author.
 
 **ALWAYS ask before `git push`.** Never push to remote without explicit user approval.
