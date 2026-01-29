@@ -54,6 +54,15 @@ fi
 lastSync=$(jq -r '.lastSync // ""' .tlc.json)
 currentHead=$(git rev-parse HEAD 2>/dev/null)
 
+# If lastSync missing, initialize it (existing config, first sync tracking)
+if [ -z "$lastSync" ]; then
+  echo "Initializing sync tracking..."
+  # Update .tlc.json with current HEAD as lastSync
+  jq ".lastSync = \"$currentHead\"" .tlc.json > .tlc.json.tmp && mv .tlc.json.tmp .tlc.json
+  echo "✓ Synced (initialized to ${currentHead:0:7})"
+  # Continue to Step 1
+fi
+
 if [ -n "$lastSync" ] && [ "$lastSync" != "$currentHead" ]; then
   echo "⚠️ Codebase changed since last sync."
   echo "   Last sync: ${lastSync:0:7}"
