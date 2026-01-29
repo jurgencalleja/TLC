@@ -8,6 +8,42 @@ Launches the TLC dashboard - a visual interface showing project state, phases, t
 
 ## Process
 
+### Step 0: Check Sync Status (ALWAYS FIRST)
+
+Before anything else, check if codebase is synced:
+
+```bash
+# Check if .tlc.json exists
+if [ ! -f ".tlc.json" ]; then
+  # No TLC config - need first-time setup
+  echo "No TLC configuration found."
+  echo "→ Run /tlc:sync to set up TLC"
+  exit
+fi
+
+# Check for rebase marker
+if [ -f ".tlc-rebase-marker" ]; then
+  echo "⚠️ Rebase detected since last sync."
+  echo "→ Run /tlc:sync to reconcile changes"
+  exit
+fi
+
+# Check if HEAD matches lastSync
+lastSync=$(jq -r '.lastSync // ""' .tlc.json)
+currentHead=$(git rev-parse HEAD 2>/dev/null)
+
+if [ -n "$lastSync" ] && [ "$lastSync" != "$currentHead" ]; then
+  echo "⚠️ Codebase changed since last sync."
+  echo "   Last sync: ${lastSync:0:7}"
+  echo "   Current:   ${currentHead:0:7}"
+  echo ""
+  echo "→ Run /tlc:sync to reconcile changes"
+  exit
+fi
+```
+
+Only proceed if synced. This prevents working on out-of-sync code.
+
 ### Step 1: Launch Dashboard
 
 Run the TLC dashboard:

@@ -18,10 +18,11 @@ Launches the visual dashboard. Detects where you are, shows what's next.
 |---------|--------------|
 | `/tlc` | **Visual dashboard. Context-aware. Knows what to do next.** |
 
-### Setup
+### Setup & Sync
 
 | Command | What It Does |
 |---------|--------------|
+| `/tlc:sync` | **One command to rule them all.** First-time setup or post-rebase reconciliation |
 | `/tlc:new-project` | Start new project (discusses stack, creates roadmap) |
 | `/tlc:init` | Add TLC to existing code |
 | `/tlc:import-project` | Import multi-repo microservices architecture |
@@ -99,17 +100,29 @@ Launches the visual dashboard. Detects where you are, shows what's next.
 
 **Simple version:**
 ```
-/tlc                    <- just keep running this
+/tlc:sync               <- First time or after rebase
+/tlc                    <- Then just keep running this
 ```
 
 **Detailed version:**
 ```
-/tlc:new-project        New project
+/tlc:sync               First-time setup (all config in one go)
+    ↓                   Or: post-rebase reconciliation
+/tlc:new-project        New project (or /tlc:init for existing)
     ↓
 /tlc                    Guides you through each phase:
                         → discuss → plan → build → verify
     ↓
 /tlc:complete           Tag release
+```
+
+**After rebasing:**
+```
+git rebase origin/main  TLC detects changes
+    ↓
+/tlc:sync               Reconcile incoming code
+    ↓
+/tlc                    Continue working
 ```
 
 ---

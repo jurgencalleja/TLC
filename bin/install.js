@@ -30,6 +30,7 @@ const VERSION = require('../package.json').version;
 const COMMANDS = [
   // Core workflow
   'tlc.md',
+  'sync.md',
   'new-project.md',
   'init.md',
   'import-project.md',
