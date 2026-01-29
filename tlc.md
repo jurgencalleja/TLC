@@ -64,6 +64,23 @@ if [ -f ".tlc-rebase-marker" ] || [ "$lastSync" != "$currentHead" ]; then
   # If yes → Run sync.md "Scenario 2: Post-Rebase Reconciliation" ONLY
   # DO NOT run Scenario 1 (no questionnaire!)
   # Then continue to Step 1
+  exit  # Don't fall through to main-ahead check
+fi
+
+# Check if main is ahead of current branch
+mainBranch=$(jq -r '.git.mainBranch // "main"' .tlc.json)
+git fetch origin $mainBranch 2>/dev/null
+behindCount=$(git rev-list HEAD..origin/$mainBranch --count 2>/dev/null)
+
+if [ "$behindCount" -gt 0 ]; then
+  echo "⚠️ Main branch is $behindCount commits ahead."
+  echo ""
+  echo "Options:"
+  echo "  [1] Integrate changes (read & rebuild without rebase)"
+  echo "  [2] Skip for now"
+  echo ""
+  # If 1 → Run sync.md "Scenario 3: Integrate Main" ONLY
+  # If 2 → Continue to dashboard
 fi
 
 # If we get here, sync is current
@@ -76,9 +93,10 @@ echo "✓ Synced"
 |-----------|--------|
 | No `.tlc.json` | Run sync.md **Scenario 1** (questionnaire) |
 | `.tlc.json` exists, HEAD changed | Run sync.md **Scenario 2** (reconciliation only, NO questionnaire) |
-| `.tlc.json` exists, HEAD matches | Already synced, skip to dashboard |
+| Main is ahead of current branch | Run sync.md **Scenario 3** (integrate without rebase) |
+| `.tlc.json` exists, all synced | Already synced, skip to dashboard |
 
-**The questionnaire ONLY runs on first-time setup, NEVER after rebase.**
+**The questionnaire ONLY runs on first-time setup, NEVER after rebase or integrate.**
 
 User never needs to know about `/tlc:sync` as a separate command - `/tlc` handles everything.
 

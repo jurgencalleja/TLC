@@ -8,6 +8,8 @@ The unified entry point for TLC adoption and codebase synchronization.
 
 **Post-rebase:** Detect changes and reconcile incoming code with TLC standards.
 
+**Main ahead:** Read changes from main, understand context, rebuild locally without rebasing.
+
 ## Usage
 
 ```
@@ -24,17 +26,27 @@ No arguments. TLC auto-detects the scenario.
 Step 1: Check for .tlc.json
         │
         ├── NOT FOUND → Execute "Scenario 1: First-Time Adoption" ONLY
-        │               (Skip Scenario 2 entirely)
         │
-        └── FOUND → Step 2: Compare HEAD with lastSync
+        └── FOUND → Step 2: Check branch status
                     │
-                    ├── HEAD == lastSync → Print "✓ Already synced" and STOP
+                    ├── HEAD == lastSync AND main not ahead → "✓ Already synced" STOP
                     │
-                    └── HEAD != lastSync → Execute "Scenario 2: Post-Rebase" ONLY
-                                           (Skip Scenario 1 entirely)
+                    ├── HEAD != lastSync → Execute "Scenario 2: Post-Rebase" ONLY
+                    │
+                    └── Main is ahead of current branch → Execute "Scenario 3: Integrate Main" ONLY
 ```
 
-**DO NOT run both scenarios. Pick ONE based on detection.**
+**Detection for "main ahead":**
+```bash
+mainBranch=$(jq -r '.git.mainBranch // "main"' .tlc.json)
+git fetch origin $mainBranch
+behindCount=$(git rev-list HEAD..origin/$mainBranch --count)
+if [ "$behindCount" -gt 0 ]; then
+  # Main is ahead - offer Scenario 3
+fi
+```
+
+**DO NOT run multiple scenarios. Pick ONE based on detection.**
 
 ---
 
@@ -427,6 +439,164 @@ rm -f .tlc-rebase-marker
 # Commit the sync
 git add .
 git commit -m "sync: reconcile changes from rebase"
+```
+
+---
+
+## Scenario 3: Integrate Main (No Rebase)
+
+**ONLY run this if main branch is ahead of current branch.**
+
+This is for when you want to incorporate changes from main WITHOUT rebasing. Claude reads and understands the changes, then rebuilds them in your branch's context.
+
+### When to Use This
+
+- Rebase would cause too many conflicts
+- You want to cherry-pick specific improvements
+- You need to understand what changed before integrating
+- Your branch has diverged significantly from main
+
+### Step 3.1: Detect Main Ahead
+
+```bash
+mainBranch=$(jq -r '.git.mainBranch // "main"' .tlc.json)
+git fetch origin $mainBranch
+
+behindCount=$(git rev-list HEAD..origin/$mainBranch --count)
+aheadCount=$(git rev-list origin/$mainBranch..HEAD --count)
+
+if [ "$behindCount" -gt 0 ]; then
+  echo "─────────────────────────────────────────────────────"
+  echo " MAIN IS AHEAD"
+  echo "─────────────────────────────────────────────────────"
+  echo ""
+  echo "Your branch: $(git branch --show-current)"
+  echo "Main branch: $mainBranch"
+  echo ""
+  echo "  $behindCount commits behind main"
+  echo "  $aheadCount commits ahead of main"
+  echo ""
+  echo "Options:"
+  echo "  [1] Integrate changes (read & rebuild without rebase)"
+  echo "  [2] Skip for now"
+  echo ""
+  echo "Choice [1/2]: _"
+fi
+```
+
+### Step 3.2: Analyze Main's Changes
+
+If user chooses to integrate:
+
+```bash
+# Get the changes from main that we don't have
+git log --oneline HEAD..origin/$mainBranch
+git diff HEAD...origin/$mainBranch --stat
+```
+
+Present summary:
+
+```
+─────────────────────────────────────────────────────
+ CHANGES IN MAIN
+─────────────────────────────────────────────────────
+
+12 commits to integrate:
+
+  abc1234 feat: add payment processing
+  def5678 fix: user validation bug
+  ghi9012 refactor: cleanup auth module
+  ...
+
+Files changed: 23
+  + 8 new files
+  ~ 12 modified files
+  - 3 deleted files
+
+Key changes:
+  • New payment system (src/payments/*)
+  • Auth module refactored
+  • Bug fixes in user validation
+```
+
+### Step 3.3: Read and Understand
+
+**Claude reads the actual changes (not just filenames):**
+
+```bash
+# Read new files entirely
+for f in $(git diff --name-only --diff-filter=A HEAD...origin/$mainBranch); do
+  git show origin/$mainBranch:$f
+done
+
+# Read diffs for modified files
+git diff HEAD...origin/$mainBranch
+```
+
+**Build context:**
+- What new features were added?
+- What bugs were fixed?
+- What was refactored and why?
+- What was deleted and why?
+
+### Step 3.4: Rebuild Locally
+
+Instead of rebasing, Claude:
+
+1. **Creates new files** based on understanding (not copy-paste)
+2. **Applies fixes** to your branch's version of files
+3. **Incorporates refactors** that make sense in your context
+4. **Skips changes** that conflict with your work (notes them)
+
+```
+─────────────────────────────────────────────────────
+ INTEGRATING CHANGES
+─────────────────────────────────────────────────────
+
+Reading main's changes...
+
+✓ New: src/payments/processor.ts
+  → Created in your branch (adapted to your patterns)
+
+✓ Fix: src/api/users.ts - validation bug
+  → Applied fix to your version
+
+✓ Refactor: src/auth/login.ts
+  → Incorporated improvements
+
+⚠ Skipped: src/api/orders.ts
+  → Conflicts with your changes (noted for manual review)
+
+─────────────────────────────────────────────────────
+
+Integrated 11 of 12 changes.
+1 change skipped (see .planning/INTEGRATION-NOTES.md)
+
+Commit these changes? (Y/n): _
+```
+
+### Step 3.5: Commit Integration
+
+```bash
+git add -A
+git commit -m "integrate: incorporate changes from main (no rebase)
+
+Changes integrated:
+- Payment processing system
+- User validation fix
+- Auth module improvements
+
+Skipped (manual review needed):
+- src/api/orders.ts (conflicts with current work)"
+```
+
+### Step 3.6: Update Sync State
+
+```bash
+# Note that we've seen main's changes (even if not fully merged)
+mainHead=$(git rev-parse origin/$mainBranch)
+jq ".lastMainCheck = \"$mainHead\"" .tlc.json > .tlc.json.tmp
+mv .tlc.json.tmp .tlc.json
 ```
 
 ---

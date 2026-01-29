@@ -115,6 +115,8 @@ That's it. `/tlc` handles everything:
  ↓
  Rebase detected? → "Run sync? (Y/n)" → Reconcile
  ↓
+ Main ahead? → "Integrate? [1/2]" → Read & rebuild (no rebase)
+ ↓
  Already synced? → Dashboard + next actions
 ```
 
@@ -123,6 +125,13 @@ That's it. `/tlc` handles everything:
 git rebase origin/main
     ↓
 /tlc                    ← Detects changes, asks, syncs, continues
+```
+
+**When main is ahead (no rebase):**
+```
+/tlc                    ← Detects main ahead, offers to integrate
+    ↓
+[1] Integrate          ← Claude reads changes, rebuilds locally
 ```
 
 ---
