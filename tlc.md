@@ -1,6 +1,18 @@
 # /tlc - Smart Entry Point
 
+**TLC v1.2.1**
+
 One command. Context-aware. Visual dashboard.
+
+## First Response
+
+Always start by showing the version:
+
+```
+TLC v1.2.1
+```
+
+Then proceed with sync check and status.
 
 ## What This Does
 
