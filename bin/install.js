@@ -105,14 +105,17 @@ function install(targetDir, installType) {
   // Create directory
   fs.mkdirSync(commandsDir, { recursive: true });
 
-  // Copy command files
+  // Copy command files with version injection
   const sourceDir = path.join(__dirname, '..');
   let installed = 0;
   for (const file of COMMANDS) {
     const src = path.join(sourceDir, file);
     const dest = path.join(commandsDir, file);
     if (fs.existsSync(src)) {
-      fs.copyFileSync(src, dest);
+      // Read, replace {{VERSION}}, write
+      let content = fs.readFileSync(src, 'utf8');
+      content = content.replace(/\{\{VERSION\}\}/g, VERSION);
+      fs.writeFileSync(dest, content);
       installed++;
     }
   }

@@ -1,6 +1,6 @@
 # /tlc - Smart Entry Point
 
-**TLC v1.2.1**
+**TLC v{{VERSION}}**
 
 One command. Context-aware. Visual dashboard.
 
