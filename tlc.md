@@ -9,7 +9,7 @@ One command. Context-aware. Visual dashboard.
 Always start by showing the version:
 
 ```
-TLC v1.2.1
+TLC v{{VERSION}}
 ```
 
 Then proceed with sync check and status.
