@@ -32,6 +32,15 @@ No manual testing. No "does this work?" No vibes.
 
 ---
 
+## Start Here
+
+| Your Experience | Start With |
+|-----------------|------------|
+| **Never coded before?** | [Noob Guide](docs/wiki/noob.md) — Complete setup from zero |
+| **Know how to code?** | [Skip Manual - Start](docs/wiki/skip-manual-start.md) — 30-second setup |
+
+---
+
 ## Quick Start
 
 ### New Project
@@ -371,8 +380,16 @@ helm install tlc tlc/tlc-server \
 
 ## Documentation
 
-- **[Getting Started Guide](docs/getting-started-guide.md)** — New to coding? Start here!
+### Getting Started
+- **[Noob Guide](docs/wiki/noob.md)** — Never coded before? Complete setup from zero
+- **[Skip Manual - Start](docs/wiki/skip-manual-start.md)** — Know how to code? 30-second setup
+
+### Reference
 - **[Help / All Commands](help.md)** — Complete command reference
+- **[Configuration](docs/wiki/configuration.md)** — `.tlc.json` options
+- **[Troubleshooting](docs/wiki/troubleshooting.md)** — Common issues and fixes
+
+### Guides
 - **[Team Workflow](docs/team-workflow.md)** — Guide for teams (engineers + PO + QA)
 - **[Dev Server](docs/devserver.md)** — Deploy on Ubuntu server
 - **[Kubernetes Deployment](docs/kubernetes-deployment.md)** — Deploy on K8s
