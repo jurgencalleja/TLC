@@ -19,6 +19,7 @@ Launches the visual dashboard. Detects where you are, shows what's next.
 | Command | What It Does |
 |---------|--------------|
 | `/tlc` | **Visual dashboard. Context-aware. Knows what to do next.** |
+| `/tlc:checklist` | Full project checklist - all phases, skipped steps, quality gates |
 
 ### Setup & Sync
 

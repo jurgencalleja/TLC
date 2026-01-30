@@ -39,6 +39,7 @@ const COMMANDS = [
   'build.md',
   'verify.md',
   'progress.md',
+  'checklist.md',
   'complete.md',
   'new-milestone.md',
   'quick.md',

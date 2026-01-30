@@ -2,272 +2,287 @@
 
 **TLC v{{VERSION}}**
 
-One command. Context-aware. Visual dashboard.
+One command. Context-aware. Shows exactly where you are and what's next.
 
 ## First Response
 
-Always start by showing the version:
+Always start by showing the version and phase checklist:
 
 ```
 TLC v{{VERSION}}
 ```
 
-Then proceed with sync check and status.
-
-## What This Does
-
-Launches the TLC dashboard - a visual interface showing project state, phases, tests, and next actions.
+Then show the Phase Checklist (Step 1) before anything else.
 
 ## Process
 
 ### Step 0: Auto-Sync Check (ALWAYS FIRST)
 
-Before anything else, check if sync is needed and handle it automatically:
+Before anything else, check if sync is needed:
 
 ```bash
 # Check if .tlc.json exists
 if [ ! -f ".tlc.json" ]; then
-  # No TLC config - need first-time setup
   echo "Welcome to TLC!"
   echo ""
   echo "No configuration found. Let's set up your project."
-  echo "This configures test framework, team settings, quality gates, and more."
   echo ""
   echo "Run setup now? (Y/n)"
-  # If yes → Run sync.md "Scenario 1: First-Time Adoption" ONLY
-  # DO NOT run Scenario 2
-  # Then continue to Step 1
-  exit  # Don't fall through to other checks
+  # If yes → Run sync.md "Scenario 1: First-Time Adoption"
+  exit
 fi
 
-# .tlc.json exists - check sync state
+# Check sync state
 lastSync=$(jq -r '.lastSync // ""' .tlc.json)
 currentHead=$(git rev-parse HEAD 2>/dev/null)
 
-# If lastSync missing, initialize it
+# Initialize lastSync if missing
 if [ -z "$lastSync" ]; then
-  echo "Initializing sync tracking..."
   jq ".lastSync = \"$currentHead\"" .tlc.json > .tlc.json.tmp && mv .tlc.json.tmp .tlc.json
-  echo "✓ Synced (initialized to ${currentHead:0:7})"
-  # Continue to Step 1 - NO sync needed
+  echo "✓ Synced (initialized)"
 fi
 
-# Check for rebase marker OR HEAD mismatch
+# Check for rebase/changes
 if [ -f ".tlc-rebase-marker" ] || [ "$lastSync" != "$currentHead" ]; then
   echo "⚠️ Codebase changed since last sync."
-  echo "   Last sync: ${lastSync:0:7}"
-  echo "   Current:   ${currentHead:0:7}"
-  changedCount=$(git diff --name-only $lastSync $currentHead 2>/dev/null | wc -l)
-  echo "   $changedCount files changed"
-  echo ""
   echo "Run sync now? (Y/n)"
-  # If yes → Run sync.md "Scenario 2: Post-Rebase Reconciliation" ONLY
-  # DO NOT run Scenario 1 (no questionnaire!)
-  # Then continue to Step 1
-  exit  # Don't fall through to main-ahead check
+  # If yes → Run sync.md "Scenario 2: Post-Rebase"
+  exit
 fi
 
-# Check if main is ahead of current branch
+# Check if main is ahead
 mainBranch=$(jq -r '.git.mainBranch // "main"' .tlc.json)
 git fetch origin $mainBranch 2>/dev/null
 behindCount=$(git rev-list HEAD..origin/$mainBranch --count 2>/dev/null)
 
 if [ "$behindCount" -gt 0 ]; then
-  echo "⚠️ Main branch is $behindCount commits ahead."
-  echo ""
-  echo "Options:"
-  echo "  [1] Integrate changes (read & rebuild without rebase)"
-  echo "  [2] Skip for now"
-  echo ""
-  # If 1 → Run sync.md "Scenario 3: Integrate Main" ONLY
-  # If 2 → Continue to dashboard
+  echo "⚠️ Main is $behindCount commits ahead."
+  echo "[1] Integrate  [2] Skip"
+  # If 1 → Run sync.md "Scenario 3: Integrate Main"
 fi
 
-# If we get here, sync is current
 echo "✓ Synced"
 ```
 
-**CRITICAL - Which sync scenario to run:**
+### Step 1: Show Phase Checklist (ALWAYS SHOW THIS)
 
-| Condition | Action |
-|-----------|--------|
-| No `.tlc.json` | Run sync.md **Scenario 1** (questionnaire) |
-| `.tlc.json` exists, HEAD changed | Run sync.md **Scenario 2** (reconciliation only, NO questionnaire) |
-| Main is ahead of current branch | Run sync.md **Scenario 3** (integrate without rebase) |
-| `.tlc.json` exists, all synced | Already synced, skip to dashboard |
+**This is the core of `/tlc` - always show the current phase status:**
 
-**The questionnaire ONLY runs on first-time setup, NEVER after rebase or integrate.**
+```
+TLC v{{VERSION}}                                    ✓ Synced
+═══════════════════════════════════════════════════════════════
 
-User never needs to know about `/tlc:sync` as a separate command - `/tlc` handles everything.
+Phase 2: User Dashboard
+───────────────────────────────────────────────────────────────
 
-### Step 1: Launch Dashboard
+  Workflow Status:
+  ────────────────
+  [x] 1. Discussed     .planning/phases/2-DISCUSSION.md
+  [x] 2. Planned       .planning/phases/2-PLAN.md (4 tasks)
+  [ ] 3. Unit tests    not written
+  [ ] 4. E2E tests     not written
+  [ ] 5. Implemented   0/4 tasks
+  [ ] 6. Verified      pending
 
-Run the TLC dashboard:
+  ⚠️  Skipped Steps:
+  ──────────────────
+  • E2E scenarios not defined in plan (recommended)
+
+  Quality Gates:
+  ──────────────
+  [ ] Coverage: --% (target: 80%)
+  [ ] Quality score: --/100 (target: 75)
+
+───────────────────────────────────────────────────────────────
+
+  → Next: /tlc:build 2 (writes tests, then implements)
+
+  Quick Actions:
+  [1] Continue with recommended action
+  [2] Go back and fix skipped steps
+  [3] Show all commands (/tlc:help)
+  [4] Full project checklist (/tlc:checklist)
+
+Choice [1/2/3/4]: _
+```
+
+### Step 2: Detect Current Phase
+
+Parse `.planning/ROADMAP.md` to find current phase:
 
 ```bash
-# If in TLC repo (development)
-cd dashboard && npm run dev
+# Find current phase marker
+currentPhase=$(grep -n '\[>\]\|\[current\]\|\[in.progress\]' .planning/ROADMAP.md | head -1)
 
-# If installed globally
-tlc-dashboard
+# If no current, find first incomplete
+if [ -z "$currentPhase" ]; then
+  currentPhase=$(grep -n '^\s*-\s*\[ \]' .planning/ROADMAP.md | head -1)
+fi
 ```
 
-The dashboard shows:
-- Project overview (from PROJECT.md)
-- Phase progress (from ROADMAP.md)
-- Test status (pass/fail counts)
-- Available actions
+### Step 3: Check Phase Artifacts
 
-### Step 2: Fallback to Text Mode
+For the current phase N, check what exists:
 
-If the dashboard cannot be launched (not installed, dependencies missing), fall back to text-based status:
+| Artifact | Check | Status |
+|----------|-------|--------|
+| Discussion | `.planning/phases/{N}-DISCUSSION.md` exists | [x] or [ ] |
+| Plan | `.planning/phases/{N}-PLAN.md` exists | [x] or [ ] |
+| Unit Tests | `.planning/phases/{N}-TESTS.md` exists OR test files created | [x] or [ ] |
+| E2E Tests | `tests/e2e/phase-{N}.spec.ts` exists | [x] or [ ] |
+| Implementation | All tasks marked `[x@user]` in PLAN.md | [x] or [ ] |
+| Verification | `.planning/phases/{N}-VERIFIED.md` exists | [x] or [ ] |
 
-Check what exists:
+### Step 4: Identify Skipped Steps
 
-```
-□ PROJECT.md exists?
-□ .planning/ directory exists?
-□ .planning/ROADMAP.md exists?
-□ Test framework configured? (vitest.config.*, pytest.ini, etc.)
-□ Test files exist?
-□ Source files exist?
-```
-
-### Step 3: Route Based on State (Text Fallback)
-
-**No PROJECT.md → New or Init**
-```
-No project detected.
-
-1) Start new project (/tlc:new-project)
-2) Add TLC to existing code (/tlc:init)
-```
-
-**PROJECT.md exists, no roadmap → Need Planning**
-```
-Project exists but no roadmap.
-
-Let's break your project into phases.
-
-What's the first feature to build?
-```
-Then create ROADMAP.md with phases based on discussion.
-
-**Roadmap exists → Check Phase Status**
-
-Parse ROADMAP.md to find:
-- Completed phases: `[x]` or `[completed]`
-- Current phase: `[>]` or `[in progress]` or `[current]`
-- Next pending phase: first without marker
-
-### Step 4: Determine Current Phase Action
-
-For the current/next phase, check what exists:
+Check for common skipped steps and warn:
 
 ```
-Phase {N}: {Name}
-□ DISCUSSION.md exists? (.planning/phases/{N}-DISCUSSION.md)
-□ PLAN.md exists? (.planning/phases/{N}-*-PLAN.md)
-□ Tests written? (.planning/phases/{N}-TESTS.md or test files)
-□ Implementation done? (check if tests pass)
-□ Verified? (.planning/phases/{N}-VERIFIED.md)
+Skipped Steps Detection:
+─────────────────────────
+
+1. Discussion skipped?
+   - PLAN.md exists but no DISCUSSION.md
+   → "Phase planned without discussion - approach may not be optimal"
+
+2. E2E not defined?
+   - PLAN.md has no E2E scenarios section
+   → "No E2E scenarios in plan - user flows won't be tested"
+
+3. Tests skipped?
+   - Implementation started but TESTS.md missing
+   → "Code written before tests - not TDD!"
+
+4. Verification skipped?
+   - Next phase started but current not verified
+   → "Phase 2 not verified - bugs may slip through"
+
+5. Coverage not checked?
+   - Phase complete but no coverage report
+   → "Test coverage not measured"
 ```
 
-### Step 5: Present Contextual Action
+### Step 5: Show Quality Gates
 
-Based on phase state, show ONE clear action:
+If `.tlc.json` has quality thresholds, show them:
 
-**Phase not discussed:**
-```
-Phase 2: User Dashboard
+```bash
+coverageTarget=$(jq -r '.quality.coverageThreshold // 80' .tlc.json)
+qualityTarget=$(jq -r '.quality.qualityScoreThreshold // 75' .tlc.json)
 
-Ready to discuss implementation approach.
-
-→ Continue? (Y/n)
-```
-Then run discuss flow.
-
-**Discussed but not planned:**
-```
-Phase 2: User Dashboard
-
-Discussion complete. Ready to create task plan.
-
-→ Continue? (Y/n)
-```
-Then run plan flow.
-
-**Planned but no tests:**
-```
-Phase 2: User Dashboard
-
-Plan ready. 4 tasks to implement.
-
-Next: Write tests, then build.
-
-→ Continue? (Y/n)
-```
-Then run build flow (tests first).
-
-**Tests written, not implemented:**
-```
-Phase 2: User Dashboard
-
-Tests ready (12 tests, all failing - expected).
-
-Next: Implement to make tests pass.
-
-→ Continue? (Y/n)
-```
-Then run implementation.
-
-**Implemented, not verified:**
-```
-Phase 2: User Dashboard
-
-Tests passing (12/12)
-
-Next: Human verification.
-
-→ Continue? (Y/n)
-```
-Then run verify flow.
-
-**Phase complete:**
-```
-Phase 2: User Dashboard - Complete
-
-Moving to Phase 3: Reports
-
-→ Continue? (Y/n)
+# Get current values (from last test run)
+currentCoverage=$(jq -r '.lastCoverage // "--"' .tlc.json)
+currentQuality=$(jq -r '.lastQualityScore // "--"' .tlc.json)
 ```
 
-### Step 6: Check for Untested Code
-
-If project has source files without tests:
-
+Display:
 ```
-Found 5 files without tests:
-  - src/utils/helpers.ts
-  - src/api/users.ts
-  - src/services/email.ts
-  ...
-
-Add tests for existing code? (Y/n)
+Quality Gates:
+  [ ] Coverage: 72% (target: 80%) ⚠️ BELOW TARGET
+  [x] Quality score: 78/100 (target: 75) ✓
 ```
 
-If yes, run `/tlc:coverage` flow.
+### Step 6: Recommend Next Action
 
-### Step 7: All Phases Complete
+Based on phase state, recommend ONE action:
+
+| State | Recommendation |
+|-------|----------------|
+| No discussion | `/tlc:discuss {N}` |
+| Discussed, no plan | `/tlc:plan {N}` |
+| Planned, no tests | `/tlc:build {N}` |
+| Tests written, not passing | `/tlc:build {N}` (continue) |
+| Tests passing, not verified | `/tlc:verify {N}` |
+| Verified | Move to next phase |
+| All phases done | `/tlc:complete` |
+
+### Step 7: Handle User Choice
 
 ```
-All phases complete!
+[1] Continue with recommended action
+    → Run the recommended command
 
-Milestone ready for release.
+[2] Go back and fix skipped steps
+    → Show list of skipped steps with fix commands:
 
-1) Tag release (/tlc:complete)
-2) Start next milestone (/tlc:new-milestone)
-3) Check test coverage (/tlc:coverage)
+    Skipped steps to fix:
+    1. Add E2E scenarios → Edit .planning/phases/2-PLAN.md
+    2. Run coverage check → /tlc:coverage
+
+    Which to fix? [1/2]: _
+
+[3] Show all commands
+    → Run /tlc:help
+
+[4] Full project checklist
+    → Run /tlc:checklist
+```
+
+### Step 8: Validation Gates
+
+**Before allowing certain actions, validate prerequisites:**
+
+```
+Validation Rules:
+─────────────────
+
+/tlc:build without /tlc:plan:
+  → "⚠️ No plan found. Run /tlc:plan first? (Y/n)"
+
+/tlc:verify without tests passing:
+  → "⚠️ Tests not passing. Cannot verify. Run /tlc:build first."
+
+/tlc:complete without all phases verified:
+  → "⚠️ Phase 3 not verified. Complete verification first."
+
+Moving to next phase without E2E:
+  → "⚠️ No E2E tests for Phase 2. Add them? (Y/n)"
+```
+
+## No Project Detected
+
+If no `.tlc.json` and no `PROJECT.md`:
+
+```
+TLC v{{VERSION}}
+═══════════════════════════════════════════════════════════════
+
+No TLC project detected.
+
+Options:
+  [1] Start new project     → /tlc:new-project
+  [2] Add TLC to existing   → /tlc:init
+
+Choice [1/2]: _
+```
+
+## All Phases Complete
+
+```
+TLC v{{VERSION}}                                    ✓ Synced
+═══════════════════════════════════════════════════════════════
+
+🎉 All Phases Complete!
+───────────────────────────────────────────────────────────────
+
+  Phase 1: Authentication     [x] Verified
+  Phase 2: User Dashboard     [x] Verified
+  Phase 3: Reports            [x] Verified
+
+  Quality Summary:
+  ────────────────
+  [x] Coverage: 87% (target: 80%)
+  [x] Quality score: 82/100 (target: 75)
+  [x] All E2E tests passing
+
+───────────────────────────────────────────────────────────────
+
+  Next Steps:
+  [1] Tag release        → /tlc:complete
+  [2] Start next version → /tlc:new-milestone
+  [3] Review coverage    → /tlc:coverage
+
+Choice [1/2/3]: _
 ```
 
 ## Usage
@@ -276,14 +291,4 @@ Milestone ready for release.
 /tlc
 ```
 
-No arguments. Auto-detects everything. Launches dashboard when available.
-
-## Why This Exists
-
-Instead of remembering:
-- `/tlc:discuss 2`
-- `/tlc:plan 2`
-- `/tlc:build 2`
-- `/tlc:verify 2`
-
-Just run `/tlc`. It knows where you are.
+No arguments. Shows exactly where you are, what's done, what's skipped, and what's next.
