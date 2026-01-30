@@ -1,39 +1,63 @@
 # /tlc:server - TLC Development Server
 
-Set up Docker-based development environment.
+Set up local development environment (simple, no Docker by default).
 
 ## Instructions for Claude
 
-**CRITICAL: Do NOT analyze the codebase. Do NOT check files. Do NOT run any detection. Just execute the two steps below immediately.**
+### Default: Local Dev Mode
 
-### Step 1: Create the launcher
+Start services directly without Docker:
 
-Run this command:
+**1. Check what's in the project:**
+- Read package.json to find the dev/start script
+- Check for database config (prisma, drizzle, .env with DATABASE_URL)
+- Check for redis in dependencies
+
+**2. Start TLC Dashboard:**
+```bash
+npx tlc-claude-code dashboard &
+```
+
+**3. Start the user's app:**
+```bash
+npm run dev
+```
+
+**4. Detect the app port:**
+- Check package.json scripts for port hints
+- Check .env for PORT variable
+- Common defaults: Next.js/React (3000), Vite (5173), Express (3000)
+- **AVOID**: 5000, 5001 (AirPlay on macOS), 7000, 8080
+
+**5. Tell the user:**
+```
+TLC Dev Server Running
+
+  Dashboard:  http://localhost:3147
+  App:        http://localhost:{detected_port}
+
+Services:
+  ✓ TLC Dashboard (planning, bugs, progress)
+  ✓ Your App (hot reload enabled)
+  ✓ Database (PGlite embedded / local postgres)
+  ○ Redis (start with: redis-server)
+
+Stop: Ctrl+C
+```
+
+### Docker Mode (--docker flag)
+
+Only if user runs `/tlc:server --docker`:
 
 ```bash
 npx tlc-claude-code init
 ```
 
-### Step 2: Tell the user
+Then tell them about Docker setup with tlc-start.bat.
 
-Say exactly this:
+## Key Principle
 
-```
-Done! Created tlc-start.bat
-
-To start your dev environment:
-  Double-click tlc-start.bat
-
-Services when running:
-  Dashboard:  http://localhost:3147
-  App:        http://localhost:5001
-  DB Admin:   http://localhost:8080
-  Database:   localhost:5433
-
-Requires: Docker Desktop
-
-Commands:
-  tlc rebuild   - Full rebuild after package.json changes
-```
-
-**That's it. Don't show alternatives or workarounds. Don't mention npm scripts.**
+**Local first.** Don't spin up Docker containers unless explicitly requested. Most developers just want:
+- Their app running with hot reload
+- TLC dashboard to track progress
+- Simple local database
