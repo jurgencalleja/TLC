@@ -137,7 +137,7 @@ GO. Execute now. No questions.`;
       taskId: task.id,
       taskTitle: task.title,
       prompt: basePrompt,
-      agentType: 'gsd-executor',
+      agentType: 'tlc-executor',
     };
   });
 }

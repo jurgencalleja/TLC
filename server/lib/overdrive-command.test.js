@@ -202,8 +202,8 @@ describe('overdrive-command', () => {
   describe('generateTaskCalls', () => {
     it('generates task tool calls', () => {
       const prompts = [
-        { taskId: 1, taskTitle: 'Test', prompt: 'Do task 1', agentType: 'gsd-executor' },
-        { taskId: 2, taskTitle: 'Test 2', prompt: 'Do task 2', agentType: 'gsd-executor' },
+        { taskId: 1, taskTitle: 'Test', prompt: 'Do task 1', agentType: 'tlc-executor' },
+        { taskId: 2, taskTitle: 'Test 2', prompt: 'Do task 2', agentType: 'tlc-executor' },
       ];
 
       const calls = generateTaskCalls(prompts);
