@@ -13,7 +13,7 @@ What do you want to run?
    - TLC Dashboard (planning, progress, bugs)
    - Your app with hot reload
    - PostgreSQL database
-   - DB Admin GUI (Adminer)
+   - DB Studio (auto-detected: Drizzle/Prisma/pgweb)
 
 2) Full Production Stack
    - Everything above, PLUS:
@@ -30,18 +30,32 @@ Choose [1/2]:
 
 Start the TLC dev stack:
 
-**Run:**
+**1. Detect ORM for DB Studio:**
+
+Check package.json dependencies:
+- `drizzle-orm` → Use Drizzle Studio (`npx drizzle-kit studio`)
+- `prisma` or `@prisma/client` → Use Prisma Studio (`npx prisma studio`)
+- Neither → Use pgweb (Docker: `sosedoff/pgweb`)
+
+**2. Start services:**
+
 ```bash
-npx tlc-claude-code start
+# TLC Dashboard
+npx tlc-claude-code dashboard &
+
+# User's app
+npm run dev &
+
+# PostgreSQL (Docker)
+docker run -d --name tlc-postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres:16-alpine
+
+# DB Studio (based on detection)
+npx drizzle-kit studio &    # If Drizzle
+npx prisma studio &          # If Prisma
+docker run -d --name tlc-pgweb -p 8081:8081 -e DATABASE_URL=postgres://postgres:postgres@host.docker.internal:5432/postgres sosedoff/pgweb  # Fallback
 ```
 
-This spins up:
-- TLC Dashboard
-- User's app (detected from package.json)
-- PostgreSQL database
-- Adminer (DB GUI)
-
-**Detect the app port:**
+**3. Detect the app port:**
 - Check package.json scripts for port hints
 - Check .env for PORT variable
 - Common defaults: Next.js/React (3000), Vite (5173)
@@ -53,10 +67,12 @@ TLC Environment Running
 
   Dashboard:  http://localhost:3147
   App:        http://localhost:{port}
-  DB Admin:   http://localhost:8081
+  DB Studio:  http://localhost:4983  (Drizzle Studio)
+              http://localhost:5555  (Prisma Studio)
+              http://localhost:8081  (pgweb)
   Database:   localhost:5432
 
-Stop: Ctrl+C (or docker-compose down)
+Stop: Ctrl+C
 ```
 
 ---
@@ -82,7 +98,7 @@ Full Production Stack Running
 
   Dashboard:  http://localhost:3147
   App:        http://localhost:3000
-  DB Admin:   http://localhost:8081
+  DB Studio:  http://localhost:{studio_port}
   Database:   localhost:5432
   Redis:      localhost:6379
 
