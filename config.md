@@ -1,6 +1,6 @@
-# /tlc:config - Configure Test Frameworks
+# /tlc:config - Setup Wizard
 
-Manage test framework settings for your project.
+Interactive setup for TLC. No JSON editing required.
 
 ## Usage
 
@@ -8,229 +8,224 @@ Manage test framework settings for your project.
 /tlc:config
 ```
 
-## Configuration File
-
-TLC stores test preferences in `.tlc.json` at the project root:
-
-```json
-{
-  "testFrameworks": {
-    "primary": "mocha",
-    "installed": ["mocha", "chai", "sinon", "proxyquire"],
-    "run": ["mocha"]
-  },
-  "testCommand": "npm test",
-  "testDirectory": "test"
-}
-```
-
-### Fields
-
-| Field | Description |
-|-------|-------------|
-| `primary` | Main test framework for new tests |
-| `installed` | All test libraries available in project |
-| `run` | Which frameworks to execute (subset of installed) |
-| `testCommand` | Command to run tests |
-| `testDirectory` | Where test files live |
-
-## Supported Frameworks
-
-### Default Stack (Recommended)
-
-TLC defaults to the mocha ecosystem for new projects:
-
-| Library | Purpose |
-|---------|---------|
-| **mocha** | Test runner |
-| **chai** | Assertions (expect, should, assert) |
-| **sinon** | Mocks, stubs, spies |
-| **proxyquire** | Module mocking/dependency injection |
-
-```bash
-npm install -D mocha chai sinon proxyquire @types/mocha @types/chai @types/sinon
-```
-
-### Alternative Frameworks
-
-| Framework | Use Case |
-|-----------|----------|
-| **vitest** | Vite projects, fast, ESM-native |
-| **jest** | React/Meta ecosystem, all-in-one |
-| **pytest** | Python projects |
-| **go test** | Go projects (built-in) |
-| **rspec** | Ruby projects |
-
 ## Process
 
-### Step 1: Check for Existing Config
+### Step 1: Welcome & Auto-Detect
 
-Look for `.tlc.json` in project root.
-
-If exists, display current settings:
-```
-Current TLC Configuration:
-
-Test Framework: mocha
-Libraries: mocha, chai, sinon, proxyquire
-Run Command: npm test
-Test Directory: test/
-
-What would you like to do?
-1) View/edit frameworks to run
-2) Add a new framework
-3) Change primary framework
-4) Reset to defaults
-```
-
-### Step 2: First-Time Setup
-
-If no config exists, check for existing tests:
-
-1. **Detect installed frameworks** from package.json/dependencies
-2. **Detect test files** patterns in use
-3. **Propose configuration** based on findings
+First, scan the project and greet the user:
 
 ```
-No TLC config found. Analyzing project...
+═══════════════════════════════════════════════════════════════
+TLC Setup Wizard
+═══════════════════════════════════════════════════════════════
 
-Detected:
-  - jest (installed)
-  - 47 test files using Jest patterns
+Scanning your project...
 
-Options:
-1) Keep Jest as primary (detected)
-2) Add mocha alongside Jest
-3) Switch to mocha (TLC default)
-4) Custom configuration
+✓ Found: package.json (Node.js project)
+✓ Found: 12 existing test files
+✓ Detected: Jest is installed
+
+Let's configure TLC for your project!
 ```
 
-### Step 3: Multi-Framework Setup
+### Step 2: Test Framework
 
-When multiple frameworks coexist:
-
-```
-Multiple test frameworks detected:
-  - mocha: test/unit/*.test.js (23 files)
-  - jest: __tests__/*.spec.js (15 files)
-
-Configure which to run:
-  [x] mocha - run these tests
-  [x] jest - run these tests
-  [ ] Run all frameworks
-
-Test commands:
-  mocha: npx mocha 'test/**/*.test.js'
-  jest: npx jest
-  combined: npm test (runs both)
-```
-
-### Step 4: Save Configuration
-
-Write `.tlc.json`:
-
-```json
-{
-  "testFrameworks": {
-    "primary": "mocha",
-    "installed": ["mocha", "chai", "sinon", "proxyquire", "jest"],
-    "run": ["mocha", "jest"]
-  },
-  "commands": {
-    "mocha": "npx mocha 'test/**/*.test.js'",
-    "jest": "npx jest",
-    "all": "npm test"
-  },
-  "testDirectory": "test",
-  "patterns": {
-    "mocha": "test/**/*.test.js",
-    "jest": "__tests__/**/*.spec.js"
-  }
-}
-```
-
-### Step 5: Update package.json
-
-Ensure test scripts are configured:
-
-```json
-{
-  "scripts": {
-    "test": "npm run test:mocha && npm run test:jest",
-    "test:mocha": "mocha 'test/**/*.test.js'",
-    "test:jest": "jest",
-    "test:watch": "mocha --watch 'test/**/*.test.js'"
-  }
-}
-```
-
-## Example: Adding a Framework
+Ask in plain language:
 
 ```
-> /tlc:config
+───────────────────────────────────────────────────────────────
+Question 1 of 4: Test Framework
+───────────────────────────────────────────────────────────────
 
-Current: mocha (primary)
+Which test framework do you want to use?
 
-What would you like to do?
-> 2) Add a new framework
+  [1] Keep Jest (already installed) ← Recommended
+  [2] Switch to Mocha (TLC default)
+  [3] Use Vitest (fast, modern)
+  [4] I'm not sure - choose for me
 
-Available frameworks to add:
-1) jest - All-in-one testing (React ecosystem)
-2) vitest - Fast, Vite-native
-3) Other (specify)
-
-> 1) jest
-
-Installing jest...
-npm install -D jest @types/jest
-
-Configure jest test location:
-> __tests__/
-
-Updated .tlc.json:
-  installed: mocha, chai, sinon, proxyquire, jest
-  run: mocha, jest
-
-Run which tests?
-1) All frameworks (mocha + jest)
-2) Only mocha
-3) Only jest
-4) Let me choose per-run
-
-> 1) All frameworks
-
-Done. Run 'npm test' to execute all test suites.
+Choice [1/2/3/4]: _
 ```
 
-## Example: Project with Existing Jest
+**If user chooses 4 ("not sure"):**
+- Node.js project → Mocha
+- Vite project → Vitest
+- React/Next.js → Jest
+- Python → pytest
+- Go → go test
+
+**After selection, handle installation silently:**
+```
+Setting up Mocha...
+✓ Installed mocha, chai, sinon
+✓ Created test/ folder
+✓ Added test script to package.json
+
+Done!
+```
+
+### Step 3: Coverage Target
 
 ```
-> /tlc:config
+───────────────────────────────────────────────────────────────
+Question 2 of 4: Code Coverage
+───────────────────────────────────────────────────────────────
 
-Detected: jest (47 test files)
+How thorough should testing be?
 
-Your project uses Jest. Options:
+  [1] Relaxed (60%) - Good for prototypes
+  [2] Standard (80%) - Recommended for most projects
+  [3] Strict (95%) - For critical systems
+  [4] Skip coverage checks
 
-1) Keep Jest only
-2) Add mocha for new tests, keep Jest for existing
-3) Migrate to mocha (will need to convert tests)
+Choice [1/2/3/4]: _
+```
 
-> 2) Add mocha for new tests
+### Step 4: Team or Solo
 
-Setting up mocha alongside Jest...
+```
+───────────────────────────────────────────────────────────────
+Question 3 of 4: Working Style
+───────────────────────────────────────────────────────────────
 
-New tests will use: mocha + chai + sinon
-Existing tests remain: jest
+Are you working alone or with a team?
 
-Updated scripts:
-  npm test        - runs both
-  npm run test:new - runs mocha only
-  npm run test:legacy - runs jest only
+  [1] Solo - Just me
+  [2] Team - Multiple people on this project
+
+Choice [1/2]: _
+```
+
+**If Team selected:**
+```
+Great! Team mode enables:
+  • Task claiming (prevent duplicate work)
+  • @mentions in plans
+  • Team status dashboard
+
+Your team name (from git): alice
+
+Is this correct? [Y/n]: _
+```
+
+### Step 5: Summary & Confirm
+
+```
+───────────────────────────────────────────────────────────────
+Setup Summary
+───────────────────────────────────────────────────────────────
+
+  Test Framework:  Mocha + Chai + Sinon
+  Coverage Target: 80%
+  Team Mode:       Enabled (you: @alice)
+  Test Folder:     test/
+
+Apply these settings? [Y/n]: _
+```
+
+**On confirm:**
+```
+═══════════════════════════════════════════════════════════════
+✓ TLC Configured!
+═══════════════════════════════════════════════════════════════
+
+You're all set. Here's what to do next:
+
+  /tlc              See project status
+  /tlc:build        Build current phase (writes tests first)
+  /tlc:status       Check if tests are passing
+
+Happy coding!
+```
+
+## Reconfigure
+
+If `.tlc.json` already exists, show current settings first:
+
+```
+═══════════════════════════════════════════════════════════════
+Current TLC Settings
+═══════════════════════════════════════════════════════════════
+
+  Test Framework:  Mocha
+  Coverage Target: 80%
+  Team Mode:       Off
+
+What would you like to change?
+
+  [1] Test framework
+  [2] Coverage target
+  [3] Enable/disable team mode
+  [4] Reset everything
+  [5] Exit (keep current settings)
+
+Choice [1/2/3/4/5]: _
+```
+
+## Advanced Mode
+
+For power users who want to edit JSON directly:
+
+```
+/tlc:config --advanced
+```
+
+Shows the raw `.tlc.json` and allows direct editing. But this is hidden from the main flow.
+
+## Auto-Detection Rules
+
+| What We Find | What We Set Up |
+|--------------|----------------|
+| `jest` in package.json | Jest as primary |
+| `vitest` in package.json | Vitest as primary |
+| `mocha` in package.json | Mocha as primary |
+| `pytest` in requirements.txt | pytest as primary |
+| Vite project (vite.config) | Suggest Vitest |
+| React/Next.js project | Suggest Jest |
+| Nothing detected | Default to Mocha |
+
+## Silent Installation
+
+When setting up a framework, install everything needed without asking:
+
+**Mocha:**
+```bash
+npm install -D mocha chai sinon proxyquire
+```
+
+**Jest:**
+```bash
+npm install -D jest
+```
+
+**Vitest:**
+```bash
+npm install -D vitest
+```
+
+**pytest:**
+```bash
+pip install pytest pytest-cov pytest-mock
+```
+
+## Error Recovery
+
+If something goes wrong:
+
+```
+⚠️ Couldn't install mocha automatically.
+
+Try running this manually:
+  npm install -D mocha chai sinon proxyquire
+
+Then run /tlc:config again.
 ```
 
 ## Notes
 
-- TLC defaults to mocha for consistency across projects
-- Multiple frameworks can coexist when inheriting codebases
-- Use `run` array to control which frameworks execute
-- The `primary` framework is used for new test generation
+- Never show JSON to beginners
+- Always provide numbered choices
+- Auto-detect as much as possible
+- Install packages automatically
+- Provide sensible defaults
+- Explain what each choice means in plain English

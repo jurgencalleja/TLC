@@ -61,6 +61,7 @@ Launches the visual dashboard. Detects where you are, shows what's next.
 | `/tlc:new-milestone` | Start next version |
 | `/tlc:bug` | Log a bug or feedback |
 | `/tlc:server` | Start dashboard server for QA |
+| `/tlc:update` | Update TLC to latest version |
 
 ### Multi-User Collaboration
 

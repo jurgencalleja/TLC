@@ -1,315 +1,126 @@
-# TLC Configuration Guide
+# Configuration
 
-TLC is configured via `.tlc.json` in your project root.
+TLC configures itself automatically. You rarely need to touch settings manually.
 
-## Default Configuration
+## Setup Wizard
 
-```json
-{
-  "version": "1.0",
-  "testFrameworks": {
-    "primary": "mocha",
-    "installed": ["mocha", "chai", "sinon", "proxyquire"],
-    "run": ["mocha"]
-  },
-  "commands": {
-    "test": "npm test",
-    "coverage": "npm run coverage"
-  }
-}
+Run the setup wizard to configure TLC:
+
+```
+/tlc:config
 ```
 
-## Configuration Options
+The wizard asks simple questions and sets everything up for you:
 
-### Test Frameworks
+1. **Test Framework** - Which testing tool to use
+2. **Coverage Target** - How thorough testing should be
+3. **Team Mode** - Solo or team collaboration
 
-```json
-{
-  "testFrameworks": {
-    "primary": "mocha",
-    "installed": ["mocha", "chai", "sinon", "proxyquire"],
-    "run": ["mocha"]
-  }
-}
+That's it. No files to edit.
+
+## What Gets Configured
+
+| Setting | What It Means |
+|---------|---------------|
+| Test Framework | The tool that runs your tests (Mocha, Jest, etc.) |
+| Coverage Target | Percentage of code that must be tested |
+| Team Mode | Enable task claiming for teams |
+
+## Changing Settings
+
+Run the wizard again anytime:
+
+```
+/tlc:config
 ```
 
-| Field | Description |
-|-------|-------------|
-| `primary` | Main test framework (mocha, vitest, jest, pytest) |
-| `installed` | All testing libraries installed |
-| `run` | Frameworks to run (for multi-framework projects) |
+It shows your current settings and lets you change them.
 
-#### Supported Frameworks
+## Test Frameworks
 
-| Framework | Language | Default Libraries |
-|-----------|----------|-------------------|
-| `mocha` | JavaScript/TypeScript | chai, sinon, proxyquire |
-| `vitest` | JavaScript/TypeScript | Built-in assertions |
-| `jest` | JavaScript/TypeScript | Built-in assertions |
-| `pytest` | Python | pytest-cov, pytest-mock |
-| `go` | Go | Built-in testing |
-| `rspec` | Ruby | rspec-mocks |
+TLC supports these testing tools:
 
-### Commands
+| Framework | Best For |
+|-----------|----------|
+| **Mocha** | Most JavaScript projects (TLC default) |
+| **Jest** | React and Next.js projects |
+| **Vitest** | Vite projects |
+| **pytest** | Python projects |
 
-```json
-{
-  "commands": {
-    "test": "npm test",
-    "coverage": "npm run coverage",
-    "lint": "npm run lint",
-    "build": "npm run build"
-  }
-}
-```
+Don't know which to pick? Choose "I'm not sure" and TLC picks for you.
 
-Custom commands TLC will use for various operations.
+## Coverage Levels
 
-### Quality Settings
+| Level | Percentage | When to Use |
+|-------|------------|-------------|
+| Relaxed | 60% | Quick prototypes, experiments |
+| Standard | 80% | Most projects (recommended) |
+| Strict | 95% | Banking, healthcare, critical systems |
 
-```json
-{
-  "quality": {
-    "coverageThreshold": 80,
-    "mutationThreshold": 60,
-    "edgeCaseMinimum": 5
-  }
-}
-```
+## Team Mode
 
-| Field | Default | Description |
-|-------|---------|-------------|
-| `coverageThreshold` | 80 | Minimum coverage percentage |
-| `mutationThreshold` | 60 | Minimum mutation testing score |
-| `edgeCaseMinimum` | 5 | Minimum edge cases per function |
+When enabled, team mode adds:
 
-### Autofix Settings
+- **Task claiming** - Reserve tasks before working
+- **@mentions** - See who's working on what
+- **Status dashboard** - Team progress at a glance
 
-```json
-{
-  "autofix": {
-    "maxAttempts": 3,
-    "backoffMs": 1000,
-    "patterns": ["import", "type", "null"]
-  }
-}
-```
-
-| Field | Default | Description |
-|-------|---------|-------------|
-| `maxAttempts` | 3 | Max retry attempts |
-| `backoffMs` | 1000 | Delay between attempts |
-| `patterns` | [...] | Error patterns to match |
-
-### Git Settings
-
-```json
-{
-  "git": {
-    "mainBranch": "main"
-  }
-}
-```
-
-| Field | Default | Description |
-|-------|---------|-------------|
-| `mainBranch` | "main" | Trunk branch for rebasing and merges |
-
-The `mainBranch` is used by:
-- `/tlc:claim` - rebases from this branch before claiming a task
-- `/tlc:build` - suggests merging back to this branch after completion
-- PR reviews - compares changes against this branch
-
-Set during `/tlc:init` based on your repository's default branch.
-
-### Team Settings
-
-```json
-{
-  "team": {
-    "requireClaim": true,
-    "autoAssign": false,
-    "slackWebhook": "https://hooks.slack.com/..."
-  }
-}
-```
-
-| Field | Default | Description |
-|-------|---------|-------------|
-| `requireClaim` | true | Must claim task before working |
-| `autoAssign` | false | Auto-assign based on expertise |
-| `slackWebhook` | null | Slack notifications URL |
-
-### CI/CD Settings
-
-```json
-{
-  "ci": {
-    "provider": "github",
-    "coverageThreshold": 80,
-    "blockOnFailure": true,
-    "parallelJobs": 4
-  }
-}
-```
-
-| Field | Default | Description |
-|-------|---------|-------------|
-| `provider` | "github" | CI provider (github, gitlab, azure) |
-| `coverageThreshold` | 80 | Coverage required to pass |
-| `blockOnFailure` | true | Block merge on test failure |
-| `parallelJobs` | 4 | Parallel test jobs |
-
-### Issue Tracker Settings
-
-```json
-{
-  "issues": {
-    "provider": "github",
-    "project": "owner/repo",
-    "labels": {
-      "bug": "bug",
-      "feature": "enhancement"
-    }
-  }
-}
-```
-
-| Field | Description |
-|-------|-------------|
-| `provider` | Issue tracker (github, jira, linear, gitlab) |
-| `project` | Project identifier |
-| `labels` | Label mappings |
-
-### Dev Server Settings
-
-```json
-{
-  "devServer": {
-    "port": 3147,
-    "appPort": 5001,
-    "dbPort": 5433,
-    "hotReload": true
-  }
-}
-```
-
-| Field | Default | Description |
-|-------|---------|-------------|
-| `port` | 3147 | Dashboard port |
-| `appPort` | 5001 | Application port |
-| `dbPort` | 5433 | Database port |
-| `hotReload` | true | Enable hot reload |
+Enable it in the wizard or with `/tlc:deploy setup`.
 
 ## Environment Variables
 
-TLC respects these environment variables:
+Set these in your terminal profile for convenience:
 
-| Variable | Description |
-|----------|-------------|
-| `TLC_USER` | Override git username for task claiming |
-| `TLC_ENV` | Environment (development, production) |
-| `TLC_DEBUG` | Enable debug logging |
-| `GITHUB_TOKEN` | GitHub API token for PR reviews |
-| `SLACK_WEBHOOK_URL` | Slack notifications |
+| Variable | What It Does |
+|----------|--------------|
+| `TLC_USER` | Your team name (defaults to git username) |
 
-## Framework-Specific Configuration
-
-### Mocha (.mocharc.json)
-
-```json
-{
-  "extension": ["js", "ts"],
-  "spec": "test/**/*.test.{js,ts}",
-  "require": ["ts-node/register"],
-  "timeout": 5000
-}
+**Mac/Linux** - Add to `~/.bashrc` or `~/.zshrc`:
+```bash
+export TLC_USER="alice"
 ```
 
-### Vitest (vitest.config.js)
-
-```javascript
-export default {
-  test: {
-    globals: true,
-    environment: 'node',
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html']
-    }
-  }
-}
-```
-
-### Jest (jest.config.js)
-
-```javascript
-module.exports = {
-  testEnvironment: 'node',
-  testMatch: ['**/*.test.js'],
-  collectCoverage: true,
-  coverageThreshold: {
-    global: { lines: 80 }
-  }
-}
-```
-
-### pytest (pytest.ini)
-
-```ini
-[pytest]
-testpaths = tests
-python_files = test_*.py
-python_functions = test_*
-addopts = --cov=src --cov-report=term
+**Windows** - Run in PowerShell:
+```powershell
+[Environment]::SetEnvironmentVariable("TLC_USER", "alice", "User")
 ```
 
 ## Project Files
 
-### PROJECT.md
+TLC creates these files automatically:
 
-Project overview document. Contains:
-- Project name and description
-- Tech stack
-- Team members
-- Key decisions
+| File | Purpose |
+|------|---------|
+| `.tlc.json` | Your settings (auto-generated) |
+| `PROJECT.md` | Project overview |
+| `.planning/ROADMAP.md` | Your phases and progress |
+| `.planning/phases/` | Plans and test status |
 
-### .planning/ROADMAP.md
+You don't need to edit these manually - TLC commands handle everything.
 
-Phase breakdown. Contains:
-- Milestone goals
-- Phase definitions
-- Progress tracking
+## Advanced: Manual Configuration
 
-### .planning/BUGS.md
+For power users who want direct control:
 
-Bug tracker. Format:
-```markdown
-### BUG-001: Login fails on Safari [open]
-
-**Severity:** high
-**Reported:** 2024-01-15
-**Reporter:** @alice
-
-Steps to reproduce...
+```
+/tlc:config --advanced
 ```
 
-### .planning/phases/{N}-PLAN.md
+Or edit `.tlc.json` directly. But this is rarely needed.
 
-Phase plan. Contains:
-- Task breakdown
-- Acceptance criteria
-- Test cases
-- Dependencies
+## Troubleshooting
 
-## Multiple Configurations
-
-For monorepos, TLC looks for `.tlc.json` in:
-1. Current directory
-2. Git root
-3. Package directory (for workspaces)
-
-Override with `TLC_CONFIG` environment variable:
-```bash
-TLC_CONFIG=/path/to/.tlc.json /tlc:build
+**Tests not running?**
 ```
+/tlc:config
+```
+Re-run the wizard to fix test framework setup.
+
+**Wrong coverage target?**
+```
+/tlc:config
+```
+Choose option 2 to change coverage settings.
+
+**Team mode not working?**
+Check that `TLC_USER` is set, or run `/tlc:config` to enable team mode.
