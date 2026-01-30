@@ -64,6 +64,23 @@ fi
 echo "✓ Synced"
 ```
 
+### Step 0b: Check for Team Features (Existing Projects)
+
+For projects that existed before team features, check if dev server is configured:
+
+```bash
+# Check if deploy config exists
+deployDomain=$(jq -r '.deploy.domain // ""' .tlc.json)
+
+if [ -z "$deployDomain" ]; then
+  # No deploy config - this is an existing project without team setup
+  # Show subtle hint in header (not blocking)
+  teamHint="│ 💡 Team sharing available: /tlc:deploy setup"
+fi
+```
+
+This adds a non-blocking hint. Users can also access it via Quick Actions [5].
+
 ### Step 1: Show Phase Checklist (ALWAYS SHOW THIS)
 
 **This is the core of `/tlc` - always show the current phase status:**
@@ -102,8 +119,9 @@ Phase 2: User Dashboard
   [2] Go back and fix skipped steps
   [3] Show all commands (/tlc:help)
   [4] Full project checklist (/tlc:checklist)
+  [5] Set up team dev server (/tlc:deploy setup)
 
-Choice [1/2/3/4]: _
+Choice [1/2/3/4/5]: _
 ```
 
 ### Step 2: Detect Current Phase

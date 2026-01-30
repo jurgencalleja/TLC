@@ -88,11 +88,54 @@ Config saved to .tlc.json
 
 ### Process
 
-1. **Read project info** from `.tlc.json` or `package.json`
+1. **Detect project state**:
+   - New project? Use info from `/tlc:new-project` or `/tlc:init`
+   - Existing TLC project? Read from `.tlc.json`
+   - Legacy project? Read from `package.json` + git remote
 2. **Ask for domain** if not configured
 3. **Generate webhook secret** (random 16 chars)
 4. **Output setup command** with all config embedded
-5. **Save config** to `.tlc.json`
+5. **Save/update config** in `.tlc.json`
+
+### Upgrading Existing Projects
+
+For projects already using TLC but without team features:
+
+```
+> /tlc:deploy setup
+
+TLC Dev Server Setup
+════════════════════════════════════════════════════════════════════
+
+Detected existing TLC project: my-awesome-app
+  ✓ .tlc.json found
+  ✓ .planning/ directory exists
+  ✗ No deploy config yet
+
+Adding team collaboration features...
+
+Project: my-awesome-app
+Repo:    git@github.com:myorg/my-awesome-app.git
+
+Enter your server domain: _
+```
+
+The setup continues with the same flow - generates config, shows server command, DNS instructions, webhook config.
+
+**What gets added to .tlc.json:**
+
+```json
+{
+  "project": "my-awesome-app",
+  "testFrameworks": { ... },    // existing config preserved
+  "deploy": {                   // NEW: added by setup
+    "domain": "myapp.example.com",
+    "webhookSecret": "x7k9m2p4q8r1s5t3",
+    "dashboardUrl": "https://dashboard.myapp.example.com",
+    "configured": false
+  }
+}
+```
 
 ```javascript
 // Config generation
