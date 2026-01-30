@@ -2,12 +2,23 @@
 
 **Test-Led Coding for Claude Code. Tests before code. Automatically.**
 
+---
+
+## Start Here
+
+| Your Experience | Start With |
+|-----------------|------------|
+| **Never coded before?** | [Noob Guide](noob.md) - Complete setup from zero |
+| **Know how to code?** | [Skip Manual - Start](skip-manual-start.md) - 30-second setup |
+
+---
+
 ## Quick Links
 
 | Getting Started | Reference | Tutorials |
 |-----------------|-----------|-----------|
-| [Installation](getting-started.md#installation) | [All Commands](command-reference.md) | [Solo Developer](../tutorials/solo-developer.md) |
-| [Quick Start](getting-started.md#quick-start) | [Configuration](configuration.md) | [Team Setup](../tutorials/team-setup.md) |
+| [Noob Guide](noob.md) | [All Commands](command-reference.md) | [Solo Developer](../tutorials/solo-developer.md) |
+| [Quick Start](skip-manual-start.md) | [Configuration](configuration.md) | [Team Setup](../tutorials/team-setup.md) |
 | [Core Workflow](getting-started.md#core-workflow) | [Troubleshooting](troubleshooting.md) | |
 
 ## What is TLC?
