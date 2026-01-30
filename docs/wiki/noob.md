@@ -11,8 +11,7 @@ Before using TLC, you need to set up your computer for coding:
 | Tool | What It Is | Time to Install |
 |------|-----------|-----------------|
 | VS Code | Where you write code | 5 min |
-| Terminal | Where you run commands | Built into VS Code |
-| Git | Tracks your code changes | 5 min |
+| GitHub Desktop | Saves and shares your code (visual git) | 5 min |
 | Node.js | Runs JavaScript | 5 min |
 | Claude Code | AI that helps you code | 5 min |
 | TLC | Makes sure your code works | 2 min |
@@ -36,28 +35,21 @@ VS Code is where you'll write all your code.
 
 ---
 
-### 2. Install Git (Track Your Code)
+### 2. Install GitHub Desktop (Track Your Code)
 
-Git remembers every change you make so you can undo mistakes.
+GitHub Desktop gives you a visual way to save and share your code — no command line needed.
 
-**Windows:**
-1. Go to https://git-scm.com/download/win
-2. Download and run installer
-3. Click Next through everything (defaults are fine)
+1. Go to https://desktop.github.com
+2. Download and install
+3. Sign in with your GitHub account (create one free at https://github.com if needed)
 
-**Mac:**
-1. Open Terminal (Cmd+Space, type "Terminal")
-2. Type: `xcode-select --install`
-3. Click Install
+**Why GitHub Desktop?**
+- Visual interface — see your changes clearly
+- One-click commits — no commands to memorize
+- Easy sync — push/pull with buttons
+- Beginner-friendly — learn git concepts without the command line
 
-**Test it works:**
-Open VS Code, press `Ctrl+`` (backtick) to open terminal, type:
-```
-git --version
-```
-Should show something like `git version 2.40.0`
-
-**Learn more:** [Git for Beginners](https://www.freecodecamp.org/news/learn-the-basics-of-git-in-under-10-minutes-da548267cc91/)
+**Learn more:** [GitHub Desktop Docs](https://docs.github.com/en/desktop)
 
 ---
 
@@ -125,7 +117,15 @@ Now let's build something!
 
 ### Create a Project Folder
 
-In VS Code terminal:
+**Using GitHub Desktop:**
+1. Open GitHub Desktop
+2. File → New Repository
+3. Name: `my-first-app`
+4. Choose where to save it
+5. Click "Create Repository"
+6. Click "Open in Visual Studio Code"
+
+**Or using terminal:**
 ```
 mkdir my-first-app
 cd my-first-app
@@ -169,6 +169,14 @@ This shows what to do next. Just follow the recommendations!
 
 ### Git (save your work)
 
+**With GitHub Desktop (recommended for beginners):**
+| Action | How |
+|--------|-----|
+| See changes | Look at the "Changes" tab |
+| Save changes | Type a message, click "Commit to main" |
+| Share online | Click "Push origin" |
+
+**With terminal (advanced):**
 | Command | What It Does |
 |---------|--------------|
 | `git add .` | Prepare all changes to save |
@@ -229,7 +237,7 @@ Make sure you saved the file (Ctrl+S / Cmd+S).
 ## What's Next?
 
 1. **Build something small** - Start with `/tlc:new-project`
-2. **Learn Git** - Try https://learngitbranching.js.org
+2. **Learn GitHub Desktop** - [GitHub Desktop Guide](https://docs.github.com/en/desktop/overview/getting-started-with-github-desktop)
 3. **Learn JavaScript** - Try https://javascript.info
 4. **Join a community** - Discord, Reddit r/learnprogramming
 
