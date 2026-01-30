@@ -354,6 +354,138 @@ Status: ✅ All tests passing (Green)
 {test runner output showing all pass}
 ```
 
+### Step 10: E2E Testing (Optional)
+
+After unit tests pass, offer E2E testing:
+
+```
+✅ Unit tests passing (11/11)
+
+Run E2E tests?
+  [1] Yes - run full E2E suite
+  [2] Skip - proceed to verify
+
+Choice [1/2]: _
+```
+
+**If user chooses E2E:**
+
+#### 10a. Detect E2E Framework
+
+Check `.tlc.json` or detect from project:
+
+```bash
+# Check config
+e2eFramework=$(jq -r '.e2e.framework // ""' .tlc.json)
+
+# Or detect
+if [ -f "playwright.config.ts" ]; then
+  e2eFramework="playwright"
+elif [ -f "cypress.config.ts" ]; then
+  e2eFramework="cypress"
+fi
+```
+
+If no E2E framework:
+```
+No E2E framework detected.
+
+Set up E2E testing?
+  [1] Playwright (recommended)
+  [2] Cypress
+  [3] Skip for now
+
+Choice [1/2/3]: _
+```
+
+#### 10b. Generate E2E Tests from Acceptance Criteria
+
+Read acceptance criteria from PLAN.md and generate E2E scenarios:
+
+```
+Analyzing phase acceptance criteria...
+
+E2E scenarios for Phase 1:
+  1. User can log in with valid credentials
+  2. User sees error for invalid password
+  3. User session persists after refresh
+  4. User can log out
+
+Generate E2E tests? (Y/n)
+```
+
+Create `tests/e2e/phase-{N}.spec.ts`:
+
+```typescript
+import { test, expect } from '@playwright/test';
+
+test.describe('Phase 1: Authentication', () => {
+  test('user can log in with valid credentials', async ({ page }) => {
+    await page.goto('/login');
+    await page.fill('[name="email"]', 'user@test.com');
+    await page.fill('[name="password"]', 'password123');
+    await page.click('button[type="submit"]');
+
+    await expect(page).toHaveURL('/dashboard');
+  });
+
+  test('user sees error for invalid password', async ({ page }) => {
+    await page.goto('/login');
+    await page.fill('[name="email"]', 'user@test.com');
+    await page.fill('[name="password"]', 'wrong');
+    await page.click('button[type="submit"]');
+
+    await expect(page.locator('.error')).toContainText('Invalid credentials');
+  });
+
+  // ... more tests from acceptance criteria
+});
+```
+
+#### 10c. Run E2E Tests
+
+```bash
+# Playwright
+npx playwright test
+
+# Cypress
+npx cypress run
+
+# Docker (if configured)
+docker-compose --profile test up playwright
+```
+
+Output:
+```
+Running E2E tests...
+
+  ✓ user can log in with valid credentials (1.2s)
+  ✓ user sees error for invalid password (0.8s)
+  ✓ user session persists after refresh (1.5s)
+  ✓ user can log out (0.6s)
+
+✅ 4 E2E tests passing
+
+Phase 1 complete. Ready for /tlc:verify 1
+```
+
+#### 10d. E2E Failures
+
+If E2E tests fail:
+```
+E2E test failed: user can log in with valid credentials
+
+Error: Expected URL '/dashboard', got '/login'
+Screenshot: tests/e2e/screenshots/login-failure.png
+
+Options:
+  [1] Fix and retry
+  [2] Skip E2E (proceed to verify)
+  [3] Debug (open headed browser)
+
+Choice [1/2/3]: _
+```
+
 ## Framework Defaults
 
 ### TLC Default: Mocha Stack
@@ -425,6 +557,51 @@ Projects can have multiple test frameworks. Configure in `.tlc.json`:
 
 When running tests, TLC will execute all frameworks in the `run` array.
 
+### E2E Framework Configuration
+
+Configure E2E testing in `.tlc.json`:
+
+```json
+{
+  "e2e": {
+    "framework": "playwright",
+    "baseUrl": "http://localhost:5001",
+    "command": "npx playwright test",
+    "docker": true
+  }
+}
+```
+
+**Playwright setup** (recommended):
+```bash
+npm init playwright@latest
+```
+
+Creates `playwright.config.ts`:
+```typescript
+import { defineConfig } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './tests/e2e',
+  baseURL: process.env.BASE_URL || 'http://localhost:5001',
+  use: {
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+  },
+});
+```
+
+**Cypress setup**:
+```bash
+npm install -D cypress
+npx cypress open
+```
+
+**Docker E2E** (already in docker-compose.dev.yml):
+```bash
+docker-compose --profile test up playwright
+```
+
 Default pytest.ini (Python):
 ```ini
 [pytest]
@@ -471,6 +648,14 @@ Committed: feat: session management - phase 1
 
 Running tests again...
 ✅ 11 tests passing
+
+Run E2E tests? [1] Yes [2] Skip: 1
+
+Running E2E tests...
+  ✓ user can log in with valid credentials
+  ✓ user sees error for invalid password
+  ✓ session persists after refresh
+✅ 3 E2E tests passing
 
 Phase 1 complete. Ready for /tlc:verify 1
 ```

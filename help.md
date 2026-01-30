@@ -37,7 +37,7 @@ Launches the visual dashboard. Detects where you are, shows what's next.
 |---------|--------------|
 | `/tlc:discuss` | Shape implementation approach |
 | `/tlc:plan` | Create task plan |
-| `/tlc:build` | Write tests → implement → verify |
+| `/tlc:build` | Write tests → implement → E2E (optional) → verify |
 | `/tlc:verify` | Human acceptance testing |
 
 ### Quality & Testing
@@ -49,7 +49,7 @@ Launches the visual dashboard. Detects where you are, shows what's next.
 | `/tlc:quality` | Test quality scoring and analysis |
 | `/tlc:edge-cases` | Generate edge case tests |
 | `/tlc:autofix` | Auto-fix failing tests |
-| `/tlc:config` | Configure test frameworks |
+| `/tlc:config` | Configure test frameworks (unit + E2E) |
 
 ### Utility
 
