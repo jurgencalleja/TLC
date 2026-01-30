@@ -252,7 +252,12 @@ Create `.tlc.json` with default test settings:
     "run": ["mocha"]
   },
   "testCommand": "npm test",
-  "testDirectory": "test"
+  "testDirectory": "test",
+  "e2e": {
+    "framework": "playwright",
+    "directory": "tests/e2e",
+    "command": "npx playwright test"
+  }
 }
 ```
 
@@ -271,10 +276,13 @@ Scaffold based on chosen stack:
 ```
 project/
 ├── src/
-├── test/
+├── test/                    # Unit tests
+├── tests/
+│   └── e2e/                 # E2E tests (Playwright)
 ├── .env.example
 ├── .tlc.json
 ├── .mocharc.json
+├── playwright.config.ts     # E2E config
 ├── docker-compose.yml
 ├── Dockerfile
 ├── [package.json | pyproject.toml | go.mod]
@@ -307,6 +315,69 @@ Add to `package.json`:
     "test:watch": "mocha --watch"
   }
 }
+```
+
+### Step 9: Set Up E2E Testing
+
+E2E tests verify full user flows in the browser.
+
+```
+Set up E2E testing?
+  [1] Playwright (recommended)
+  [2] Cypress
+  [3] Skip for now
+
+Choice [1/2/3]: _
+```
+
+**If Playwright (default):**
+
+```bash
+npm init playwright@latest
+```
+
+Create `playwright.config.ts`:
+```typescript
+import { defineConfig } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './tests/e2e',
+  baseURL: process.env.BASE_URL || 'http://localhost:5001',
+  use: {
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+  },
+});
+```
+
+Create `tests/e2e/.gitkeep` to establish the directory.
+
+Add to `package.json`:
+```json
+{
+  "scripts": {
+    "test": "mocha",
+    "test:watch": "mocha --watch",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
+  }
+}
+```
+
+**If Cypress:**
+
+```bash
+npm install -D cypress
+npx cypress open
+```
+
+**Summary output:**
+```
+✓ Unit tests: mocha + chai + sinon
+✓ E2E tests: playwright
+✓ Test directories: test/ (unit), tests/e2e/ (E2E)
+
+Ready to build. Run /tlc:plan to create your first phase.
 ```
 
 ## Usage

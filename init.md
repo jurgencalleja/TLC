@@ -88,9 +88,16 @@ Create `.tlc.json`:
     "run": ["mocha"]
   },
   "testCommand": "npm test",
-  "testDirectory": "test"
+  "testDirectory": "test",
+  "e2e": {
+    "framework": null,
+    "directory": "tests/e2e",
+    "command": null
+  }
 }
 ```
+
+(E2E framework is configured in Step 11)
 
 Add test scripts to package.json:
 ```json
@@ -283,15 +290,96 @@ This branch is used by:
 - `/tlc:build` - suggests merging back to this branch
 - PR reviews - compares against this branch
 
-### 11. Report Summary
+### 11. Set Up E2E Testing
+
+Check for existing E2E setup:
+
+```bash
+# Detect existing E2E
+if [ -f "playwright.config.ts" ] || [ -f "playwright.config.js" ]; then
+  e2e="playwright"
+elif [ -f "cypress.config.ts" ] || [ -f "cypress.config.js" ]; then
+  e2e="cypress"
+elif [ -d "tests/e2e" ] || [ -d "e2e" ]; then
+  e2e="detected"
+fi
+```
+
+**If no E2E found:**
+
+```
+No E2E testing detected.
+
+Set up E2E tests for full user flow verification?
+  [1] Yes - Playwright (recommended)
+  [2] Yes - Cypress
+  [3] No - skip for now
+
+Choice [1/2/3]: _
+```
+
+**If Playwright selected:**
+
+```bash
+npm init playwright@latest
+```
+
+Create `playwright.config.ts`:
+```typescript
+import { defineConfig } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './tests/e2e',
+  baseURL: process.env.BASE_URL || 'http://localhost:5001',
+  use: {
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+  },
+});
+```
+
+Update `.tlc.json`:
+```json
+{
+  "e2e": {
+    "framework": "playwright",
+    "directory": "tests/e2e",
+    "command": "npx playwright test"
+  }
+}
+```
+
+Add to `package.json`:
+```json
+{
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
+  }
+}
+```
+
+**If E2E already exists:**
+
+```
+Detected E2E framework: playwright
+E2E directory: tests/e2e
+Existing E2E tests: 5 files
+
+Keeping existing E2E setup.
+```
+
+### 12. Report Summary
 
 ```
 TLC initialized for [project name]
 
 Stack: [detected]
-Test framework: [framework] (existing/newly configured)
-Test directory: [path]
-Existing tests: [count] files
+Unit tests: [framework] (existing/newly configured)
+Unit test directory: [path]
+E2E tests: [framework] (existing/newly configured)
+E2E test directory: [path]
+Existing tests: [count] unit, [count] E2E
 Untested files: [count] identified
 
 Next steps:
