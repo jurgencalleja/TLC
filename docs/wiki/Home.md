@@ -8,8 +8,8 @@
 
 | Your Experience | Start With |
 |-----------------|------------|
-| **Never coded before?** | [Noob Guide](noob) - Complete setup from zero |
-| **Know how to code?** | [Skip Manual - Start](skip-manual-start) - 30-second setup |
+| **Never coded before?** | [[noob|Noob Guide]] - Complete setup from zero |
+| **Know how to code?** | [[skip-manual-start|Skip Manual - Start]] - 30-second setup |
 
 ---
 
@@ -17,9 +17,9 @@
 
 | Getting Started | Reference | Tutorials |
 |-----------------|-----------|-----------|
-| [Noob Guide](noob) | [All Commands](command-reference) | [Solo Developer](https://github.com/jurgencalleja/TLC/blob/main/docs/tutorials/solo-developer.md) |
-| [Quick Start](skip-manual-start) | [Configuration](configuration) | [Team Setup](https://github.com/jurgencalleja/TLC/blob/main/docs/tutorials/team-setup.md) |
-| [Core Workflow](getting-started#core-workflow) | [Troubleshooting](troubleshooting) | |
+| [[noob|Noob Guide]] | [[command-reference|All Commands]] | [Solo Developer](https://github.com/jurgencalleja/TLC/blob/main/docs/tutorials/solo-developer.md) |
+| [[skip-manual-start|Quick Start]] | [[configuration|Configuration]] | [Team Setup](https://github.com/jurgencalleja/TLC/blob/main/docs/tutorials/team-setup.md) |
+| [[getting-started|Core Workflow]] | [[troubleshooting|Troubleshooting]] | |
 
 ## What is TLC?
 
@@ -61,10 +61,10 @@ tlc
 
 ### Wiki
 
-- [Getting Started](getting-started) - Installation and first steps
-- [Command Reference](command-reference) - All commands explained
-- [Configuration](configuration) - `.tlc.json` options
-- [Troubleshooting](troubleshooting) - Common issues and fixes
+- [[getting-started|Getting Started]] - Installation and first steps
+- [[command-reference|Command Reference]] - All commands explained
+- [[configuration|Configuration]] - `.tlc.json` options
+- [[troubleshooting|Troubleshooting]] - Common issues and fixes
 
 ### Tutorials
 

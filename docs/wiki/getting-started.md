@@ -114,8 +114,8 @@ You describe → Tests written → Code implemented → Tests pass → Done
 
 - **Solo developer?** See [Solo Developer Tutorial](https://github.com/jurgencalleja/TLC/blob/main/docs/tutorials/solo-developer.md)
 - **Team setup?** See [Team Setup Tutorial](https://github.com/jurgencalleja/TLC/blob/main/docs/tutorials/team-setup.md)
-- **All commands?** See [Command Reference](command-reference)
-- **Configuration?** See [Configuration Guide](configuration)
+- **All commands?** See [[command-reference|Command Reference]]
+- **Configuration?** See [[configuration|Configuration Guide]]
 
 ## Common Commands
 
