@@ -58,17 +58,20 @@ services:
         condition: service_healthy
     restart: on-failure
 
-  # Database GUI (Adminer)
+  # Database GUI (pgweb - clean, modern)
+  # Note: If using Drizzle/Prisma, run their studios instead:
+  #   npx drizzle-kit studio  (port 4983)
+  #   npx prisma studio       (port 5555)
   dbadmin:
-    image: adminer:latest
+    image: sosedoff/pgweb:latest
     container_name: tlc-${COMPOSE_PROJECT_NAME:-dev}-dbadmin
     ports:
-      - "${DBADMIN_PORT:-8080}:8080"
+      - "${DBADMIN_PORT:-8081}:8081"
     environment:
-      - ADMINER_DEFAULT_SERVER=db
-      - ADMINER_DESIGN=nette
+      - PGWEB_DATABASE_URL=postgres://postgres:postgres@db:5432/app?sslmode=disable
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     restart: on-failure
 
   # MinIO S3-Compatible Storage

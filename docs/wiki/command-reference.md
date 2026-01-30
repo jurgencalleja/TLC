@@ -383,7 +383,7 @@ tlc-start.bat
 Provides:
 - `localhost:3147` - Dashboard
 - `localhost:5001` - Your app
-- `localhost:8080` - Database admin (Adminer)
+- `localhost:8081` - DB Studio (pgweb, or Drizzle/Prisma Studio)
 
 ### /tlc:server
 

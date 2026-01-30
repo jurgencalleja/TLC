@@ -44,18 +44,19 @@ describe('App', () => {
             const { lastFrame } = render(_jsx(App, {}));
             expect(lastFrame()).toBeDefined();
         });
-        it('shows TDD Dashboard header', () => {
+        it('shows TLC Dashboard header', () => {
             const { lastFrame } = render(_jsx(App, {}));
             const output = lastFrame();
-            expect(output).toContain('TDD Dashboard');
+            expect(output).toContain('TLC Dashboard');
         });
         it('shows all pane labels in header', () => {
             const { lastFrame } = render(_jsx(App, {}));
             const output = lastFrame();
             expect(output).toContain('[1]Chat');
-            expect(output).toContain('[2]GitHub');
-            expect(output).toContain('[3]Agents');
-            expect(output).toContain('[4]Preview');
+            expect(output).toContain('[2]Plan');
+            expect(output).toContain('[3]GitHub');
+            expect(output).toContain('[4]Agents');
+            expect(output).toContain('[5]Preview');
         });
         it('shows footer with keyboard hints', () => {
             const { lastFrame } = render(_jsx(App, {}));
@@ -80,10 +81,10 @@ describe('App', () => {
             const output = lastFrame();
             expect(output).toContain('Agents');
         });
-        it('shows Status pane', () => {
+        it('shows Plan pane', () => {
             const { lastFrame } = render(_jsx(App, {}));
             const output = lastFrame();
-            expect(output).toContain('Status');
+            expect(output).toContain('Plan');
         });
         it('shows Preview pane', () => {
             const { lastFrame } = render(_jsx(App, {}));
@@ -92,22 +93,28 @@ describe('App', () => {
         });
     });
     describe('keyboard navigation', () => {
-        it('switches to github pane when pressing 2', () => {
+        it('switches to plan pane when pressing 2', () => {
             const { lastFrame, stdin } = render(_jsx(App, {}));
             stdin.write('2');
             const output = lastFrame();
-            // GitHub pane should now be active (shown by highlighting)
-            expect(output).toContain('GitHub');
+            // Plan pane should now be active (shown by highlighting)
+            expect(output).toContain('Plan');
         });
-        it('switches to agents pane when pressing 3', () => {
+        it('switches to github pane when pressing 3', () => {
             const { lastFrame, stdin } = render(_jsx(App, {}));
             stdin.write('3');
             const output = lastFrame();
-            expect(output).toContain('Agents');
+            expect(output).toContain('GitHub');
         });
-        it('switches to preview pane when pressing 4', () => {
+        it('switches to agents pane when pressing 4', () => {
             const { lastFrame, stdin } = render(_jsx(App, {}));
             stdin.write('4');
+            const output = lastFrame();
+            expect(output).toContain('Agents');
+        });
+        it('switches to preview pane when pressing 5', () => {
+            const { lastFrame, stdin } = render(_jsx(App, {}));
+            stdin.write('5');
             const output = lastFrame();
             expect(output).toContain('Preview');
         });
@@ -127,11 +134,11 @@ describe('App', () => {
             expect(output).toBeDefined();
         });
     });
-    describe('TDD branding', () => {
-        it('shows TDD indicator in header', () => {
+    describe('TLC branding', () => {
+        it('shows TLC indicator in header', () => {
             const { lastFrame } = render(_jsx(App, {}));
             const output = lastFrame();
-            expect(output).toContain('TDD');
+            expect(output).toContain('TLC');
         });
     });
 });
