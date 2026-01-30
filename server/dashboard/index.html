@@ -248,6 +248,60 @@
       color: #e6edf3;
       margin-right: 10px;
     }
+    .image-drop-zone {
+      border: 2px dashed #30363d;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-height: 60px;
+    }
+    .image-drop-zone:hover, .image-drop-zone.dragover {
+      border-color: #58a6ff;
+      background: rgba(88, 166, 255, 0.1);
+    }
+    .image-drop-zone .drop-hint {
+      color: #8b949e;
+      font-size: 13px;
+    }
+    .image-previews {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .image-preview {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #30363d;
+    }
+    .image-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .image-preview .remove-btn {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 20px;
+      height: 20px;
+      background: rgba(248, 81, 73, 0.9);
+      border: none;
+      border-radius: 50%;
+      color: white;
+      cursor: pointer;
+      font-size: 12px;
+      line-height: 18px;
+    }
+    .image-preview .remove-btn:hover {
+      background: #f85149;
+    }
 
     /* Logs Panel */
     .logs-tabs {
@@ -581,6 +635,13 @@
           <div class="bug-form">
             <h3>Report New Bug</h3>
             <textarea id="bug-desc" placeholder="Describe the bug..."></textarea>
+            <div class="image-drop-zone" id="image-drop-zone" onclick="document.getElementById('image-input').click()">
+              <input type="file" id="image-input" accept="image/*" multiple style="display:none" onchange="handleImageSelect(event)">
+              <div class="drop-hint" id="drop-hint">
+                📷 Paste (Ctrl+V) or drop images here
+              </div>
+              <div class="image-previews" id="image-previews"></div>
+            </div>
             <div>
               <select id="bug-severity">
                 <option value="low">Low</option>
@@ -589,6 +650,7 @@
                 <option value="critical">Critical</option>
               </select>
               <button class="btn btn-primary" onclick="submitBug()">Submit Bug</button>
+              <button class="btn" onclick="clearImages()" id="clear-images-btn" style="display:none">Clear Images</button>
             </div>
           </div>
           <div id="bugs-list">
@@ -843,6 +905,93 @@
       }
     }
 
+    // Bug image handling
+    let bugImages = [];
+
+    function setupImageHandlers() {
+      const dropZone = document.getElementById('image-drop-zone');
+
+      // Paste handler (global)
+      document.addEventListener('paste', (e) => {
+        const items = e.clipboardData?.items;
+        if (!items) return;
+
+        for (const item of items) {
+          if (item.type.startsWith('image/')) {
+            e.preventDefault();
+            const file = item.getAsFile();
+            if (file) addImage(file);
+          }
+        }
+      });
+
+      // Drag & drop
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+      });
+      dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('dragover');
+      });
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        for (const file of files) {
+          if (file.type.startsWith('image/')) addImage(file);
+        }
+      });
+    }
+
+    function handleImageSelect(e) {
+      const files = e.target.files;
+      for (const file of files) {
+        if (file.type.startsWith('image/')) addImage(file);
+      }
+      e.target.value = ''; // Reset for re-selection
+    }
+
+    function addImage(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        bugImages.push({ name: file.name, data: e.target.result });
+        renderImagePreviews();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeImage(index) {
+      bugImages.splice(index, 1);
+      renderImagePreviews();
+    }
+
+    function clearImages() {
+      bugImages = [];
+      renderImagePreviews();
+    }
+
+    function renderImagePreviews() {
+      const container = document.getElementById('image-previews');
+      const hint = document.getElementById('drop-hint');
+      const clearBtn = document.getElementById('clear-images-btn');
+
+      if (bugImages.length === 0) {
+        container.innerHTML = '';
+        hint.style.display = 'block';
+        clearBtn.style.display = 'none';
+        return;
+      }
+
+      hint.style.display = 'none';
+      clearBtn.style.display = 'inline-block';
+      container.innerHTML = bugImages.map((img, i) => `
+        <div class="image-preview">
+          <img src="${img.data}" alt="${img.name}" title="${img.name}">
+          <button class="remove-btn" onclick="event.stopPropagation(); removeImage(${i})">×</button>
+        </div>
+      `).join('');
+    }
+
     async function submitBug() {
       const desc = document.getElementById('bug-desc').value.trim();
       const severity = document.getElementById('bug-severity').value;
@@ -852,12 +1001,17 @@
         const res = await fetch('/api/bug', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ description: desc, severity })
+          body: JSON.stringify({
+            description: desc,
+            severity,
+            images: bugImages.map(img => img.data)
+          })
         });
         const data = await res.json();
         if (data.success) {
-          alert(`Bug ${data.bugId} created!`);
+          alert(`Bug ${data.bugId} created!` + (bugImages.length ? ` (${bugImages.length} image${bugImages.length > 1 ? 's' : ''} attached)` : ''));
           document.getElementById('bug-desc').value = '';
+          clearImages();
           refreshBugs();
         }
       } catch (e) {
@@ -1060,6 +1214,7 @@
     // Initialize
     connect();
     refreshAll();
+    setupImageHandlers();
     setInterval(refreshStats, 30000);
     setInterval(refreshProgress, 30000);
   </script>

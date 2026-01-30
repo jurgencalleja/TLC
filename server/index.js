@@ -373,7 +373,7 @@ app.post('/api/playwright', (req, res) => {
 });
 
 app.post('/api/bug', (req, res) => {
-  const { description, url, screenshot, severity } = req.body;
+  const { description, url, screenshot, severity, images } = req.body;
 
   if (!description) {
     return res.status(400).json({ error: 'Description required' });
@@ -386,39 +386,56 @@ app.post('/api/bug', (req, res) => {
   const nextId = bugs.length + 1;
   const bugId = `BUG-${String(nextId).padStart(3, '0')}`;
 
-  // Create bug entry
-  const timestamp = new Date().toISOString().split('T')[0];
-  const bugEntry = `
-### ${bugId}: ${description.split('\n')[0].slice(0, 50)} [open]
-
-- **Reported:** ${timestamp}
-- **Severity:** ${severity || 'medium'}
-- **URL:** ${url || 'N/A'}
-${screenshot ? `- **Screenshot:** screenshots/${bugId}.png` : ''}
-
-${description}
-
----
-`;
-
   // Ensure .planning directory exists
   const planningDir = path.join(PROJECT_DIR, '.planning');
   if (!fs.existsSync(planningDir)) {
     fs.mkdirSync(planningDir, { recursive: true });
   }
 
-  // Save screenshot if provided
-  if (screenshot && screenshot.startsWith('data:image')) {
+  // Handle multiple images (new) or single screenshot (legacy)
+  const allImages = images || (screenshot ? [screenshot] : []);
+  const savedImages = [];
+
+  if (allImages.length > 0) {
     const screenshotDir = path.join(planningDir, 'screenshots');
     if (!fs.existsSync(screenshotDir)) {
       fs.mkdirSync(screenshotDir, { recursive: true });
     }
-    const base64Data = screenshot.split(',')[1];
-    fs.writeFileSync(
-      path.join(screenshotDir, `${bugId}.png`),
-      Buffer.from(base64Data, 'base64')
-    );
+
+    allImages.forEach((imgData, index) => {
+      if (imgData && imgData.startsWith('data:image')) {
+        const ext = imgData.includes('image/png') ? 'png' : 'jpg';
+        const filename = allImages.length === 1
+          ? `${bugId}.${ext}`
+          : `${bugId}-${index + 1}.${ext}`;
+        const base64Data = imgData.split(',')[1];
+        fs.writeFileSync(
+          path.join(screenshotDir, filename),
+          Buffer.from(base64Data, 'base64')
+        );
+        savedImages.push(`screenshots/${filename}`);
+      }
+    });
   }
+
+  // Create bug entry
+  const timestamp = new Date().toISOString().split('T')[0];
+  const imagesMarkdown = savedImages.length > 0
+    ? `- **Attachments:** ${savedImages.map(img => `![](${img})`).join(' ')}`
+    : '';
+
+  const bugEntry = `
+### ${bugId}: ${description.split('\n')[0].slice(0, 50)} [open]
+
+- **Reported:** ${timestamp}
+- **Severity:** ${severity || 'medium'}
+- **URL:** ${url || 'N/A'}
+${imagesMarkdown}
+
+${description}
+
+---
+`;
 
   // Append to BUGS.md
   let content = '';
