@@ -380,6 +380,37 @@ npx cypress open
 Ready to build. Run /tlc:plan to create your first phase.
 ```
 
+### Step 10: Offer Dev Server Setup
+
+After project is configured, offer remote dev server:
+
+```
+───────────────────────────────────────────────────────────────
+Dev Server (Optional)
+───────────────────────────────────────────────────────────────
+
+Set up a shared dev server for team collaboration?
+  • Each branch gets its own preview URL
+  • QA and PO can access without local setup
+  • Slack notifications for deployments
+
+  [1] Yes, set up dev server
+  [2] Skip for now
+
+Choice [1/2]: _
+```
+
+**If [1] selected:**
+
+1. Ask for server domain
+2. Generate webhook secret
+3. Show setup command for server
+4. Show DNS instructions
+5. Show GitHub webhook config
+6. Save config to `.tlc.json`
+
+See `/tlc:deploy setup` for full output format.
+
 ## Usage
 
 ```
@@ -392,3 +423,4 @@ Interactive flow that:
 3. Lets you adjust
 4. Creates roadmap
 5. Sets up tests
+6. Offers dev server setup

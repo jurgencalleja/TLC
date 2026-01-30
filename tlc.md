@@ -256,6 +256,114 @@ Options:
 Choice [1/2]: _
 ```
 
+## After Project Setup (First Time)
+
+After `/tlc:new-project` or `/tlc:init` completes, show dev server option:
+
+```
+TLC v{{VERSION}}
+═══════════════════════════════════════════════════════════════
+
+✓ Project configured: my-awesome-app
+
+───────────────────────────────────────────────────────────────
+Dev Server Setup (Optional)
+───────────────────────────────────────────────────────────────
+
+Deploy to a shared dev server for team collaboration?
+Each branch gets its own preview URL.
+
+  [1] Yes, set up dev server  → Shows setup instructions
+  [2] Skip for now            → Continue to project
+
+Choice [1/2]: _
+```
+
+**If [1] selected**, show inline setup panel:
+
+```
+═══════════════════════════════════════════════════════════════
+TLC Dev Server Setup
+═══════════════════════════════════════════════════════════════
+
+Project: my-awesome-app
+Repo:    git@github.com:myorg/my-awesome-app.git
+
+Enter your server domain: myapp.example.com
+
+───────────────────────────────────────────────────────────────
+STEP 1: Run on Ubuntu Server
+───────────────────────────────────────────────────────────────
+
+┌─────────────────────────────────────────────────────────────┐
+│ curl -fsSL https://tlc.dev/install | bash -s -- \          │
+│   --project "my-awesome-app" \                              │
+│   --repo "git@github.com:myorg/my-awesome-app.git" \       │
+│   --domain "myapp.example.com" \                            │
+│   --webhook-secret "x7k9m2p4q8r1s5t3"                       │
+└─────────────────────────────────────────────────────────────┘
+
+───────────────────────────────────────────────────────────────
+STEP 2: Configure DNS
+───────────────────────────────────────────────────────────────
+
+Point these to your server:
+  *.myapp.example.com          → SERVER_IP
+  dashboard.myapp.example.com  → SERVER_IP
+
+───────────────────────────────────────────────────────────────
+STEP 3: Add Webhook to GitHub
+───────────────────────────────────────────────────────────────
+
+URL:     https://dashboard.myapp.example.com/api/webhook
+Secret:  x7k9m2p4q8r1s5t3
+
+───────────────────────────────────────────────────────────────
+What You Get
+───────────────────────────────────────────────────────────────
+
+  Dashboard:        https://dashboard.myapp.example.com
+  Main branch:      https://main.myapp.example.com
+  Feature branches: https://{branch}.myapp.example.com
+
+───────────────────────────────────────────────────────────────
+
+Config saved to .tlc.json
+
+Press Enter to continue...
+```
+
+### Config Generation
+
+When generating the setup command:
+
+```javascript
+// Read from project
+const projectName = tlcJson.project || packageJson.name;
+const repoUrl = execSync('git remote get-url origin').toString().trim();
+
+// Ask user for domain
+const domain = await prompt('Enter your server domain:');
+
+// Generate secure webhook secret
+const webhookSecret = crypto.randomBytes(8).toString('hex');
+
+// Save to .tlc.json
+tlcJson.deploy = {
+  domain: domain,
+  webhookSecret: webhookSecret,
+  dashboardUrl: `https://dashboard.${domain}`,
+  configured: false  // Set to true after server confirms
+};
+
+// Generate command
+const setupCommand = `curl -fsSL https://tlc.dev/install | bash -s -- \\
+  --project "${projectName}" \\
+  --repo "${repoUrl}" \\
+  --domain "${domain}" \\
+  --webhook-secret "${webhookSecret}"`;
+```
+
 ## All Phases Complete
 
 ```

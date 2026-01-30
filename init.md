@@ -388,6 +388,28 @@ Next steps:
 - Run /tlc:quick for ad-hoc tasks with tests
 ```
 
+### Step 13: Offer Dev Server Setup
+
+After initialization, offer remote dev server:
+
+```
+───────────────────────────────────────────────────────────────
+Dev Server (Optional)
+───────────────────────────────────────────────────────────────
+
+Set up a shared dev server for team collaboration?
+  • Each branch gets its own preview URL
+  • QA and PO can access without local setup
+  • Slack notifications for deployments
+
+  [1] Yes, set up dev server
+  [2] Skip for now
+
+Choice [1/2]: _
+```
+
+**If [1] selected:** Run the dev server setup flow from `/tlc:deploy setup`.
+
 ## Usage
 
 ```
