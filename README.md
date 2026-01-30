@@ -77,7 +77,7 @@ TLC knows where you are and what's next.
 ### For Enterprise
 
 - **CI/CD pipelines** — GitHub Actions, GitLab, Azure, CircleCI
-- **VPS deployment** — Branch previews with auth & Slack webhooks
+- **Dev server** — Branch previews with auth & Slack webhooks
 - **Multi-tool export** — Works with Cursor, Copilot, Continue, Cody
 
 ---
@@ -110,7 +110,7 @@ TLC knows where you are and what's next.
 | `/tlc:ci` | Generate CI/CD pipeline |
 | `/tlc:issues` | Sync with GitHub/Jira/Linear |
 | `/tlc:export` | Export for Cursor/Copilot/etc |
-| `/tlc:deploy` | VPS deployment |
+| `/tlc:deploy` | Dev server deployment |
 
 [**See all commands →**](help.md)
 
@@ -290,9 +290,9 @@ Commands install to `.claude/commands/tlc/`
 
 ---
 
-## VPS Deployment
+## TLC Dev Server
 
-Deploy TLC server for your team on any VPS.
+Deploy TLC dev server for your team on any Linux server.
 
 ### Quick Setup (Ubuntu)
 
@@ -310,8 +310,8 @@ curl -fsSL https://raw.githubusercontent.com/jurgencalleja/TLC/main/scripts/vps-
 
 ### Requirements
 
-- Ubuntu 22.04+ VPS (2GB+ RAM)
-- Domain with wildcard DNS (`*.project.com → VPS_IP`)
+- Ubuntu 22.04+ server (2GB+ RAM)
+- Domain with wildcard DNS (`*.project.com → SERVER_IP`)
 - GitHub/GitLab repo access
 
 ### Manual Setup
@@ -340,7 +340,7 @@ curl -fsSL https://raw.githubusercontent.com/jurgencalleja/TLC/main/scripts/vps-
 
 5. **Configure webhook** in GitHub/GitLab repo settings
 
-[**Full VPS Guide →**](docs/vps-deployment.md)
+[**Full Dev Server Guide →**](docs/devserver.md)
 
 ---
 
@@ -373,7 +373,7 @@ helm install tlc tlc/tlc-server \
 
 - **[Help / All Commands](help.md)** — Complete command reference
 - **[Team Workflow](docs/team-workflow.md)** — Guide for teams (engineers + PO + QA)
-- **[VPS Deployment](docs/vps-deployment.md)** — Deploy on Ubuntu VPS
+- **[Dev Server](docs/devserver.md)** — Deploy on Ubuntu server
 - **[Kubernetes Deployment](docs/kubernetes-deployment.md)** — Deploy on K8s
 
 ---

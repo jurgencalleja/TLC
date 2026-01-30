@@ -399,11 +399,11 @@ In GitHub repo settings, enable:
 - Require review approval
 - No direct pushes to main
 
-## Part 6: VPS Deployment
+## Part 6: Dev Server Deployment
 
-### 6.1 Set Up VPS
+### 6.1 Set Up Dev Server
 
-On Ubuntu VPS:
+On Ubuntu server:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/jurgencalleja/TLC/main/scripts/vps-setup.sh | bash
 ```
@@ -417,7 +417,7 @@ Follow prompts for:
 
 In GitHub repo Settings > Webhooks:
 - URL: `https://dashboard.project.com/api/webhook`
-- Secret: (from VPS setup output)
+- Secret: (from dev server setup output)
 - Events: Push
 
 ### 6.3 Branch Previews

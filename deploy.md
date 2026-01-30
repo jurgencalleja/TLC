@@ -1,6 +1,6 @@
-# /tlc:deploy - VPS Deployment Server
+# /tlc:deploy - TLC Dev Server
 
-Deploy your TLC project to a VPS for team collaboration.
+Deploy your TLC project to a remote dev server for team collaboration.
 
 ## Usage
 
@@ -19,7 +19,7 @@ Commands:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        VPS Server                            │
+│                      TLC Dev Server                          │
 │                                                              │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
 │  │   Branch    │  │   Branch    │  │   Branch    │         │
@@ -65,7 +65,7 @@ Commands:
 
 TLC Deployment Server Setup
 
-VPS Configuration:
+Dev Server Configuration:
   Host: deploy.example.com
   SSH Key: ~/.ssh/id_rsa (detected)
 
@@ -82,7 +82,7 @@ Domain Configuration:
   Branches will be: {branch}.project.example.com
 
 Configure DNS:
-  *.project.example.com → VPS_IP
+  *.project.example.com → SERVER_IP
 
 Admin User:
   Email: admin@example.com
@@ -183,7 +183,7 @@ app.get('/api/status', requireRole(['admin', 'engineer', 'qa', 'po']));
 
 Deploying branch: feat-auth
 
-Pushing to VPS...
+Pushing to dev server...
   ✓ Code uploaded
   ✓ Dependencies installed
   ✓ Tests passed (23/23)
@@ -363,7 +363,7 @@ EXPOSE 3000
 CMD ["npm", "start"]
 ```
 
-### docker-compose.yml (on VPS)
+### docker-compose.yml (on dev server)
 
 ```yaml
 version: '3.8'
@@ -434,7 +434,7 @@ server {
 Generating deployment SSH key...
   ✓ Key generated: ~/.ssh/tlc_deploy
 
-Add this to VPS authorized_keys:
+Add this to server authorized_keys:
   ssh-rsa AAAA... tlc-deploy
 
 Add to GitHub deploy keys (read-only):
@@ -443,7 +443,7 @@ Add to GitHub deploy keys (read-only):
 
 ### Environment Variables
 
-Secrets stored on VPS:
+Secrets stored on dev server:
 
 ```bash
 # /opt/tlc-deploy/.env

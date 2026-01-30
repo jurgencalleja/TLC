@@ -1,10 +1,10 @@
-# VPS Deployment Guide
+# TLC Dev Server Guide
 
-Deploy TLC server on a VPS (Ubuntu) for distributed teams.
+Deploy TLC dev server on Ubuntu for distributed teams.
 
 ## Prerequisites
 
-- Ubuntu 22.04+ VPS (2GB+ RAM recommended)
+- Ubuntu 22.04+ server (2GB+ RAM recommended)
 - Domain with wildcard DNS configured
 - SSH access with sudo privileges
 
@@ -119,7 +119,7 @@ ADMIN_EMAIL=admin@example.com
 
 ### Step 8: Create Server Script
 
-Create `/opt/tlc/server.js` - see the [VPS setup script](../scripts/vps-setup.sh) for the full server code.
+Create `/opt/tlc/server.js` - see the [setup script](../scripts/vps-setup.sh) for the full server code.
 
 ### Step 9: Create Systemd Service
 
@@ -225,8 +225,8 @@ Add these DNS records:
 
 | Record | Type | Value |
 |--------|------|-------|
-| `dashboard.project.example.com` | A | `<your-vps-ip>` |
-| `*.project.example.com` | A | `<your-vps-ip>` |
+| `dashboard.project.example.com` | A | `<your-server-ip>` |
+| `*.project.example.com` | A | `<your-server-ip>` |
 
 ## GitHub Webhook Setup
 
@@ -241,7 +241,7 @@ Add these DNS records:
 
 ```
 ┌────────────────────────────────────────────────────────────┐
-│                        VPS                                  │
+│                    Dev Server                               │
 │                                                             │
 │  ┌─────────────────────────────────────────────────────┐   │
 │  │                     Nginx                            │   │

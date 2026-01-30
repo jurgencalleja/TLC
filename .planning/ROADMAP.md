@@ -366,13 +366,13 @@ Fail → Abort merge, show failures
 
 ---
 
-### Phase 9: VPS Deployment Server [x]
+### Phase 9: TLC Dev Server [x]
 
-**Goal:** Central server for distributed teams - push to branch, VPS deploys.
+**Goal:** Central server for distributed teams - push to branch, server deploys.
 
 **Architecture:**
 ```
-Engineers (worldwide) → git push → GitHub → webhook → VPS
+Engineers (worldwide) → git push → GitHub → webhook → Dev Server
                                                        ↓
                                               TLC Server
                                               - Branch deployments

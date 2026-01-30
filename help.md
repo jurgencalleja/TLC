@@ -92,7 +92,7 @@ Launches the visual dashboard. Detects where you are, shows what's next.
 | `/tlc:export --list` | Show all supported AI tools |
 | `/tlc:export --detect` | Detect which AI tool is running |
 | `/tlc:deploy` | Show deployment status |
-| `/tlc:deploy start <branch>` | Deploy branch to VPS |
+| `/tlc:deploy start <branch>` | Deploy branch to dev server |
 | `/tlc:deploy stop <branch>` | Stop branch deployment |
 | `/tlc:deploy logs <branch>` | View deployment logs |
 | `/tlc:deploy list` | List all active deployments |

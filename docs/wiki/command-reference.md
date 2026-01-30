@@ -401,7 +401,7 @@ Provides:
 
 ### /tlc:deploy
 
-**Deploy to VPS**.
+**Deploy to dev server**.
 
 ```bash
 /tlc:deploy

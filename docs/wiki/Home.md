@@ -63,7 +63,7 @@ tlc
 ### Guides
 
 - [Team Workflow](../team-workflow.md) - Role-based collaboration guide
-- [VPS Deployment](../vps-deployment.md) - Deploy TLC server
+- [Dev Server](../devserver.md) - Deploy TLC dev server
 - [Kubernetes Deployment](../kubernetes-deployment.md) - Deploy on K8s
 
 ## Philosophy
