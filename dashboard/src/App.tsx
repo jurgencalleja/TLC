@@ -1,14 +1,13 @@
 import { Box, Text, useApp, useInput } from 'ink';
 import { useState, useCallback } from 'react';
 import { ChatPane } from './components/ChatPane.js';
-import { PhasesPane } from './components/PhasesPane.js';
-import { StatusPane } from './components/StatusPane.js';
+import { PlanView } from './components/PlanView.js';
 import { PreviewPane } from './components/PreviewPane.js';
 import { AgentsPane } from './components/AgentsPane.js';
 import { GitHubPane } from './components/GitHubPane.js';
 import { markIssueComplete, markIssueInProgress } from './components/PlanSync.js';
 
-type Pane = 'chat' | 'github' | 'agents' | 'preview';
+type Pane = 'chat' | 'plan' | 'github' | 'agents' | 'preview';
 
 interface AppProps {
   isTTY?: boolean;
@@ -25,16 +24,17 @@ export function App({ isTTY = true }: AppProps) {
     }
     if (key.tab) {
       setActivePane(prev => {
-        const panes: Pane[] = ['chat', 'github', 'agents', 'preview'];
+        const panes: Pane[] = ['chat', 'plan', 'github', 'agents', 'preview'];
         const idx = panes.indexOf(prev);
         return panes[(idx + 1) % panes.length];
       });
     }
     // Number keys to quick-switch panes
     if (input === '1') setActivePane('chat');
-    if (input === '2') setActivePane('github');
-    if (input === '3') setActivePane('agents');
-    if (input === '4') setActivePane('preview');
+    if (input === '2') setActivePane('plan');
+    if (input === '3') setActivePane('github');
+    if (input === '4') setActivePane('agents');
+    if (input === '5') setActivePane('preview');
   }, { isActive: isTTY });
 
   const handleAssignToAgent = useCallback(async (issue: { number: number; title: string }) => {
@@ -57,15 +57,16 @@ export function App({ isTTY = true }: AppProps) {
       {/* Header */}
       <Box borderStyle="single" paddingX={1} justifyContent="space-between">
         <Box>
-          <Text bold color="cyan">TDD Dashboard</Text>
+          <Text bold color="cyan">TLC Dashboard</Text>
           <Text color="gray"> | </Text>
           <Text color={activePane === 'chat' ? 'cyan' : 'gray'}>[1]Chat </Text>
-          <Text color={activePane === 'github' ? 'cyan' : 'gray'}>[2]GitHub </Text>
-          <Text color={activePane === 'agents' ? 'cyan' : 'gray'}>[3]Agents </Text>
-          <Text color={activePane === 'preview' ? 'cyan' : 'gray'}>[4]Preview</Text>
+          <Text color={activePane === 'plan' ? 'cyan' : 'gray'}>[2]Plan </Text>
+          <Text color={activePane === 'github' ? 'cyan' : 'gray'}>[3]GitHub </Text>
+          <Text color={activePane === 'agents' ? 'cyan' : 'gray'}>[4]Agents </Text>
+          <Text color={activePane === 'preview' ? 'cyan' : 'gray'}>[5]Preview</Text>
         </Box>
         <Box>
-          <Text color="cyan" bold>{"| TDD |"}</Text>
+          <Text color="cyan" bold>{"| TLC |"}</Text>
         </Box>
       </Box>
 
@@ -112,12 +113,17 @@ export function App({ isTTY = true }: AppProps) {
             <AgentsPane isActive={activePane === 'agents'} isTTY={isTTY} onTaskComplete={handleTaskComplete} />
           </Box>
 
-          {/* Status */}
-          <Box flexDirection="column" height="20%" borderStyle="single" borderColor="gray">
+          {/* Plan */}
+          <Box
+            flexDirection="column"
+            height="20%"
+            borderStyle="single"
+            borderColor={activePane === 'plan' ? 'cyan' : 'gray'}
+          >
             <Box paddingX={1} borderStyle="single" borderBottom borderLeft={false} borderRight={false} borderTop={false}>
-              <Text bold>Status</Text>
+              <Text bold color={activePane === 'plan' ? 'cyan' : 'white'}>Plan</Text>
             </Box>
-            <StatusPane />
+            <PlanView />
           </Box>
 
           {/* Preview */}
@@ -137,7 +143,7 @@ export function App({ isTTY = true }: AppProps) {
 
       {/* Footer */}
       <Box borderStyle="single" paddingX={1}>
-        <Text dimColor>Tab: cycle panes | 1-4: jump to pane | Ctrl+Q: quit</Text>
+        <Text dimColor>Tab: cycle panes | 1-5: jump to pane | Ctrl+Q: quit</Text>
       </Box>
     </Box>
   );
