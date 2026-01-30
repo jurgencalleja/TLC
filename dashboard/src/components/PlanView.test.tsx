@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render } from 'ink-testing-library';
-import { PlanView, parseMilestones, parsePhases, parseTasks, type Milestone, type Phase, type Task } from './PlanView.js';
+import { PlanView, parseMilestones, parsePhases, parseTasks, parseTables, type Milestone, type Phase, type Task, type TableData } from './PlanView.js';
 import { vol } from 'memfs';
 
 // Mock fs modules
@@ -204,6 +204,90 @@ Just a simple task`;
 
       expect(tasks[0].criteriaDone).toBe(0);
       expect(tasks[0].criteriaTotal).toBe(0);
+    });
+  });
+
+  describe('parseTables', () => {
+    it('parses markdown tables', () => {
+      const content = `# Phase Info
+
+| Feature | Status | Owner |
+|---------|--------|-------|
+| Auth    | Done   | Alice |
+| API     | WIP    | Bob   |
+`;
+
+      const tables = parseTables(content);
+
+      expect(tables).toHaveLength(1);
+      expect(tables[0].headers).toEqual(['Feature', 'Status', 'Owner']);
+      expect(tables[0].rows).toHaveLength(2);
+      expect(tables[0].rows[0]).toEqual(['Auth', 'Done', 'Alice']);
+      expect(tables[0].rows[1]).toEqual(['API', 'WIP', 'Bob']);
+    });
+
+    it('calculates column widths', () => {
+      const content = `| Short | Very Long Header |
+|-------|------------------|
+| A     | B                |
+| Longer Cell | C        |
+`;
+
+      const tables = parseTables(content);
+
+      expect(tables[0].columnWidths[0]).toBeGreaterThanOrEqual(11); // "Longer Cell"
+      expect(tables[0].columnWidths[1]).toBeGreaterThanOrEqual(16); // "Very Long Header"
+    });
+
+    it('handles multiple tables', () => {
+      const content = `## Table 1
+
+| A | B |
+|---|---|
+| 1 | 2 |
+
+## Table 2
+
+| X | Y | Z |
+|---|---|---|
+| a | b | c |
+`;
+
+      const tables = parseTables(content);
+
+      expect(tables).toHaveLength(2);
+      expect(tables[0].headers).toEqual(['A', 'B']);
+      expect(tables[1].headers).toEqual(['X', 'Y', 'Z']);
+    });
+
+    it('handles empty content', () => {
+      const tables = parseTables('');
+      expect(tables).toHaveLength(0);
+    });
+
+    it('handles content with no tables', () => {
+      const content = `# Just Text
+
+Some paragraph here.
+
+- List item 1
+- List item 2
+`;
+
+      const tables = parseTables(content);
+      expect(tables).toHaveLength(0);
+    });
+
+    it('handles tables with alignment markers', () => {
+      const content = `| Left | Center | Right |
+|:-----|:------:|------:|
+| A    | B      | C     |
+`;
+
+      const tables = parseTables(content);
+
+      expect(tables).toHaveLength(1);
+      expect(tables[0].headers).toEqual(['Left', 'Center', 'Right']);
     });
   });
 

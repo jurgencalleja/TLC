@@ -13,6 +13,12 @@ export interface Task {
   criteriaTotal: number;
 }
 
+export interface TableData {
+  headers: string[];
+  rows: string[][];
+  columnWidths: number[];
+}
+
 export interface Phase {
   number: number;
   name: string;
@@ -22,6 +28,7 @@ export interface Phase {
   tasksTotal: number;
   progress: number;
   tasks: Task[];
+  tables: TableData[];
 }
 
 export interface Milestone {
@@ -202,13 +209,64 @@ function PhaseView({ phase, expanded }: PhaseViewProps) {
         )}
       </Box>
 
-      {expanded && phase.tasks.length > 0 && (
+      {expanded && (phase.tasks.length > 0 || phase.tables.length > 0) && (
         <Box flexDirection="column" marginLeft={2} marginTop={0}>
           {phase.tasks.map(task => (
             <TaskView key={task.number} task={task} />
           ))}
+          {phase.tables.map((table, idx) => (
+            <TableView key={idx} table={table} />
+          ))}
         </Box>
       )}
+    </Box>
+  );
+}
+
+interface TableViewProps {
+  table: TableData;
+}
+
+function TableView({ table }: TableViewProps) {
+  const { headers, rows, columnWidths } = table;
+
+  // Render border line
+  const renderBorder = (type: 'top' | 'mid' | 'bottom') => {
+    const chars = type === 'top' ? ['┌', '┬', '┐', '─'] :
+                  type === 'mid' ? ['├', '┼', '┤', '─'] :
+                                   ['└', '┴', '┘', '─'];
+    const line = chars[0] + columnWidths.map(w => chars[3].repeat(w + 2)).join(chars[1]) + chars[2];
+    return <Text color="gray">{line}</Text>;
+  };
+
+  // Render row
+  const renderRow = (cells: string[], isHeader: boolean = false) => {
+    return (
+      <Box>
+        <Text color="gray">│</Text>
+        {cells.map((cell, idx) => (
+          <Box key={idx}>
+            <Text color={isHeader ? 'cyan' : 'white'} bold={isHeader}>
+              {' '}{cell.padEnd(columnWidths[idx])}{' '}
+            </Text>
+            <Text color="gray">│</Text>
+          </Box>
+        ))}
+      </Box>
+    );
+  };
+
+  return (
+    <Box flexDirection="column" marginTop={1} marginBottom={1}>
+      {renderBorder('top')}
+      {renderRow(headers, true)}
+      {renderBorder('mid')}
+      {rows.map((row, idx) => (
+        <Box key={idx} flexDirection="column">
+          {renderRow(row)}
+        </Box>
+      ))}
+      {renderBorder('bottom')}
     </Box>
   );
 }
@@ -372,6 +430,7 @@ export function parsePhases(roadmapContent: string, planContents: Record<number,
       // Parse tasks from PLAN file if available
       const planContent = planContents[phaseNum] || '';
       const tasks = parseTasks(planContent);
+      const tables = parseTables(planContent);
 
       const tasksDone = tasks.filter(t => t.status === 'completed').length;
       const tasksInProgress = tasks.filter(t => t.status === 'in_progress').length;
@@ -386,12 +445,78 @@ export function parsePhases(roadmapContent: string, planContents: Record<number,
         tasksInProgress,
         tasksTotal,
         progress,
-        tasks
+        tasks,
+        tables
       });
     }
   }
 
   return phases;
+}
+
+export function parseTables(content: string): TableData[] {
+  const tables: TableData[] = [];
+  const lines = content.split('\n');
+
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Check if this line looks like a table header row (contains |)
+    if (line.includes('|') && line.trim().startsWith('|')) {
+      // Check if next line is a separator row (contains |---|)
+      const nextLine = lines[i + 1];
+      if (nextLine && nextLine.match(/^\|[\s-:|]+\|$/)) {
+        // This is a table - parse it
+        const headers = parseTableRow(line);
+        const rows: string[][] = [];
+
+        // Skip header and separator
+        i += 2;
+
+        // Parse data rows
+        while (i < lines.length && lines[i].includes('|') && lines[i].trim().startsWith('|')) {
+          const row = parseTableRow(lines[i]);
+          if (row.length > 0) {
+            rows.push(row);
+          }
+          i++;
+        }
+
+        // Calculate column widths
+        const columnWidths = headers.map((h, idx) => {
+          const headerWidth = h.length;
+          const maxRowWidth = rows.reduce((max, row) => {
+            const cellWidth = (row[idx] || '').length;
+            return Math.max(max, cellWidth);
+          }, 0);
+          return Math.max(headerWidth, maxRowWidth, 3);
+        });
+
+        tables.push({ headers, rows, columnWidths });
+        continue;
+      }
+    }
+    i++;
+  }
+
+  return tables;
+}
+
+function parseTableRow(line: string): string[] {
+  // Remove leading/trailing pipes and split by |
+  const trimmed = line.trim();
+  if (!trimmed.startsWith('|') || !trimmed.endsWith('|')) {
+    return [];
+  }
+
+  // Split by | and clean up each cell
+  const cells = trimmed
+    .slice(1, -1) // Remove outer pipes
+    .split('|')
+    .map(cell => cell.trim());
+
+  return cells;
 }
 
 export function parseTasks(content: string): Task[] {
