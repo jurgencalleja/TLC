@@ -112,8 +112,8 @@ You describe → Tests written → Code implemented → Tests pass → Done
 
 ## Next Steps
 
-- **Solo developer?** See [Solo Developer Tutorial](https://github.com/jurgencalleja/TLC/blob/main/docs/tutorials/solo-developer.md)
-- **Team setup?** See [Team Setup Tutorial](https://github.com/jurgencalleja/TLC/blob/main/docs/tutorials/team-setup.md)
+- **Solo developer?** See [Solo Developer Tutorial](solo-developer)
+- **Team setup?** See [Team Setup Tutorial](team-setup)
 - **All commands?** See [Command Reference](command-reference)
 - **Configuration?** See [Configuration Guide](configuration)
 

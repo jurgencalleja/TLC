@@ -130,8 +130,8 @@ git push          →  Share your claim
 | All commands | [Command Reference](command-reference) |
 | Config options | [Configuration](configuration) |
 | Something broken | [Troubleshooting](troubleshooting) |
-| Team setup | [Team Workflow](https://github.com/jurgencalleja/TLC/blob/main/docs/team-workflow.md) |
-| Dev server | [Dev Server Setup](https://github.com/jurgencalleja/TLC/blob/main/docs/devserver.md) |
+| Team setup | [Team Workflow](team-workflow) |
+| Dev server | [Dev Server Setup](devserver) |
 | Complete beginner | [Noob Guide](noob) |
 
 ---

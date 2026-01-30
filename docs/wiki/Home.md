@@ -17,8 +17,8 @@
 
 | Getting Started | Reference | Tutorials |
 |-----------------|-----------|-----------|
-| [Noob Guide](noob) | [All Commands](command-reference) | [Solo Developer](https://github.com/jurgencalleja/TLC/blob/main/docs/tutorials/solo-developer.md) |
-| [Quick Start](skip-manual-start) | [Configuration](configuration) | [Team Setup](https://github.com/jurgencalleja/TLC/blob/main/docs/tutorials/team-setup.md) |
+| [Noob Guide](noob) | [All Commands](command-reference) | [Solo Developer](solo-developer) |
+| [Quick Start](skip-manual-start) | [Configuration](configuration) | [Team Setup](team-setup) |
 | [Core Workflow](getting-started) | [Troubleshooting](troubleshooting) | |
 
 ## What is TLC?
@@ -68,14 +68,14 @@ tlc
 
 ### Tutorials
 
-- [Solo Developer](https://github.com/jurgencalleja/TLC/blob/main/docs/tutorials/solo-developer.md) - Complete workflow for individuals
-- [Team Setup](https://github.com/jurgencalleja/TLC/blob/main/docs/tutorials/team-setup.md) - Guide for teams (3+ engineers)
+- [Solo Developer](solo-developer) - Complete workflow for individuals
+- [Team Setup](team-setup) - Guide for teams (3+ engineers)
 
 ### Guides
 
-- [Team Workflow](https://github.com/jurgencalleja/TLC/blob/main/docs/team-workflow.md) - Role-based collaboration guide
-- [Dev Server](https://github.com/jurgencalleja/TLC/blob/main/docs/devserver.md) - Deploy TLC dev server
-- [Kubernetes Deployment](https://github.com/jurgencalleja/TLC/blob/main/docs/kubernetes-deployment.md) - Deploy on K8s
+- [Team Workflow](team-workflow) - Role-based collaboration guide
+- [Dev Server](devserver) - Deploy TLC dev server
+- [Kubernetes Deployment](kubernetes-deployment) - Deploy on K8s
 
 ## Philosophy
 
