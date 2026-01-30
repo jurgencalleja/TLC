@@ -10,6 +10,22 @@ Reserve a task so teammates know you're working on it.
 
 ## Process
 
+### Step 0: Check Team Mode
+
+Verify team coordination is enabled:
+
+```bash
+teamEnabled=$(jq -r '.team.enabled // false' .tlc.json 2>/dev/null)
+
+if [ "$teamEnabled" != "true" ]; then
+  echo "Team coordination not enabled."
+  echo ""
+  echo "Enable it with: /tlc:deploy setup"
+  echo "Or add to .tlc.json: { \"team\": { \"enabled\": true } }"
+  exit 1
+fi
+```
+
 ### Step 1: Identify User
 
 Get current user identity:

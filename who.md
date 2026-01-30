@@ -10,6 +10,18 @@ See who's working on what in the current phase.
 
 ## Process
 
+### Step 0: Check Team Mode
+
+```bash
+teamEnabled=$(jq -r '.team.enabled // false' .tlc.json 2>/dev/null)
+
+if [ "$teamEnabled" != "true" ]; then
+  echo "Team coordination not enabled."
+  echo "Enable it with: /tlc:deploy setup"
+  exit 1
+fi
+```
+
 ### Step 1: Find Current Phase
 
 1. Read `.planning/ROADMAP.md`

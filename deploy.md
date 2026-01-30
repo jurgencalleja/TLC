@@ -122,13 +122,79 @@ Enter your server domain: _
 
 The setup continues with the same flow - generates config, shows server command, DNS instructions, webhook config.
 
+### Enable Team Coordination
+
+After domain setup, ask about team coordination model:
+
+```
+───────────────────────────────────────────────────────────────
+Team Coordination
+───────────────────────────────────────────────────────────────
+
+Enable task claiming and multi-user coordination?
+
+This adds:
+  • Task markers: [ ], [>@alice], [x@bob]
+  • /tlc:claim - reserve a task before working
+  • /tlc:release - release a task if blocked
+  • /tlc:who - see who's working on what
+  • Git-based sync (push/pull shares claims)
+
+Enable team coordination? [Y/n]: _
+```
+
+**If Yes:**
+
+1. Add team config to `.tlc.json`
+2. Migrate existing PLAN.md files to add `[ ]` markers
+3. Show coordination workflow
+
+```
+✓ Team coordination enabled
+
+Existing plans updated:
+  .planning/phases/1-PLAN.md - 3 tasks marked as available
+  .planning/phases/2-PLAN.md - 4 tasks marked as available
+
+Team Workflow:
+───────────────────────────────────────────────────────────────
+  1. git pull                  ← Get latest claims
+  2. /tlc:claim               ← Reserve your task
+  3. git push                  ← Share your claim
+  4. ... work on task ...
+  5. git commit & push         ← Task auto-marked complete
+───────────────────────────────────────────────────────────────
+```
+
+### Plan Migration
+
+Existing task headings are updated:
+
+**Before:**
+```markdown
+### Task 1: Create user schema
+### Task 2: Add validation
+```
+
+**After:**
+```markdown
+### Task 1: Create user schema [ ]
+### Task 2: Add validation [ ]
+```
+
+This makes tasks claimable without changing any other content.
+
 **What gets added to .tlc.json:**
 
 ```json
 {
   "project": "my-awesome-app",
   "testFrameworks": { ... },    // existing config preserved
-  "deploy": {                   // NEW: added by setup
+  "team": {                     // NEW: team coordination
+    "enabled": true,
+    "model": "git-based"
+  },
+  "deploy": {                   // NEW: dev server
     "domain": "myapp.example.com",
     "webhookSecret": "x7k9m2p4q8r1s5t3",
     "dashboardUrl": "https://dashboard.myapp.example.com",

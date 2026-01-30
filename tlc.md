@@ -119,7 +119,7 @@ Phase 2: User Dashboard
   [2] Go back and fix skipped steps
   [3] Show all commands (/tlc:help)
   [4] Full project checklist (/tlc:checklist)
-  [5] Set up team dev server (/tlc:deploy setup)
+  [5] Enable team collaboration (/tlc:deploy setup)
 
 Choice [1/2/3/4/5]: _
 ```

@@ -17,6 +17,18 @@ Release a task you claimed so others can work on it.
 
 ## Process
 
+### Step 0: Check Team Mode
+
+```bash
+teamEnabled=$(jq -r '.team.enabled // false' .tlc.json 2>/dev/null)
+
+if [ "$teamEnabled" != "true" ]; then
+  echo "Team coordination not enabled."
+  echo "Enable it with: /tlc:deploy setup"
+  exit 1
+fi
+```
+
 ### Step 1: Identify User
 
 Get current user identity (same as `/tlc:claim`):
