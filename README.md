@@ -371,6 +371,7 @@ helm install tlc tlc/tlc-server \
 
 ## Documentation
 
+- **[Getting Started Guide](docs/getting-started-guide.md)** — New to coding? Start here!
 - **[Help / All Commands](help.md)** — Complete command reference
 - **[Team Workflow](docs/team-workflow.md)** — Guide for teams (engineers + PO + QA)
 - **[Dev Server](docs/devserver.md)** — Deploy on Ubuntu server

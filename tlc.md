@@ -64,7 +64,64 @@ fi
 echo "✓ Synced"
 ```
 
-### Step 0b: Check for Team Features (Existing Projects)
+### Step 0b: Check Team Identity (First Time on Team Project)
+
+When joining a team project (team.enabled = true), check if user is identified:
+
+```bash
+# Check if team mode is enabled
+teamEnabled=$(jq -r '.team.enabled // false' .tlc.json)
+
+if [ "$teamEnabled" = "true" ]; then
+  # Check for user identity
+  if [ -z "$TLC_USER" ]; then
+    # No TLC_USER set, prompt for identity
+    gitUser=$(git config user.name)
+
+    echo "═══════════════════════════════════════════════════════════════"
+    echo "Team Project Detected"
+    echo "═══════════════════════════════════════════════════════════════"
+    echo ""
+    echo "This project uses team coordination."
+    echo "Please identify yourself for task claiming."
+    echo ""
+    echo "Your git name: $gitUser"
+    echo ""
+    echo "Use this name? [Y/n/other]: _"
+
+    # If Y → Set TLC_USER=$gitUser (normalized)
+    # If n → Ask for name
+    # Save to shell profile: export TLC_USER="username"
+  fi
+fi
+```
+
+**On first run, show team onboarding:**
+
+```
+═══════════════════════════════════════════════════════════════
+Welcome to the Team!
+═══════════════════════════════════════════════════════════════
+
+Project: my-awesome-app
+Team coordination: enabled
+
+You'll be identified as: @alice
+
+How it works:
+  1. /tlc:claim    ← Reserve a task before working
+  2. git push      ← Share your claim with team
+  3. Work on task
+  4. git commit    ← Task auto-marked complete
+
+Current team activity:
+  @bob is working on: Task 2 - Add validation
+  @carol completed: Task 1 - Create schema
+
+Press Enter to continue...
+```
+
+### Step 0c: Check for Team Features (Upgrade Hint)
 
 For projects that existed before team features, check if dev server is configured:
 
@@ -72,7 +129,7 @@ For projects that existed before team features, check if dev server is configure
 # Check if deploy config exists
 deployDomain=$(jq -r '.deploy.domain // ""' .tlc.json)
 
-if [ -z "$deployDomain" ]; then
+if [ -z "$deployDomain" ] && [ "$teamEnabled" != "true" ]; then
   # No deploy config - this is an existing project without team setup
   # Show subtle hint in header (not blocking)
   teamHint="│ 💡 Team sharing available: /tlc:deploy setup"
