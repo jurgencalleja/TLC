@@ -36,8 +36,8 @@ No manual testing. No "does this work?" No vibes.
 
 | Your Experience | Start With |
 |-----------------|------------|
-| **Never coded before?** | [Noob Guide](docs/wiki/noob.md) — Complete setup from zero |
-| **Know how to code?** | [Skip Manual - Start](docs/wiki/skip-manual-start.md) — 30-second setup |
+| **Never coded before?** | [Noob Guide](https://github.com/jurgencalleja/TLC/wiki/noob) — Complete setup from zero |
+| **Know how to code?** | [Skip Manual - Start](https://github.com/jurgencalleja/TLC/wiki/skip-manual-start) — 30-second setup |
 
 ---
 
@@ -381,13 +381,13 @@ helm install tlc tlc/tlc-server \
 ## Documentation
 
 ### Getting Started
-- **[Noob Guide](docs/wiki/noob.md)** — Never coded before? Complete setup from zero
-- **[Skip Manual - Start](docs/wiki/skip-manual-start.md)** — Know how to code? 30-second setup
+- **[Noob Guide](https://github.com/jurgencalleja/TLC/wiki/noob)** — Never coded before? Complete setup from zero
+- **[Skip Manual - Start](https://github.com/jurgencalleja/TLC/wiki/skip-manual-start)** — Know how to code? 30-second setup
 
 ### Reference
 - **[Help / All Commands](help.md)** — Complete command reference
-- **[Configuration](docs/wiki/configuration.md)** — `.tlc.json` options
-- **[Troubleshooting](docs/wiki/troubleshooting.md)** — Common issues and fixes
+- **[Configuration](https://github.com/jurgencalleja/TLC/wiki/configuration)** — `.tlc.json` options
+- **[Troubleshooting](https://github.com/jurgencalleja/TLC/wiki/troubleshooting)** — Common issues and fixes
 
 ### Guides
 - **[Team Workflow](docs/team-workflow.md)** — Guide for teams (engineers + PO + QA)
