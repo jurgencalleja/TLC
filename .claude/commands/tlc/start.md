@@ -1,69 +1,121 @@
 # /tlc:start - Start TLC Dev Server
 
-Start local development with TLC dashboard and your app.
+The single command for starting your development environment.
 
 ## Instructions for Claude
 
-**Start these services in parallel (use background processes or separate terminals):**
+### Step 1: Ask the User
 
-### 1. TLC Dashboard
-```bash
-npx tlc-claude-code dashboard
 ```
-Or if that doesn't exist, run the dashboard directly:
-```bash
-cd node_modules/tlc-claude-code/dashboard && npm run dev
+What do you want to run?
+
+1) TLC Environment (Recommended)
+   - TLC Dashboard (planning, progress, bugs)
+   - Your app with hot reload
+   - PostgreSQL database
+   - DB Admin GUI (Adminer)
+
+2) Full Production Stack
+   - Everything above, PLUS:
+   - Redis cache
+   - Nginx reverse proxy
+   - Production-like isolation
+
+Choose [1/2]:
 ```
 
-### 2. User's App
-Detect and start the user's app based on package.json scripts:
-- If `dev` script exists: `npm run dev`
-- If `start` script exists: `npm run start`
-- For Next.js: `npm run dev` (usually port 3000)
-- For Express/Node: `node index.js` or `npm start`
+---
 
-### 3. Database (if needed)
-- **PGlite**: Embedded, no separate process needed
-- **PostgreSQL**: Check if running locally, suggest `brew services start postgresql` or similar
-- **SQLite**: No process needed
+### Option 1: TLC Environment (Default)
 
-### 4. Redis (if needed)
-- Check if redis is in dependencies
-- If yes, suggest: `redis-server` or `brew services start redis`
+Start the TLC dev stack:
+
+**Run:**
+```bash
+npx tlc-claude-code start
+```
+
+This spins up:
+- TLC Dashboard
+- User's app (detected from package.json)
+- PostgreSQL database
+- Adminer (DB GUI)
+
+**Detect the app port:**
+- Check package.json scripts for port hints
+- Check .env for PORT variable
+- Common defaults: Next.js/React (3000), Vite (5173)
+- **AVOID**: 5000, 5001 (AirPlay on macOS), 7000, 8080
+
+**Output:**
+```
+TLC Environment Running
+
+  Dashboard:  http://localhost:3147
+  App:        http://localhost:{port}
+  DB Admin:   http://localhost:8081
+  Database:   localhost:5432
+
+Stop: Ctrl+C (or docker-compose down)
+```
+
+---
+
+### Option 2: Full Production Stack
+
+Everything from TLC Environment, plus production services:
+
+**Run:**
+```bash
+npx tlc-claude-code start --full
+```
+
+This adds on top of TLC Environment:
+- Redis cache
+- Nginx reverse proxy
+- Production-like container isolation
+- Health checks
+
+**Output:**
+```
+Full Production Stack Running
+
+  Dashboard:  http://localhost:3147
+  App:        http://localhost:3000
+  DB Admin:   http://localhost:8081
+  Database:   localhost:5432
+  Redis:      localhost:6379
+
+Stop: docker-compose down
+```
+
+---
 
 ## Port Selection
 
-**TLC Dashboard**: Port 3147 (safe, not commonly used)
+**TLC Dashboard**: Always port 3147 (safe, not commonly used)
 
-**User's App**: Detect from their config, common patterns:
-- Next.js/React: 3000
-- Vite: 5173
-- Express: 3000 or PORT env
-- Django: 8000
-- Flask: 5000 (NOTE: conflicts with AirPlay on macOS Monterey+)
+**User's App**: Detect from config:
+| Framework | Default Port |
+|-----------|-------------|
+| Next.js | 3000 |
+| Vite | 5173 |
+| Express | 3000 |
+| Django | 8000 |
 
-**Ports to AVOID suggesting:**
-- 5000, 5001: AirPlay Receiver on macOS
+**Ports to NEVER use:**
+- 5000, 5001: AirPlay Receiver on macOS Monterey+
 - 7000: AirPlay on older macOS
-- 8080: Common proxy port, often in use
+- 8080: Often already in use
 
-## Output
+---
 
-Show the user:
+## Quick Flags
+
+Skip the question with flags:
+
 ```
-TLC Dev Server Starting...
-
-  Dashboard:  http://localhost:3147  (TLC)
-  App:        http://localhost:{detected_port}  (Your app)
-
-Press Ctrl+C to stop all services.
+/tlc:start           # Asks which option
+/tlc:start --tlc     # TLC Environment only (option 1)
+/tlc:start --full    # Full Production Stack (option 2)
 ```
-
-## Docker Mode (optional)
-
-If user specifically wants Docker, they can run:
-```
-/tlc:start --docker
-```
-
-Then use the Docker-based launcher (tlc-start.sh/bat).
