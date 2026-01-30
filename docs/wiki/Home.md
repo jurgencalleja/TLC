@@ -8,8 +8,8 @@
 
 | Your Experience | Start With |
 |-----------------|------------|
-| **Never coded before?** | [Noob Guide](noob.md) - Complete setup from zero |
-| **Know how to code?** | [Skip Manual - Start](skip-manual-start.md) - 30-second setup |
+| **Never coded before?** | [Noob Guide](noob) - Complete setup from zero |
+| **Know how to code?** | [Skip Manual - Start](skip-manual-start) - 30-second setup |
 
 ---
 
@@ -17,9 +17,9 @@
 
 | Getting Started | Reference | Tutorials |
 |-----------------|-----------|-----------|
-| [Noob Guide](noob.md) | [All Commands](command-reference.md) | [Solo Developer](../tutorials/solo-developer.md) |
-| [Quick Start](skip-manual-start.md) | [Configuration](configuration.md) | [Team Setup](../tutorials/team-setup.md) |
-| [Core Workflow](getting-started.md#core-workflow) | [Troubleshooting](troubleshooting.md) | |
+| [Noob Guide](noob) | [All Commands](command-reference) | [Solo Developer](https://github.com/jurgencalleja/TLC/blob/main/docs/tutorials/solo-developer.md) |
+| [Quick Start](skip-manual-start) | [Configuration](configuration) | [Team Setup](https://github.com/jurgencalleja/TLC/blob/main/docs/tutorials/team-setup.md) |
+| [Core Workflow](getting-started#core-workflow) | [Troubleshooting](troubleshooting) | |
 
 ## What is TLC?
 
@@ -61,21 +61,21 @@ tlc
 
 ### Wiki
 
-- [Getting Started](getting-started.md) - Installation and first steps
-- [Command Reference](command-reference.md) - All commands explained
-- [Configuration](configuration.md) - `.tlc.json` options
-- [Troubleshooting](troubleshooting.md) - Common issues and fixes
+- [Getting Started](getting-started) - Installation and first steps
+- [Command Reference](command-reference) - All commands explained
+- [Configuration](configuration) - `.tlc.json` options
+- [Troubleshooting](troubleshooting) - Common issues and fixes
 
 ### Tutorials
 
-- [Solo Developer](../tutorials/solo-developer.md) - Complete workflow for individuals
-- [Team Setup](../tutorials/team-setup.md) - Guide for teams (3+ engineers)
+- [Solo Developer](https://github.com/jurgencalleja/TLC/blob/main/docs/tutorials/solo-developer.md) - Complete workflow for individuals
+- [Team Setup](https://github.com/jurgencalleja/TLC/blob/main/docs/tutorials/team-setup.md) - Guide for teams (3+ engineers)
 
 ### Guides
 
-- [Team Workflow](../team-workflow.md) - Role-based collaboration guide
-- [Dev Server](../devserver.md) - Deploy TLC dev server
-- [Kubernetes Deployment](../kubernetes-deployment.md) - Deploy on K8s
+- [Team Workflow](https://github.com/jurgencalleja/TLC/blob/main/docs/team-workflow.md) - Role-based collaboration guide
+- [Dev Server](https://github.com/jurgencalleja/TLC/blob/main/docs/devserver.md) - Deploy TLC dev server
+- [Kubernetes Deployment](https://github.com/jurgencalleja/TLC/blob/main/docs/kubernetes-deployment.md) - Deploy on K8s
 
 ## Philosophy
 

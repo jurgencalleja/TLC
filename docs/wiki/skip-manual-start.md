@@ -127,12 +127,12 @@ git push          →  Share your claim
 
 | Topic | Link |
 |-------|------|
-| All commands | [Command Reference](command-reference.md) |
-| Config options | [Configuration](configuration.md) |
-| Something broken | [Troubleshooting](troubleshooting.md) |
-| Team setup | [Team Workflow](../team-workflow.md) |
-| Dev server | [Dev Server Setup](../devserver.md) |
-| Complete beginner | [Noob Guide](noob.md) |
+| All commands | [Command Reference](command-reference) |
+| Config options | [Configuration](configuration) |
+| Something broken | [Troubleshooting](troubleshooting) |
+| Team setup | [Team Workflow](https://github.com/jurgencalleja/TLC/blob/main/docs/team-workflow.md) |
+| Dev server | [Dev Server Setup](https://github.com/jurgencalleja/TLC/blob/main/docs/devserver.md) |
+| Complete beginner | [Noob Guide](noob) |
 
 ---
 
