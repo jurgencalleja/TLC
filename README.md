@@ -58,10 +58,12 @@ No manual testing. No "does this work?" No vibes.
 ### Then Just Run
 
 ```bash
-/tlc
+/tlc:next
 ```
 
-TLC knows where you are and what's next.
+Shows what's next, asks "Proceed? [Y/n]", then executes. That's it.
+
+Or use `/tlc` for the full dashboard.
 
 ---
 
@@ -70,6 +72,8 @@ TLC knows where you are and what's next.
 ### For Solo Developers
 
 - **Test-first by default** — Claude writes tests before code
+- **Auto-parallelization** — Up to 10 agents run independent tasks simultaneously
+- **`/tlc:next`** — One command to progress. No decisions needed.
 - **Smart dashboard** — See progress, run actions
 - **Coverage gaps** — Find and fix untested code
 - **Auto-fix** — Automatically repair failing tests
@@ -95,10 +99,11 @@ TLC knows where you are and what's next.
 
 | Command | What It Does |
 |---------|--------------|
-| `/tlc` | **Smart entry point — knows what's next** |
+| `/tlc:next` | **Just do it — shows next action, asks once, executes** |
+| `/tlc` | Smart dashboard — full status view |
 | `/tlc:new-project` | Start new project with roadmap |
 | `/tlc:init` | Add TLC to existing codebase |
-| `/tlc:build` | Write tests → implement → verify |
+| `/tlc:build` | Write tests → implement (auto-parallelizes up to 10 agents) |
 | `/tlc:coverage` | Find and fix untested code |
 | `/tlc:quality` | Test quality scoring |
 | `/tlc:autofix` | Auto-repair failing tests |
