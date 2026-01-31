@@ -1,0 +1,136 @@
+name: Documentation Sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.claude/commands/tlc/**'
+      - 'docs/**'
+      - 'package.json'
+      - 'README.md'
+
+jobs:
+  sync-wiki:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout main repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium
+
+      - name: Update version references
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "Updating docs to version $VERSION"
+
+          # Update version in docs
+          find docs -name "*.md" -exec sed -i "s/v[0-9]\+\.[0-9]\+\.[0-9]\+/v$VERSION/g" {} \;
+
+      - name: Check for missing command docs
+        run: |
+          echo "Checking command documentation..."
+
+          # List all commands
+          for cmd in .claude/commands/tlc/*.md; do
+            name=$(basename "$cmd" .md)
+            if ! grep -q "/tlc:$name" docs/wiki/command-reference.md 2>/dev/null; then
+              echo "⚠ Missing docs for /tlc:$name"
+            fi
+          done
+
+      - name: Generate screenshots
+        run: |
+          # Generate terminal mockups (no server needed)
+          node scripts/generate-screenshots.js
+
+      - name: Sync to GitHub Wiki
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Clone wiki repo
+          git clone https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.wiki.git wiki
+
+          # Copy docs to wiki
+          cp -r docs/wiki/* wiki/
+          cp docs/wiki/images/* wiki/images/ 2>/dev/null || mkdir -p wiki/images && cp docs/wiki/images/* wiki/images/
+
+          # Commit and push wiki changes
+          cd wiki
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+            git commit -m "docs: auto-sync from main repo"
+            git push
+            echo "✓ Wiki updated"
+          else
+            echo "✓ Wiki already up to date"
+          fi
+
+      - name: Commit doc updates to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if [ -n "$(git status --porcelain docs/)" ]; then
+            git add docs/
+            git commit -m "docs: auto-update version references and screenshots"
+            git push
+          fi
+
+  update-changelog:
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, 'bump') || contains(github.event.head_commit.message, 'release')
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog entry
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          DATE=$(date +%Y-%m-%d)
+
+          # Get commits since last tag
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+
+          if [ -n "$LAST_TAG" ]; then
+            COMMITS=$(git log ${LAST_TAG}..HEAD --oneline)
+          else
+            COMMITS=$(git log --oneline -20)
+          fi
+
+          # Generate changelog entry
+          cat > /tmp/changelog_entry.md << EOF
+          ## [$VERSION] - $DATE
+
+          ### Features
+          $(echo "$COMMITS" | grep -E "^[a-f0-9]+ feat" | sed 's/^[a-f0-9]* feat[:(]*/- /' || echo "- None")
+
+          ### Fixes
+          $(echo "$COMMITS" | grep -E "^[a-f0-9]+ fix" | sed 's/^[a-f0-9]* fix[:(]*/- /' || echo "- None")
+
+          ### Documentation
+          $(echo "$COMMITS" | grep -E "^[a-f0-9]+ docs" | sed 's/^[a-f0-9]* docs[:(]*/- /' || echo "- None")
+
+          EOF
+
+          echo "Generated changelog entry for $VERSION"
+          cat /tmp/changelog_entry.md
