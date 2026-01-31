@@ -599,6 +599,119 @@ Complete redesign of TLC dashboard for both local dev and VPS. Transform from pr
 
 ---
 
+---
+
+## Milestone: v1.3 - Architecture & Review Commands
+
+Add architecture-level operations: multi-LLM code review with consensus, systematic refactoring, architecture analysis, and microservice support.
+
+### Phase 20: Multi-LLM Infrastructure [ ]
+
+**Goal:** Create adapter system for multiple AI models with budget tracking.
+
+**Deliverables:**
+- [ ] Model adapter interface (Claude, OpenAI, DeepSeek)
+- [ ] OpenAI budget and rate limiting
+- [ ] Consensus engine for multi-model reviews
+- [ ] Usage tracking persistence
+
+**Success Criteria:**
+- [ ] All adapters return standardized response format
+- [ ] Budget limits enforced (daily/monthly)
+- [ ] Reviews run in parallel across models
+- [ ] Graceful fallback when models fail
+
+---
+
+### Phase 21: Review Command [ ]
+
+**Goal:** Multi-LLM code review with consensus reporting.
+
+**Deliverables:**
+- [ ] `/tlc:review` command
+- [ ] Review report generator (markdown, JSON, HTML)
+- [ ] Confidence scoring based on model agreement
+- [ ] Cost tracking per review
+
+**Success Criteria:**
+- [ ] Reviews single file, directory, or full codebase
+- [ ] Shows agreement percentage
+- [ ] Respects .tlcignore patterns
+- [ ] Skips models over budget
+
+---
+
+### Phase 22: Refactor Command [ ]
+
+**Goal:** Systematic codebase refactoring with safety.
+
+**Deliverables:**
+- [ ] `/tlc:refactor --analyze` - find opportunities
+- [ ] `/tlc:refactor --plan` - generate phased plan
+- [ ] `/tlc:refactor --execute` - apply with tests
+- [ ] Checkpoint and rollback system
+
+**Success Criteria:**
+- [ ] Detects duplication, complexity, long methods
+- [ ] Creates checkpoint before changes
+- [ ] Generates tests for changed code
+- [ ] Auto-rollback on test failure
+
+---
+
+### Phase 23: Architecture Commands [ ]
+
+**Goal:** Architecture analysis and microservice conversion.
+
+**Deliverables:**
+- [ ] `/tlc:architecture` - analyze current state
+- [ ] `/tlc:architecture --boundaries` - suggest services
+- [ ] `/tlc:convert microservice` - conversion plan
+- [ ] Dependency graph generation (Mermaid)
+
+**Success Criteria:**
+- [ ] Calculates coupling/cohesion metrics
+- [ ] Detects circular dependencies
+- [ ] Generates service scaffolds with API contracts
+- [ ] Creates migration tests for service extraction
+
+---
+
+### Phase 24: Microservice Templates [ ]
+
+**Goal:** Greenfield microservice project scaffolding.
+
+**Deliverables:**
+- [ ] `/tlc:new-project --architecture microservice`
+- [ ] Service mesh config (Traefik)
+- [ ] Shared kernel structure
+- [ ] Inter-service messaging patterns
+
+**Success Criteria:**
+- [ ] Complete docker-compose with all services
+- [ ] API gateway configured
+- [ ] Contract testing enabled
+- [ ] Example service included
+
+---
+
+### Phase 25: Usage Dashboard [ ]
+
+**Goal:** Budget and usage visibility.
+
+**Deliverables:**
+- [ ] `/tlc:usage` command
+- [ ] Usage history (7-day rolling)
+- [ ] Budget alerts at threshold
+- [ ] Admin reset capability
+
+**Success Criteria:**
+- [ ] Shows daily/monthly spend per model
+- [ ] Alerts at configured threshold (e.g., 80%)
+- [ ] Usage persists across sessions
+
+---
+
 ## Future Milestones (v1.x)
 
 ### v1.4 - Enterprise Features
