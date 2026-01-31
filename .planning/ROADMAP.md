@@ -433,20 +433,22 @@ Engineers (worldwide) → git push → GitHub → webhook → Dev Server
 
 ---
 
-### Phase 11: Automatic Capture [ ]
+### Phase 11: Automatic Capture [x]
 
 **Goal:** Detect and store decisions, preferences, gotchas from conversations automatically.
 
 **Deliverables:**
-- [ ] Pattern detection (decisions, preferences, corrections, gotchas)
-- [ ] Memory classification (team vs personal)
-- [ ] Background observer hook
-- [ ] Non-blocking capture
+- [x] Pattern detection (decisions, preferences, corrections, gotchas)
+- [x] Memory classification (team vs personal)
+- [x] Background observer hook
+- [x] Non-blocking capture
 
 **Success Criteria:**
-- [ ] Decisions captured without user intervention
-- [ ] No latency impact on responses
-- [ ] Correct team/personal classification
+- [x] Decisions captured without user intervention
+- [x] No latency impact on responses
+- [x] Correct team/personal classification
+
+**Tests:** 47 (19 detector + 18 classifier + 10 observer)
 
 ---
 
