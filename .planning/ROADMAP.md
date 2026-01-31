@@ -452,37 +452,41 @@ Engineers (worldwide) → git push → GitHub → webhook → Dev Server
 
 ---
 
-### Phase 12: Automatic Recall [ ]
+### Phase 12: Automatic Recall [x]
 
 **Goal:** Surface relevant memory at session start.
 
 **Deliverables:**
-- [ ] Session context builder
-- [ ] Relevance scoring (file, branch, recency, keyword)
-- [ ] CLAUDE.md injection
-- [ ] Token budget management
+- [x] Session context builder
+- [x] Relevance scoring (file, branch, recency, keyword)
+- [x] CLAUDE.md injection
+- [x] Token budget management
 
 **Success Criteria:**
-- [ ] Relevant context appears at session start
-- [ ] Context stays within token budget
-- [ ] No announcement needed - just works
+- [x] Relevant context appears at session start
+- [x] Context stays within token budget
+- [x] No announcement needed - just works
+
+**Tests:** 43 (10 context-builder + 11 relevance-scorer + 11 claude-injector + 11 session-summary)
 
 ---
 
-### Phase 13: Memory Integration [ ]
+### Phase 13: Memory Integration [x]
 
 **Goal:** Hook memory system into TLC commands.
 
 **Deliverables:**
-- [ ] /tlc:init creates memory structure
-- [ ] All commands trigger observation
-- [ ] Session end summary
-- [ ] Auto-commit team memory
+- [x] /tlc:init creates memory structure
+- [x] All commands trigger observation
+- [x] Session end summary
+- [x] Auto-commit team memory
 
 **Success Criteria:**
-- [ ] Memory works seamlessly with existing TLC workflow
-- [ ] Team memory committed with conventional commits
-- [ ] Session summaries generated
+- [x] Memory works seamlessly with existing TLC workflow
+- [x] Team memory committed with conventional commits
+- [x] Session summaries generated
+
+**Tests:** 38 (12 memory-init + 12 memory-committer + 14 memory-hooks)
 
 ---
 
