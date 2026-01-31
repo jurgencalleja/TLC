@@ -11,7 +11,7 @@ describe('Card', () => {
 
   it('renders with border by default', () => {
     const { lastFrame } = render(<Card>Test</Card>);
-    const output = lastFrame();
+    const output = lastFrame() ?? '';
     // Should contain box-drawing characters (various unicode box drawing)
     expect(output).toContain('Test');
     // Ink uses various box characters depending on style

@@ -5,7 +5,7 @@ import {
   typography,
   themes,
   generateCSSVariables,
-} from './tokens';
+} from './tokens.js';
 
 describe('tokens', () => {
   describe('colors', () => {
