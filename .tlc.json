@@ -1,0 +1,23 @@
+{
+  "project": "TLC",
+  "version": "1.2.24",
+  "testFrameworks": {
+    "primary": "vitest",
+    "e2e": null
+  },
+  "quality": {
+    "coverageThreshold": 80,
+    "qualityScoreThreshold": 75
+  },
+  "team": {
+    "enabled": false
+  },
+  "git": {
+    "mainBranch": "main"
+  },
+  "paths": {
+    "planning": ".planning",
+    "tests": "server/lib"
+  },
+  "lastSync": "6286cb3e25f26e5c065a6938f3ceac9136596a0f"
+}
