@@ -410,23 +410,97 @@ Engineers (worldwide) → git push → GitHub → webhook → Dev Server
 
 ---
 
+---
+
+## Milestone: v1.1 - Automatic Memory System
+
+### Phase 10: Memory Storage Layer [x]
+
+**Goal:** Create persistent storage for team and personal memory.
+
+**Deliverables:**
+- [x] Memory directory structure (.tlc/memory/team, .tlc/memory/.local)
+- [x] Memory write utilities (decisions, gotchas, preferences, session logs)
+- [x] Memory read utilities (load, search)
+- [x] Gitignore integration for .local
+
+**Success Criteria:**
+- [x] Team memory tracked in git
+- [x] Personal memory stays local
+- [x] Read/write operations work reliably
+
+**Tests:** 47 (12 storage + 15 writer + 20 reader)
+
+---
+
+### Phase 11: Automatic Capture [ ]
+
+**Goal:** Detect and store decisions, preferences, gotchas from conversations automatically.
+
+**Deliverables:**
+- [ ] Pattern detection (decisions, preferences, corrections, gotchas)
+- [ ] Memory classification (team vs personal)
+- [ ] Background observer hook
+- [ ] Non-blocking capture
+
+**Success Criteria:**
+- [ ] Decisions captured without user intervention
+- [ ] No latency impact on responses
+- [ ] Correct team/personal classification
+
+---
+
+### Phase 12: Automatic Recall [ ]
+
+**Goal:** Surface relevant memory at session start.
+
+**Deliverables:**
+- [ ] Session context builder
+- [ ] Relevance scoring (file, branch, recency, keyword)
+- [ ] CLAUDE.md injection
+- [ ] Token budget management
+
+**Success Criteria:**
+- [ ] Relevant context appears at session start
+- [ ] Context stays within token budget
+- [ ] No announcement needed - just works
+
+---
+
+### Phase 13: Memory Integration [ ]
+
+**Goal:** Hook memory system into TLC commands.
+
+**Deliverables:**
+- [ ] /tlc:init creates memory structure
+- [ ] All commands trigger observation
+- [ ] Session end summary
+- [ ] Auto-commit team memory
+
+**Success Criteria:**
+- [ ] Memory works seamlessly with existing TLC workflow
+- [ ] Team memory committed with conventional commits
+- [ ] Session summaries generated
+
+---
+
 ## Future Milestones (v1.x)
 
-### v1.1 - Enterprise Features
+### v1.2 - Enterprise Features
 - Multi-repo support
 - Audit logs for all agent actions
 - SOC 2 documentation
 - Zero-data-retention mode
 - SSO integration (OAuth, SAML)
 
-### v1.2 - Advanced AI
+### v1.3 - Advanced AI
 - [x] Parallel agent execution (Overdrive module - auto-detects independent tasks)
 - Agent orchestration dashboard
 - Model selection per agent
 - Cost optimization mode
 - Quality optimization mode
 
-### v1.3 - Ecosystem
+### v1.4 - Ecosystem
 - MCP tool publishing
 - Plugin marketplace
 - Custom agent definitions
