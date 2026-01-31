@@ -350,7 +350,25 @@ Tests are written BEFORE implementation, not after.
 
 If PROJECT.md exists, append the TLC section only.
 
-### 11. Report Summary
+### 11. Set Up Documentation (Optional)
+
+If the project doesn't have docs automation:
+
+```
+Documentation Automation
+
+TLC can automatically maintain your docs:
+  • Update version references on push
+  • Sync to GitHub Wiki
+  • Generate API documentation
+  • Capture app screenshots
+
+Set up documentation automation? (Y/n)
+```
+
+If yes, run `/tlc:docs setup`.
+
+### 12. Report Summary
 
 ```
 TLC initialized for [project name]
@@ -360,11 +378,13 @@ Test framework: [framework] (existing/newly configured)
 Test directory: [path]
 Existing tests: [count] files
 Untested files: [count] identified
+Docs automation: [enabled/skipped]
 
 Next steps:
 - Run /tlc:build backlog to write tests for existing code
 - Run /tlc:discuss to plan new features with TLC
 - Run /tlc:quick for ad-hoc tasks with tests
+- Run /tlc:docs to update documentation
 ```
 
 ## Usage

@@ -199,6 +199,38 @@ If yes, create `.claude/settings.json`:
 
 **IMPORTANT:** `git push` is NOT included - always ask before pushing to remote.
 
+### Step 6b: Check Docs Setup (One-Time)
+
+Check if documentation automation is configured:
+
+```bash
+if [ ! -f ".github/workflows/docs-sync.yml" ] && [ -d ".git" ]; then
+  # First time - offer docs setup
+fi
+```
+
+**Skip if already configured or no git repo.** Only ask once per project.
+
+If missing, offer to set up:
+
+```
+Documentation Automation
+
+TLC can automatically maintain your docs:
+  • Update version references on push
+  • Sync to GitHub Wiki
+  • Generate API documentation
+  • Capture app screenshots
+
+Set up documentation automation? (Y/n)
+```
+
+If yes, run `/tlc:docs setup`:
+- Creates `docs/` directory
+- Adds `.github/workflows/docs-sync.yml`
+- Adds npm scripts for docs
+- Creates starter documentation
+
 ### Step 7: Check for Untested Code
 
 If project has source files without tests:
@@ -215,7 +247,7 @@ Add tests for existing code? (Y/n)
 
 If yes, run `/tlc:coverage` flow.
 
-### Step 7: All Phases Complete
+### Step 8: All Phases Complete
 
 ```
 All phases complete!
@@ -225,6 +257,7 @@ Milestone ready for release.
 1) Tag release (/tlc:complete)
 2) Start next milestone (/tlc:new-milestone)
 3) Check test coverage (/tlc:coverage)
+4) Update documentation (/tlc:docs)
 ```
 
 ## Usage

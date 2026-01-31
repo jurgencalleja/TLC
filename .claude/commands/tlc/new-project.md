@@ -309,6 +309,27 @@ Add to `package.json`:
 }
 ```
 
+### Step 9: Set Up Documentation (Optional)
+
+Offer to set up documentation automation:
+
+```
+Documentation Automation
+
+TLC can automatically maintain your docs:
+  • Update version references on push
+  • Sync to GitHub Wiki
+  • Generate API documentation
+  • Capture app screenshots
+
+Set up documentation automation? (Y/n)
+```
+
+If yes, run the docs setup:
+- Create `docs/` directory with starter content
+- Add `.github/workflows/docs-sync.yml`
+- Add npm scripts for docs maintenance
+
 ## Usage
 
 ```
@@ -321,3 +342,4 @@ Interactive flow that:
 3. Lets you adjust
 4. Creates roadmap
 5. Sets up tests
+6. Sets up documentation automation
