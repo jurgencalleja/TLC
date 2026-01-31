@@ -17,7 +17,7 @@ describe('overdrive-command', () => {
       const options = parseOverdriveArgs('');
 
       expect(options.phase).toBeNull();
-      expect(options.agents).toBe(3);
+      expect(options.agents).toBe('auto'); // Auto-parallelize by default
       expect(options.mode).toBe('build');
       expect(options.dryRun).toBe(false);
       expect(options.sequential).toBe(false);
@@ -56,6 +56,13 @@ describe('overdrive-command', () => {
     it('parses --sequential flag', () => {
       const options = parseOverdriveArgs('--sequential');
       expect(options.sequential).toBe(true);
+      expect(options.agents).toBe(1); // Sequential forces single agent
+    });
+
+    it('parses -s shorthand for sequential', () => {
+      const options = parseOverdriveArgs('-s');
+      expect(options.sequential).toBe(true);
+      expect(options.agents).toBe(1);
     });
 
     it('parses multiple flags', () => {

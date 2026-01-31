@@ -6,7 +6,7 @@ Complete reference for all TLC slash commands.
 
 ### /tlc
 
-**Smart entry point** - Analyzes project state and routes to appropriate action.
+**Smart entry point** - Analyzes project state and shows full dashboard.
 
 ```bash
 /tlc
@@ -18,6 +18,22 @@ What it does:
 - Phase planned? → Offers `/tlc:build`
 - Phase built? → Offers `/tlc:verify`
 - Phase complete? → Moves to next phase
+
+### /tlc:next
+
+**Action-oriented** - Shows what's next, asks once, then executes.
+
+```bash
+/tlc:next
+```
+
+Unlike `/tlc` which shows a dashboard and waits for input, `/tlc:next`:
+1. Analyzes current state
+2. Shows the recommended next action (one line)
+3. Asks: "Proceed? [Y/n]"
+4. On Enter → executes immediately with auto-parallelization
+
+Use `/tlc` for status. Use `/tlc:next` for progress.
 
 ### /tlc:progress
 
@@ -117,20 +133,21 @@ Creates `.planning/phases/{N}-CONTEXT.md`.
 **Build a phase** using test-first development.
 
 ```bash
-/tlc:build 1           # Build phase 1
-/tlc:build 1 --sequential    # Force sequential mode
-/tlc:build 1 --agents 5      # Use 5 parallel agents
+/tlc:build 1                 # Build phase 1 (auto-parallel)
+/tlc:build 1 --sequential    # Force one task at a time
+/tlc:build 1 --agents 5      # Limit to 5 parallel agents
 ```
 
 Process:
 1. Detect test framework
-2. Check for parallelizable tasks (Overdrive mode)
-3. Write failing tests for each task
-4. Implement code to pass tests
-5. Commit after each task
-6. Run auto-review
+2. Analyze task dependencies from PLAN.md
+3. **Auto-parallelize**: Spawn up to 10 agents for independent tasks
+4. Write failing tests for each task
+5. Implement code to pass tests
+6. Commit after each task
+7. Run auto-review
 
-**Overdrive Mode**: When tasks are independent, TLC spawns multiple agents to work in parallel.
+**Automatic Parallelization**: TLC analyzes task dependencies and automatically runs independent tasks in parallel (up to 10 agents). No flag needed - it just works. Use `--sequential` only when you explicitly want one-at-a-time execution.
 
 ### /tlc:status
 

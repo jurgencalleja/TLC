@@ -12,11 +12,12 @@ Launches the visual dashboard. Detects where you are, shows what's next.
 
 ## All Commands
 
-### The Smart One
+### The Smart Ones
 
 | Command | What It Does |
 |---------|--------------|
-| `/tlc` | **Visual dashboard. Context-aware. Knows what to do next.** |
+| `/tlc` | **Visual dashboard. Context-aware. Shows full status.** |
+| `/tlc:next` | **Action-oriented. Shows what's next, asks once, then executes.** |
 
 ### Setup
 
@@ -60,16 +61,21 @@ Launches the visual dashboard. Detects where you are, shows what's next.
 
 ## Workflow
 
-**Simple version:**
+**Simplest version:**
 ```
-/tlc                    <- just keep running this
+/tlc:next               <- shows what's next, proceed? [Y/n], then executes
+```
+
+**Dashboard version:**
+```
+/tlc                    <- visual status, pick from options
 ```
 
 **Detailed version:**
 ```
 /tlc:new-project        New project
     ↓
-/tlc                    Guides you through each phase:
+/tlc:next               Automatically progresses through:
                         → discuss → plan → build → verify
     ↓
 /tlc:complete           Tag release

@@ -3,7 +3,11 @@
  * Automatic parallel execution when tasks are independent
  *
  * This is NOT a command - it's integrated into /tlc:build
- * When a plan has independent tasks, they run in parallel automatically
+ * When a plan has independent tasks, they run in parallel automatically.
+ *
+ * Default behavior: Auto-parallelize up to 10 agents based on task dependencies
+ * Use --sequential to force one-at-a-time execution
+ * Use --agents N to limit parallelism to specific number
  */
 
 const fs = require('fs');
@@ -17,7 +21,7 @@ const path = require('path');
 function parseOverdriveArgs(args = '') {
   const options = {
     phase: null,
-    agents: 3, // Default parallel agents
+    agents: 'auto', // Auto-detect based on independent tasks (up to 10)
     mode: 'build', // build, test, fix
     dryRun: false,
     sequential: false,
@@ -36,8 +40,9 @@ function parseOverdriveArgs(args = '') {
       options.mode = parts[++i];
     } else if (part === '--dry-run') {
       options.dryRun = true;
-    } else if (part === '--sequential') {
+    } else if (part === '--sequential' || part === '-s') {
       options.sequential = true;
+      options.agents = 1;
     } else if (['build', 'test', 'fix'].includes(part)) {
       options.mode = part;
     }
@@ -265,8 +270,27 @@ async function executeOverdriveCommand(args = '', context = {}) {
     };
   }
 
-  // Distribute tasks
-  const agentCount = Math.min(options.agents, availableTasks.length);
+  // Determine agent count: auto = max parallelism based on independent tasks
+  let agentCount;
+  if (options.sequential) {
+    agentCount = 1;
+  } else if (options.agents === 'auto') {
+    // Auto-detect: use as many agents as there are independent tasks (up to 10)
+    let planContent = '';
+    try {
+      planContent = fs.readFileSync(phaseInfo.planPath, 'utf-8');
+    } catch {
+      // Fall back to task count
+    }
+    const depAnalysis = analyzeDependencies(planContent);
+    const parallelAnalysis = canParallelize(availableTasks, depAnalysis);
+    agentCount = parallelAnalysis.canParallelize
+      ? Math.min(parallelAnalysis.independentTasks.length, 10)
+      : 1;
+  } else {
+    agentCount = Math.min(options.agents, availableTasks.length);
+  }
+
   const taskGroups = distributeTasks(availableTasks, agentCount);
 
   // Generate prompts
@@ -434,7 +458,7 @@ function canParallelize(tasks, depAnalysis) {
     canParallelize: true,
     independentTasks,
     dependentTasks: tasks.filter(t => dependentTasks.has(t.id)),
-    recommendedAgents: Math.min(independentTasks.length, 3),
+    recommendedAgents: Math.min(independentTasks.length, 10), // Max 10 parallel agents
   };
 }
 
