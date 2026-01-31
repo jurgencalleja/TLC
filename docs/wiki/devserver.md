@@ -2,6 +2,9 @@
 
 Deploy TLC dev server on Ubuntu for distributed teams.
 
+<!-- TODO: Add dashboard screenshot -->
+<!-- ![TLC Dashboard](images/dashboard-overview.png) -->
+
 ## Prerequisites
 
 - Ubuntu 22.04+ server (2GB+ RAM recommended)

@@ -65,7 +65,20 @@ your-project/
 
 ## Core Workflow
 
-### 1. Plan
+### The Easy Way: `/tlc:next`
+
+```bash
+/tlc:next
+```
+
+Shows the recommended next action, asks "Proceed? [Y/n]", then executes. That's it.
+
+<!-- TODO: Add screenshot -->
+<!-- ![tlc:next command](images/tlc-next-prompt.png) -->
+
+### The Detailed Way
+
+#### 1. Plan
 
 ```bash
 /tlc:plan 1
@@ -73,7 +86,7 @@ your-project/
 
 Creates detailed task breakdown with acceptance criteria and test cases.
 
-### 2. Build (Test-First)
+#### 2. Build (Test-First, Auto-Parallel)
 
 ```bash
 /tlc:build 1
@@ -84,7 +97,11 @@ For each task:
 2. Implement code to pass tests (Green)
 3. Commit after each task
 
-### 3. Verify
+**Auto-Parallelization:** TLC analyzes task dependencies and automatically runs independent tasks in parallel (up to 10 agents). No configuration needed.
+
+Use `--sequential` only if you want to force one-at-a-time execution.
+
+#### 3. Verify
 
 ```bash
 /tlc:verify 1
@@ -121,10 +138,11 @@ You describe → Tests written → Code implemented → Tests pass → Done
 
 | Command | Description |
 |---------|-------------|
-| `/tlc` | Smart entry point - knows what's next |
+| `/tlc:next` | **Just do it** - shows what's next, asks once, executes |
+| `/tlc` | Smart dashboard - shows full status |
 | `/tlc:progress` | Show current status |
 | `/tlc:plan` | Plan current/specified phase |
-| `/tlc:build` | Build phase (test-first) |
+| `/tlc:build` | Build phase (auto-parallelizes independent tasks) |
 | `/tlc:verify` | Human verification |
 | `/tlc:status` | Check test status |
 

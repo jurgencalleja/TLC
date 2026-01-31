@@ -103,13 +103,13 @@ TLC creates `.planning/phases/1-PLAN.md`:
 - POST /tasks with empty title returns 400
 ```
 
-## Step 4: Build Phase 1 (Test-First)
+## Step 4: Build Phase 1 (Test-First, Auto-Parallel)
 
 ```
 /tlc:build 1
 ```
 
-TLC starts the test-first process:
+TLC starts the test-first process. **New:** Independent tasks run in parallel automatically (up to 10 agents)!
 
 ### 4a. Writing Tests (Red Phase)
 
@@ -314,6 +314,25 @@ And the cycle continues...
 ```
 Plan → Write Tests → See Fail → Implement → See Pass → Commit → Repeat
 ```
+
+**Or even simpler:** Just run `/tlc:next` repeatedly. It figures out what's next and does it.
+
+### Automatic Parallelization
+
+When you have multiple independent tasks, TLC runs them in parallel:
+
+```
+Building Phase 1 with 4 parallel agents...
+  Agent 1: Task 1 - Create schema
+  Agent 2: Task 2 - Add validation
+  Agent 3: Task 3 - Create endpoints
+  Agent 4: Task 4 - Error handling
+```
+
+No configuration needed. TLC analyzes task dependencies and parallelizes automatically.
+
+<!-- TODO: Add screenshot of parallel build -->
+<!-- ![Parallel Build](images/build-parallel.png) -->
 
 ### What You Didn't Do
 

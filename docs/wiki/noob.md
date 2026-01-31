@@ -172,10 +172,19 @@ TLC will set everything up for you.
 ### Build Your First Feature
 
 ```
-/tlc
+/tlc:next
 ```
 
-This shows what to do next. Just follow the recommendations!
+This is the easiest command. It:
+1. Figures out what to do next
+2. Shows you briefly what it will do
+3. Asks "Proceed? [Y/n]"
+4. On Enter → just does it
+
+That's it! Just keep running `/tlc:next` and your project builds itself.
+
+<!-- TODO: Add screenshot of /tlc:next in action -->
+<!-- ![TLC Next Command](images/tlc-next-prompt.png) -->
 
 ---
 
@@ -210,8 +219,9 @@ This shows what to do next. Just follow the recommendations!
 
 | Command | What It Does |
 |---------|--------------|
-| `/tlc` | See what's next |
-| `/tlc:build` | Build the current phase |
+| `/tlc:next` | **Easiest!** Just does the next thing |
+| `/tlc` | See full dashboard |
+| `/tlc:build` | Build the current phase (runs multiple tasks in parallel!) |
 | `/tlc:verify` | Test your work |
 
 ---

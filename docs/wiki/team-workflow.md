@@ -23,13 +23,17 @@ TLC (Test-Led Coding) enables teams to use AI coding assistants while maintainin
 **Daily Workflow:**
 ```
 1. git pull                    # Get latest
+2. /tlc:next                   # See what's next, proceed? [Y/n]
+   OR
 2. /tlc:progress               # See project state
 3. /tlc:who                    # Check team activity
 4. /tlc:claim 2                # Claim a task
-5. /tlc:build                  # Write tests, implement
+5. /tlc:build                  # Write tests, implement (auto-parallel!)
 6. git push                    # Share progress
 7. /tlc:release (if blocked)   # Release if switching
 ```
+
+**New:** `/tlc:build` auto-parallelizes independent tasks (up to 10 agents). No configuration needed.
 
 ### Product Owner (1)
 
@@ -196,7 +200,10 @@ Ready for QA verification.
 
 ### 11:00 AM - QA Sees Task Ready
 
-QA opens dashboard, sees:
+QA opens dashboard, sees tasks ready for verification:
+
+<!-- TODO: Add dashboard screenshot -->
+<!-- ![Dashboard - Tasks Ready](images/dashboard-tasks.png) -->
 
 ```
 ╭─────────────────────────────────────────╮
@@ -298,7 +305,7 @@ PO opens dashboard, sees:
 
 | Scenario | Tool |
 |----------|------|
-| "What should I work on?" | `/tlc:progress` or `/tlc:who` |
+| "What should I work on?" | `/tlc:next` or `/tlc:progress` |
 | "I'm starting task 3" | `/tlc:claim 3` |
 | "I'm blocked" | `/tlc:release` + `/tlc:bug` |
 | "I found an issue" | `/tlc:bug` or Dashboard form |

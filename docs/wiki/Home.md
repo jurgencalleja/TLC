@@ -31,6 +31,11 @@ You describe → Tests written → Code implemented → Tests pass → Done
 
 No manual testing. No "does this work?" No vibes.
 
+**New:** Just run `/tlc:next` - it figures out what's next and executes automatically.
+
+<!-- TODO: Add screenshot of dashboard overview -->
+<!-- ![TLC Dashboard](images/dashboard-overview.png) -->
+
 ## Installation
 
 ```bash
@@ -42,11 +47,14 @@ tlc
 
 | Command | Description |
 |---------|-------------|
-| `/tlc` | Smart entry point - knows what's next |
+| `/tlc` | Smart entry point - shows dashboard and status |
+| `/tlc:next` | **Action-oriented** - shows what's next, asks once, then executes |
 | `/tlc:plan` | Plan a phase |
-| `/tlc:build` | Build phase (test-first) |
+| `/tlc:build` | Build phase (test-first, auto-parallelizes up to 10 agents) |
 | `/tlc:verify` | Human verification |
 | `/tlc:status` | Check test status |
+
+**New in v1.2.28:** `/tlc:build` now automatically parallelizes independent tasks (up to 10 agents). No flags needed.
 
 ## For Teams
 
