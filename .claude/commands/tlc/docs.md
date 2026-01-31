@@ -1,213 +1,194 @@
 # /tlc:docs - Documentation Maintenance
 
-Automatically maintain wiki, tutorials, and screenshots.
-
-**Runs automatically on push via GitHub Actions.** Manual use for local preview.
+Automatically maintain your project's documentation, screenshots, and wiki.
 
 ## Usage
 
 ```bash
-/tlc:docs                    # Full docs audit and update
-/tlc:docs screenshots        # Regenerate all screenshots
-/tlc:docs check              # Check for issues without changing
-/tlc:docs sync               # Sync wiki to GitHub wiki repo
+/tlc:docs                    # Full docs update
+/tlc:docs setup              # Set up automation (first time)
+/tlc:docs screenshots        # Capture app screenshots
+/tlc:docs readme             # Update README
+/tlc:docs api                # Generate API docs
 ```
-
-## Automation
-
-**On every push to main**, GitHub Actions automatically:
-1. Updates version references in all docs
-2. Checks for missing command documentation
-3. Regenerates terminal screenshots
-4. Syncs to GitHub Wiki
-5. Commits any changes back
-
-You don't need to manually maintain docs. Just push code.
 
 ## What This Does
 
-### Full Audit (`/tlc:docs`)
+### Setup (`/tlc:docs setup`)
 
-1. **Scan for outdated docs** - Compare docs with code
-2. **Check for missing features** - New commands not documented
-3. **Regenerate screenshots** - Capture fresh dashboard/command screenshots
-4. **Update version references** - Ensure version numbers match
-5. **Validate links** - Check for broken internal links
-6. **Commit changes** - Auto-commit doc updates
+First-time setup for your project:
+
+1. Creates `docs/` directory structure
+2. Adds `.github/workflows/docs-sync.yml` for auto-sync on push
+3. Adds npm scripts (`npm run docs`, `npm run docs:screenshots`)
+4. Creates initial `docs/getting-started.md`
+
+After setup, docs update automatically on every push.
+
+### Full Update (`/tlc:docs`)
+
+1. **Updates version references** in all docs
+2. **Generates API docs** (TypeDoc for TypeScript)
+3. **Captures screenshots** of running app (via Playwright)
+4. **Validates links** in documentation
 
 ### Screenshots (`/tlc:docs screenshots`)
 
 Uses Playwright to capture real screenshots:
 
-1. Start TLC dev server if not running
-2. Navigate to dashboard pages
-3. Capture each view:
-   - Dashboard overview
-   - Task board
-   - Log stream
-   - Team panel
-   - Settings
-4. Capture command outputs in terminal
-5. Save to `docs/wiki/images/`
+1. Installs Playwright if not present
+2. Launches headless browser
+3. Captures pages at common URLs:
+   - `localhost:3000` (homepage)
+   - `localhost:3000/dashboard`
+   - `localhost:5001` (TLC app proxy)
+   - `localhost:3147` (TLC dashboard)
+4. Saves to `docs/images/`
 
-### Wiki Update (`/tlc:docs wiki`)
+**Note:** Your app should be running for screenshots to work.
 
-1. Read all command files in `.claude/commands/tlc/`
-2. Compare with `docs/wiki/command-reference.md`
-3. Add missing commands
-4. Update changed descriptions
-5. Regenerate command tables
+## Automation
 
-### Changelog (`/tlc:docs changelog`)
+Once set up, GitHub Actions automatically:
 
-1. Read git commits since last release
-2. Group by type (feat, fix, docs, etc.)
-3. Generate CHANGELOG.md entry
-4. Include breaking changes section
+1. **On every push to main:**
+   - Updates version references
+   - Syncs to GitHub Wiki
+   - Commits any doc changes
+
+2. **You don't need to manually maintain docs.** Just push code.
 
 ## Process
 
-### Step 1: Analyze Current State
+### Step 1: Run Setup (Once)
 
-```javascript
-// Scan for documentation gaps
-const commands = glob('.claude/commands/tlc/*.md');
-const documented = parseCommandReference('docs/wiki/command-reference.md');
+```
+/tlc:docs setup
 
-const missing = commands.filter(c => !documented.includes(c.name));
-const outdated = commands.filter(c => c.modifiedAt > documented[c.name]?.updatedAt);
+Setting up documentation automation...
+
+  ✓ Created docs/ directory
+  ✓ Created docs/images/ directory
+  ✓ Created .github/workflows/docs-sync.yml
+  ✓ Added docs scripts to package.json
+  ✓ Created docs/getting-started.md
+
+✓ Documentation setup complete!
+
+Next steps:
+  1. Push to GitHub to enable wiki sync
+  2. Run /tlc:docs to update documentation
+  3. Run /tlc:docs screenshots to capture app screenshots
 ```
 
-### Step 2: Screenshot Capture
-
-```javascript
-const { chromium } = require('playwright');
-
-async function captureScreenshots() {
-  const browser = await chromium.launch();
-  const page = await browser.newPage();
-
-  // Dashboard views
-  await page.goto('http://localhost:3147');
-  await page.screenshot({ path: 'docs/wiki/images/dashboard-overview.png' });
-
-  await page.click('[data-tab="tasks"]');
-  await page.screenshot({ path: 'docs/wiki/images/dashboard-tasks.png' });
-
-  await page.click('[data-tab="logs"]');
-  await page.screenshot({ path: 'docs/wiki/images/dashboard-logs.png' });
-
-  await page.click('[data-tab="team"]');
-  await page.screenshot({ path: 'docs/wiki/images/dashboard-team.png' });
-
-  await browser.close();
-}
-```
-
-### Step 3: Update Wiki Pages
-
-For each wiki page, check:
-- Version numbers match `package.json`
-- Command syntax matches actual commands
-- Screenshots exist and are referenced
-- Links are valid
-
-### Step 4: Generate Updates
-
-```markdown
-## Documentation Update Report
-
-### Updated Files
-- docs/wiki/command-reference.md (added /tlc:next)
-- docs/wiki/getting-started.md (updated version to 1.2.28)
-
-### New Screenshots
-- dashboard-overview.png (regenerated)
-- tlc-next-prompt.png (new)
-
-### Warnings
-- docs/wiki/old-page.md references removed command /tlc:old
-```
-
-### Step 5: Commit
-
-```bash
-git add docs/
-git commit -m "docs: update wiki and screenshots
-
-- Add /tlc:next command documentation
-- Regenerate dashboard screenshots
-- Update version references to 1.2.28
-"
-```
-
-## Screenshot Definitions
-
-| Screenshot | Page/Command | Selector |
-|------------|--------------|----------|
-| dashboard-overview | localhost:3147 | full page |
-| dashboard-tasks | localhost:3147/tasks | .task-board |
-| dashboard-logs | localhost:3147/logs | .log-stream |
-| dashboard-team | localhost:3147/team | .team-panel |
-| tlc-next-prompt | terminal | command output |
-| build-parallel | terminal | command output |
-
-## Auto-Trigger
-
-This command should run automatically when:
-
-1. **After `/tlc:build` completes** - Check if new features need docs
-2. **Before `/tlc:complete`** - Ensure docs are up to date
-3. **On version bump** - Update version references
-
-## Configuration
-
-In `.tlc.json`:
-
-```json
-{
-  "docs": {
-    "wiki": "docs/wiki",
-    "images": "docs/wiki/images",
-    "autoUpdate": true,
-    "screenshotDevice": "desktop",
-    "checkLinks": true
-  }
-}
-```
-
-## Example Output
+### Step 2: Update Docs (Anytime)
 
 ```
 /tlc:docs
 
-Scanning documentation...
+TLC Documentation Update
+══════════════════════════════════════════════════
 
-Commands:
-  ✓ 32 commands documented
-  + 1 new command: /tlc:next (adding)
-  ~ 2 commands updated: /tlc:build, /tlc:help
+Project: my-app v1.2.0
 
-Screenshots:
-  ✓ 8 screenshots up to date
-  ↻ 4 screenshots regenerating...
-    - dashboard-overview.png ✓
-    - dashboard-tasks.png ✓
-    - dashboard-logs.png ✓
-    - dashboard-team.png ✓
+📄 README
+  ✓ Updated version references
 
-Wiki Pages:
-  ✓ Home.md
-  ✓ getting-started.md
-  ~ command-reference.md (updating)
-  ✓ solo-developer.md
+📚 API Documentation
+  Detecting TypeScript, using TypeDoc...
+  ✓ Generated API docs in docs/api/
 
-Links:
-  ✓ 47 internal links valid
-  ⚠ 1 external link returned 404: https://old-url.com
+📸 Screenshots
+  ✓ homepage.png
+  ✓ dashboard.png
+  ⚠ app.png (app not running)
 
-Committing changes...
-  docs: update documentation for v1.2.28
+══════════════════════════════════════════════════
 
-Done! Documentation updated.
+✓ Documentation updated!
+```
+
+### Step 3: Push (Auto-Sync)
+
+```bash
+git push
+```
+
+GitHub Actions will:
+- Sync docs to GitHub Wiki
+- Update any version references
+- Commit changes back
+
+## Configuration
+
+In `.tlc.json` (optional):
+
+```json
+{
+  "docs": {
+    "dir": "docs",
+    "screenshots": {
+      "urls": [
+        { "url": "http://localhost:3000", "name": "home" },
+        { "url": "http://localhost:3000/login", "name": "login" }
+      ]
+    },
+    "api": {
+      "enabled": true,
+      "output": "docs/api"
+    }
+  }
+}
+```
+
+## CLI Usage
+
+Also available as standalone command:
+
+```bash
+npx tlc-docs              # Full update
+npx tlc-docs setup        # First-time setup
+npx tlc-docs screenshots  # Capture screenshots
+npx tlc-docs api          # Generate API docs
+```
+
+Or add to package.json scripts:
+
+```json
+{
+  "scripts": {
+    "docs": "tlc-docs",
+    "docs:screenshots": "tlc-docs screenshots"
+  }
+}
+```
+
+## Requirements
+
+- **Playwright** (auto-installed for screenshots)
+- **TypeDoc** (auto-used if TypeScript detected)
+- **GitHub repo** (for wiki sync)
+
+## Troubleshooting
+
+### Screenshots not capturing
+
+Make sure your app is running:
+```bash
+npm start
+# In another terminal:
+/tlc:docs screenshots
+```
+
+### Wiki not syncing
+
+1. Enable GitHub Wiki in repo settings
+2. Push to main branch
+3. Check Actions tab for workflow status
+
+### API docs not generating
+
+TypeDoc requires TypeScript. Check:
+```bash
+npm install -D typescript typedoc
 ```

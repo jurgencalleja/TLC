@@ -4,7 +4,8 @@
   "description": "TLC - Test Led Coding for Claude Code",
   "bin": {
     "tlc": "./bin/tlc.js",
-    "tlc-claude-code": "./bin/install.js"
+    "tlc-claude-code": "./bin/install.js",
+    "tlc-docs": "./scripts/project-docs.js"
   },
   "files": [
     "bin/",
@@ -16,6 +17,8 @@
     "server/package.json",
     "server/package-lock.json",
     "server/setup.sh",
+    "scripts/",
+    "templates/",
     "docker-compose.dev.yml",
     "start-dev.ps1",
     "start-dev.sh",
