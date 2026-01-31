@@ -13,34 +13,33 @@ Before using TLC, you need to set up your computer for coding:
 | VS Code | Where you write code | 5 min |
 | GitHub Desktop | Saves and shares your code (visual git) | 5 min |
 | Node.js | Runs JavaScript | 5 min |
+| Docker Desktop | Runs apps in containers | 10 min |
 | Claude Code | AI that helps you code | 5 min |
 | TLC | Makes sure your code works | 2 min |
 
-**Total setup time: ~20 minutes**
+**Windows only:** Also need WSL 2 (10 min)
 
-### Windows Users: Optional Tools for Dev Server
+**Total setup time: ~30-40 minutes**
 
-If you want to use TLC's dev server features (live preview, containerized apps), you'll also need:
+### Docker Desktop (Required)
 
-| Tool | What It Is | Time to Install |
-|------|-----------|-----------------|
-| WSL 2 | Linux environment on Windows | 10 min |
-| Docker Desktop | Runs apps in containers | 10 min |
+TLC uses Docker to run your app in isolated containers. **Docker is required for full TLC functionality** including dev server, live preview, log streaming, and team dashboards.
 
-These are **optional** - basic TLC works fine without them.
+**Windows users:** Install WSL 2 first (Docker Desktop needs it).
 
-**Install WSL 2:**
+**Install WSL 2 (Windows only):**
 1. Open PowerShell as Administrator
 2. Run: `wsl --install`
 3. Restart your computer
 4. Set up a Linux username/password when prompted
 
-**Install Docker Desktop:**
+**Install Docker Desktop (Mac & Windows):**
 1. Go to https://www.docker.com/products/docker-desktop
 2. Download and install
-3. Enable WSL 2 backend in Docker settings
+3. Windows: Enable WSL 2 backend in Docker settings
+4. Start Docker Desktop
 
-**Learn more:** [Docker Desktop WSL 2 Backend](https://docs.docker.com/desktop/wsl/)
+**Learn more:** [Docker Desktop Installation](https://docs.docker.com/desktop/)
 
 ---
 
