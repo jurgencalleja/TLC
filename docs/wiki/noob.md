@@ -18,6 +18,30 @@ Before using TLC, you need to set up your computer for coding:
 
 **Total setup time: ~20 minutes**
 
+### Windows Users: Optional Tools for Dev Server
+
+If you want to use TLC's dev server features (live preview, containerized apps), you'll also need:
+
+| Tool | What It Is | Time to Install |
+|------|-----------|-----------------|
+| WSL 2 | Linux environment on Windows | 10 min |
+| Docker Desktop | Runs apps in containers | 10 min |
+
+These are **optional** - basic TLC works fine without them.
+
+**Install WSL 2:**
+1. Open PowerShell as Administrator
+2. Run: `wsl --install`
+3. Restart your computer
+4. Set up a Linux username/password when prompted
+
+**Install Docker Desktop:**
+1. Go to https://www.docker.com/products/docker-desktop
+2. Download and install
+3. Enable WSL 2 backend in Docker settings
+
+**Learn more:** [Docker Desktop WSL 2 Backend](https://docs.docker.com/desktop/wsl/)
+
 ---
 
 ## Step-by-Step Setup
