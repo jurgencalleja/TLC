@@ -486,23 +486,132 @@ Engineers (worldwide) → git push → GitHub → webhook → Dev Server
 
 ---
 
+---
+
+## Milestone: v1.2 - Dashboard Refresh
+
+Complete redesign of TLC dashboard for both local dev and VPS. Transform from prototype to polished product.
+
+### Phase 14: Design System Foundation [ ]
+
+**Goal:** Establish design tokens, core UI components, and layout system.
+
+**Deliverables:**
+- [ ] Design tokens (colors, spacing, typography, dark/light themes)
+- [ ] Core UI components (Button, Card, Badge, Input, Modal, Toast)
+- [ ] Layout components (Sidebar, Header, MobileNav, Shell)
+- [ ] Responsive grid system
+
+**Success Criteria:**
+- [ ] Theme switching works
+- [ ] Components accessible (keyboard nav, contrast)
+- [ ] Mobile-first responsive layout
+
+---
+
+### Phase 15: Project Views [ ]
+
+**Goal:** Project cards, grid, and detail pages.
+
+**Deliverables:**
+- [ ] ProjectCard with status, tests, coverage
+- [ ] ProjectGrid with search/filter
+- [ ] ProjectDetail with tabs (Overview, Tasks, Tests, Logs, Settings)
+- [ ] Branch selector
+
+**Success Criteria:**
+- [ ] Projects browsable and searchable
+- [ ] Quick actions accessible on hover
+- [ ] Responsive grid (1/2/3 columns)
+
+---
+
+### Phase 16: Task Management [ ]
+
+**Goal:** Kanban board for task tracking.
+
+**Deliverables:**
+- [ ] TaskBoard with drag-and-drop
+- [ ] TaskCard with priority, assignee, test status
+- [ ] TaskDetail modal with activity, comments
+- [ ] Filter by assignee/status
+
+**Success Criteria:**
+- [ ] Drag-and-drop works on desktop and mobile
+- [ ] Task claiming from board
+- [ ] Real-time updates across team
+
+---
+
+### Phase 17: Logs & Preview [ ]
+
+**Goal:** Log streaming and live app preview.
+
+**Deliverables:**
+- [ ] LogStream with virtualization (thousands of entries)
+- [ ] Log filtering and search
+- [ ] PreviewFrame with device toggle
+- [ ] Auto-scroll with pause detection
+
+**Success Criteria:**
+- [ ] Logs render smoothly at 10k+ entries
+- [ ] Preview works in iframe with error handling
+- [ ] Device size toggle (phone/tablet/desktop)
+
+---
+
+### Phase 18: Team Features (VPS) [ ]
+
+**Goal:** Team presence and activity for VPS deployments.
+
+**Deliverables:**
+- [ ] TeamPresence with online/offline status
+- [ ] ActivityFeed with filtering
+- [ ] Real-time WebSocket updates
+- [ ] Environment detection (local vs VPS)
+
+**Success Criteria:**
+- [ ] Team members visible in real-time
+- [ ] Activity updates instantly
+- [ ] Features hidden in local mode
+
+---
+
+### Phase 19: Settings & Polish [ ]
+
+**Goal:** Settings, keyboard shortcuts, final polish.
+
+**Deliverables:**
+- [ ] Settings page with config editor
+- [ ] WebSocket layer with auto-reconnect
+- [ ] Keyboard shortcuts (Cmd+K palette)
+- [ ] Accessibility audit pass
+
+**Success Criteria:**
+- [ ] Loads in <2s on 3G
+- [ ] Keyboard navigable
+- [ ] Screen reader friendly
+- [ ] Works on tablet (iPad)
+
+---
+
 ## Future Milestones (v1.x)
 
-### v1.2 - Enterprise Features
+### v1.4 - Enterprise Features
 - Multi-repo support
 - Audit logs for all agent actions
 - SOC 2 documentation
 - Zero-data-retention mode
 - SSO integration (OAuth, SAML)
 
-### v1.3 - Advanced AI
+### v1.5 - Advanced AI
 - [x] Parallel agent execution (Overdrive module - auto-detects independent tasks)
 - Agent orchestration dashboard
 - Model selection per agent
 - Cost optimization mode
 - Quality optimization mode
 
-### v1.4 - Ecosystem
+### v1.6 - Ecosystem
 - MCP tool publishing
 - Plugin marketplace
 - Custom agent definitions
