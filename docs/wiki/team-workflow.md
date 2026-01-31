@@ -146,6 +146,8 @@ Released: [>@alice] → [ ]
 
 With TLC, standups become optional because everyone can see status:
 
+![Team Status](images/tlc-who.png)
+
 ```
 > /tlc:who
 
@@ -162,6 +164,8 @@ Open bugs: 2
 ```
 
 ### 9:15 AM - Engineer Alice Continues Work
+
+![Progress View](images/tlc-progress.png)
 
 ```
 > /tlc:progress
@@ -202,8 +206,7 @@ Ready for QA verification.
 
 QA opens dashboard, sees tasks ready for verification:
 
-<!-- TODO: Add dashboard screenshot -->
-<!-- ![Dashboard - Tasks Ready](images/dashboard-tasks.png) -->
+![Dashboard - Tasks Ready](images/dashboard-tasks.png)
 
 ```
 ╭─────────────────────────────────────────╮

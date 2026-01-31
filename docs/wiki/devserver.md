@@ -2,8 +2,7 @@
 
 Deploy TLC dev server on Ubuntu for distributed teams.
 
-<!-- TODO: Add dashboard screenshot -->
-<!-- ![TLC Dashboard](images/dashboard-overview.png) -->
+![TLC Dashboard](images/dashboard-overview.png)
 
 ## Prerequisites
 

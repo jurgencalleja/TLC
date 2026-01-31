@@ -30,6 +30,8 @@ In Claude Code:
 /tlc:new-project
 ```
 
+![New Project Wizard](images/new-project-wizard.png)
+
 When prompted:
 - **Project name:** Task API
 - **Description:** Simple REST API for task management
@@ -113,6 +115,8 @@ TLC starts the test-first process. **New:** Independent tasks run in parallel au
 
 ### 4a. Writing Tests (Red Phase)
 
+![Tests Failing - Red Phase](images/test-first-red.png)
+
 TLC creates `test/server.test.js`:
 
 ```javascript
@@ -160,9 +164,8 @@ module.exports = app;
 ```
 
 TLC runs tests again:
-```
-✅ 2 tests passing
-```
+
+![Tests Passing - Green Phase](images/test-first-green.png)
 
 TLC commits:
 ```
@@ -244,6 +247,8 @@ TLC repeats for each task:
 ## Step 5: Auto-Review
 
 After all tasks complete, TLC runs automatic review:
+
+![Auto-Review Results](images/auto-review.png)
 
 ```
 🔍 Auto-Review Results
@@ -331,8 +336,7 @@ Building Phase 1 with 4 parallel agents...
 
 No configuration needed. TLC analyzes task dependencies and parallelizes automatically.
 
-<!-- TODO: Add screenshot of parallel build -->
-<!-- ![Parallel Build](images/build-parallel.png) -->
+![Parallel Build](images/build-parallel.png)
 
 ### What You Didn't Do
 

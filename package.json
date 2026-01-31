@@ -41,5 +41,8 @@
     "testing"
   ],
   "author": "Jurgen Calleja",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "text-to-image": "^8.0.1"
+  }
 }

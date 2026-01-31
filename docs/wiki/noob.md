@@ -183,8 +183,7 @@ This is the easiest command. It:
 
 That's it! Just keep running `/tlc:next` and your project builds itself.
 
-<!-- TODO: Add screenshot of /tlc:next in action -->
-<!-- ![TLC Next Command](images/tlc-next-prompt.png) -->
+![TLC Next Command](images/tlc-next-prompt.png)
 
 ---
 

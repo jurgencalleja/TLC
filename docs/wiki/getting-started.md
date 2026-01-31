@@ -73,8 +73,7 @@ your-project/
 
 Shows the recommended next action, asks "Proceed? [Y/n]", then executes. That's it.
 
-<!-- TODO: Add screenshot -->
-<!-- ![tlc:next command](images/tlc-next-prompt.png) -->
+![tlc:next command](images/tlc-next-prompt.png)
 
 ### The Detailed Way
 
@@ -98,6 +97,8 @@ For each task:
 3. Commit after each task
 
 **Auto-Parallelization:** TLC analyzes task dependencies and automatically runs independent tasks in parallel (up to 10 agents). No configuration needed.
+
+![Parallel Build](images/build-parallel.png)
 
 Use `--sequential` only if you want to force one-at-a-time execution.
 

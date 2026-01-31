@@ -33,8 +33,7 @@ No manual testing. No "does this work?" No vibes.
 
 **New:** Just run `/tlc:next` - it figures out what's next and executes automatically.
 
-<!-- TODO: Add screenshot of dashboard overview -->
-<!-- ![TLC Dashboard](images/dashboard-overview.png) -->
+![TLC Dashboard](images/dashboard-overview.png)
 
 ## Installation
 
