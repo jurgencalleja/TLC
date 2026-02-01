@@ -11,7 +11,7 @@ Systematic codebase refactoring with safety guarantees. Provides hybrid analysis
 
 ## Tasks
 
-### Task 1: AST Code Analyzer [ ]
+### Task 1: AST Code Analyzer [x]
 
 **Goal:** Parse JavaScript/TypeScript files and extract metrics using AST
 
@@ -20,11 +20,11 @@ Systematic codebase refactoring with safety guarantees. Provides hybrid analysis
 - server/lib/ast-analyzer.test.js
 
 **Acceptance Criteria:**
-- [ ] Parse JS/TS files into AST (using TypeScript compiler API)
-- [ ] Calculate cyclomatic complexity per function
-- [ ] Measure function/method length (line count)
-- [ ] Detect deeply nested code (>4 levels)
-- [ ] Return structured metrics object
+- [x] Parse JS/TS files into AST (using TypeScript compiler API)
+- [x] Calculate cyclomatic complexity per function
+- [x] Measure function/method length (line count)
+- [x] Detect deeply nested code (>4 levels)
+- [x] Return structured metrics object
 
 **Test Cases:**
 - Parses simple function, returns complexity 1
@@ -37,7 +37,7 @@ Systematic codebase refactoring with safety guarantees. Provides hybrid analysis
 
 ---
 
-### Task 2: Duplication Detector [ ]
+### Task 2: Duplication Detector [x]
 
 **Goal:** Find copy-pasted and structurally similar code
 
@@ -46,10 +46,10 @@ Systematic codebase refactoring with safety guarantees. Provides hybrid analysis
 - server/lib/duplication-detector.test.js
 
 **Acceptance Criteria:**
-- [ ] Detect exact duplicate code blocks (>5 lines)
-- [ ] Detect similar code patterns (same structure, different names)
-- [ ] Group duplicates by file pairs
-- [ ] Calculate duplication percentage per file
+- [x] Detect exact duplicate code blocks (>5 lines)
+- [x] Detect similar code patterns (same structure, different names)
+- [x] Group duplicates by file pairs
+- [x] Calculate duplication percentage per file
 
 **Test Cases:**
 - Finds exact duplicate blocks across files
@@ -61,7 +61,7 @@ Systematic codebase refactoring with safety guarantees. Provides hybrid analysis
 
 ---
 
-### Task 3: Semantic Analyzer [ ]
+### Task 3: Semantic Analyzer [x]
 
 **Goal:** Use AI to detect naming issues and semantic problems
 
@@ -70,11 +70,11 @@ Systematic codebase refactoring with safety guarantees. Provides hybrid analysis
 - server/lib/semantic-analyzer.test.js
 
 **Acceptance Criteria:**
-- [ ] Detect poor variable/function names
-- [ ] Identify unclear function purposes
-- [ ] Suggest better naming conventions
-- [ ] Use existing model adapters from Phase 20
-- [ ] Support multi-model consensus
+- [x] Detect poor variable/function names
+- [x] Identify unclear function purposes
+- [x] Suggest better naming conventions
+- [x] Use existing model adapters from Phase 20
+- [x] Support multi-model consensus
 
 **Test Cases:**
 - Flags single-letter variable names
@@ -86,7 +86,7 @@ Systematic codebase refactoring with safety guarantees. Provides hybrid analysis
 
 ---
 
-### Task 4: Impact Scorer [ ]
+### Task 4: Impact Scorer [x]
 
 **Goal:** Calculate priority score for refactoring opportunities
 
@@ -95,11 +95,11 @@ Systematic codebase refactoring with safety guarantees. Provides hybrid analysis
 - server/lib/impact-scorer.test.js
 
 **Acceptance Criteria:**
-- [ ] Score based on complexity reduction potential
-- [ ] Factor in blast radius (files affected)
-- [ ] Factor in change frequency (git history)
-- [ ] Factor in risk (test coverage)
-- [ ] Return 0-100 impact score
+- [x] Score based on complexity reduction potential
+- [x] Factor in blast radius (files affected)
+- [x] Factor in change frequency (git history)
+- [x] Factor in risk (test coverage)
+- [x] Return 0-100 impact score
 
 **Test Cases:**
 - High complexity reduction = high score
@@ -111,7 +111,7 @@ Systematic codebase refactoring with safety guarantees. Provides hybrid analysis
 
 ---
 
-### Task 5: Checkpoint Manager [ ]
+### Task 5: Checkpoint Manager [x]
 
 **Goal:** Create and manage git-based checkpoints for safe refactoring
 
@@ -120,11 +120,11 @@ Systematic codebase refactoring with safety guarantees. Provides hybrid analysis
 - server/lib/checkpoint-manager.test.js
 
 **Acceptance Criteria:**
-- [ ] Stash uncommitted changes before refactoring
-- [ ] Create feature branch for refactoring
-- [ ] Provide rollback (delete branch, restore stash)
-- [ ] Track checkpoint state
-- [ ] Handle edge cases (dirty state, conflicts)
+- [x] Stash uncommitted changes before refactoring
+- [x] Create feature branch for refactoring
+- [x] Provide rollback (delete branch, restore stash)
+- [x] Track checkpoint state
+- [x] Handle edge cases (dirty state, conflicts)
 
 **Test Cases:**
 - Creates stash with uncommitted changes
@@ -136,7 +136,7 @@ Systematic codebase refactoring with safety guarantees. Provides hybrid analysis
 
 ---
 
-### Task 6: Refactor Executor [ ]
+### Task 6: Refactor Executor [x]
 
 **Goal:** Apply refactoring changes with interactive confirmation
 
@@ -145,11 +145,11 @@ Systematic codebase refactoring with safety guarantees. Provides hybrid analysis
 - server/lib/refactor-executor.test.js
 
 **Acceptance Criteria:**
-- [ ] Apply single refactoring (extract, rename, split)
-- [ ] Interactive mode: show change, ask Y/n/skip
-- [ ] Run tests after each change
-- [ ] Auto-rollback on test failure (3 attempts first)
-- [ ] Track applied changes
+- [x] Apply single refactoring (extract, rename, split)
+- [x] Interactive mode: show change, ask Y/n/skip
+- [x] Run tests after each change
+- [x] Auto-rollback on test failure (3 attempts first)
+- [x] Track applied changes
 
 **Test Cases:**
 - Applies extract function refactoring
@@ -162,7 +162,7 @@ Systematic codebase refactoring with safety guarantees. Provides hybrid analysis
 
 ---
 
-### Task 7: Report Generator [ ]
+### Task 7: Report Generator [x]
 
 **Goal:** Generate multi-audience refactoring reports
 
@@ -171,11 +171,11 @@ Systematic codebase refactoring with safety guarantees. Provides hybrid analysis
 - server/lib/refactor-reporter.test.js
 
 **Acceptance Criteria:**
-- [ ] Plain English summary for non-developers
-- [ ] Technical diff for developers (collapsible)
-- [ ] Mermaid diagrams for architecture changes
-- [ ] Markdown, JSON, HTML output formats
-- [ ] Before/after comparisons
+- [x] Plain English summary for non-developers
+- [x] Technical diff for developers (collapsible)
+- [x] Mermaid diagrams for architecture changes
+- [x] Markdown, JSON, HTML output formats
+- [x] Before/after comparisons
 
 **Test Cases:**
 - Generates plain English: "Extracted X from Y"
@@ -188,7 +188,7 @@ Systematic codebase refactoring with safety guarantees. Provides hybrid analysis
 
 ---
 
-### Task 8: Candidates Tracker [ ]
+### Task 8: Candidates Tracker [x]
 
 **Goal:** Maintain REFACTOR-CANDIDATES.md automatically
 
@@ -197,11 +197,11 @@ Systematic codebase refactoring with safety guarantees. Provides hybrid analysis
 - server/lib/candidates-tracker.test.js
 
 **Acceptance Criteria:**
-- [ ] Create/update `.planning/REFACTOR-CANDIDATES.md`
-- [ ] Add candidates from analysis
-- [ ] Organize by priority (High/Medium/Low based on impact score)
-- [ ] Merge with existing candidates (no duplicates)
-- [ ] Mark completed candidates as done
+- [x] Create/update `.planning/REFACTOR-CANDIDATES.md`
+- [x] Add candidates from analysis
+- [x] Organize by priority (High/Medium/Low based on impact score)
+- [x] Merge with existing candidates (no duplicates)
+- [x] Mark completed candidates as done
 
 **Test Cases:**
 - Creates file if not exists
@@ -213,7 +213,7 @@ Systematic codebase refactoring with safety guarantees. Provides hybrid analysis
 
 ---
 
-### Task 9: Progress Tracker [ ]
+### Task 9: Progress Tracker [x]
 
 **Goal:** Show progress for large codebase analysis with ETA
 
@@ -222,11 +222,11 @@ Systematic codebase refactoring with safety guarantees. Provides hybrid analysis
 - server/lib/refactor-progress.test.js
 
 **Acceptance Criteria:**
-- [ ] Track files analyzed / total files
-- [ ] Calculate and update ETA based on actual speed
-- [ ] Emit progress events for UI
-- [ ] Support cancellation
-- [ ] Cache results for unchanged files
+- [x] Track files analyzed / total files
+- [x] Calculate and update ETA based on actual speed
+- [x] Emit progress events for UI
+- [x] Support cancellation
+- [x] Cache results for unchanged files
 
 **Test Cases:**
 - Shows "Analyzing 50/1000 files"
@@ -238,7 +238,7 @@ Systematic codebase refactoring with safety guarantees. Provides hybrid analysis
 
 ---
 
-### Task 10: Refactor Command [ ]
+### Task 10: Refactor Command [x]
 
 **Goal:** Main `/tlc:refactor` command orchestrating all modules
 
@@ -248,14 +248,14 @@ Systematic codebase refactoring with safety guarantees. Provides hybrid analysis
 - .claude/commands/tlc/refactor.md
 
 **Acceptance Criteria:**
-- [ ] `--analyze` runs full codebase analysis
-- [ ] `--analyze --models` uses multi-model consensus
-- [ ] `--plan` generates refactoring plan from candidates
-- [ ] `--execute` applies refactorings interactively
-- [ ] Path targeting: `/tlc:refactor src/api/`
-- [ ] Severity filter: `--severity high`
-- [ ] Issue filter: `--issue "duplication"`
-- [ ] Budget tracking and warnings
+- [x] `--analyze` runs full codebase analysis
+- [x] `--analyze --models` uses multi-model consensus
+- [x] `--plan` generates refactoring plan from candidates
+- [x] `--execute` applies refactorings interactively
+- [x] Path targeting: `/tlc:refactor src/api/`
+- [x] Severity filter: `--severity high`
+- [x] Issue filter: `--issue "duplication"`
+- [x] Budget tracking and warnings
 
 **Test Cases:**
 - --analyze scans all files, updates CANDIDATES.md
@@ -269,7 +269,7 @@ Systematic codebase refactoring with safety guarantees. Provides hybrid analysis
 
 ---
 
-### Task 11: Background Observer Hook [ ]
+### Task 11: Background Observer Hook [x]
 
 **Goal:** Auto-detect refactoring opportunities during normal TLC work
 
@@ -278,11 +278,11 @@ Systematic codebase refactoring with safety guarantees. Provides hybrid analysis
 - server/lib/refactor-observer.test.js
 
 **Acceptance Criteria:**
-- [ ] Hook into `/tlc:build` to observe new code
-- [ ] Hook into `/tlc:review` to capture suggestions
-- [ ] Silently add to REFACTOR-CANDIDATES.md
-- [ ] Non-blocking (don't slow down primary operation)
-- [ ] Configurable (can disable in .tlc.json)
+- [x] Hook into `/tlc:build` to observe new code
+- [x] Hook into `/tlc:review` to capture suggestions
+- [x] Silently add to REFACTOR-CANDIDATES.md
+- [x] Non-blocking (don't slow down primary operation)
+- [x] Configurable (can disable in .tlc.json)
 
 **Test Cases:**
 - Detects high-complexity function during build

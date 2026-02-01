@@ -8,7 +8,7 @@ class DuplicationDetector {
     this.options = {
       minLines: options.minLines || 5,
       minTokens: options.minTokens || 50,
-      similarityThreshold: options.similarityThreshold || 0.8,
+      similarityThreshold: options.similarityThreshold || 0.6,
       ignoreImports: options.ignoreImports !== false,
     };
   }
@@ -116,8 +116,16 @@ class DuplicationDetector {
       .replace(/`[^`]*`/g, '`STR`')
       // Normalize numbers
       .replace(/\b\d+\.?\d*\b/g, 'NUM')
+      // Normalize function names and parameters
+      .replace(/function\s+\w+\s*\(/g, 'function FUNC(')
+      .replace(/\((\w+)\)/g, '(PARAM)')
+      .replace(/\((\w+),/g, '(PARAM,')
+      .replace(/,\s*(\w+)\)/g, ', PARAM)')
+      .replace(/,\s*(\w+),/g, ', PARAM,')
       // Normalize variable names (basic)
       .replace(/\b(const|let|var)\s+(\w+)/g, '$1 VAR')
+      // Normalize property access (x.prop → IDENT.prop)
+      .replace(/\b(\w+)\./g, 'IDENT.')
       // Normalize whitespace
       .replace(/\s+/g, ' ')
       .trim();
@@ -260,23 +268,25 @@ class DuplicationDetector {
             pairMap.set(key, {
               file1: loc1.path < loc2.path ? loc1.path : loc2.path,
               file2: loc1.path < loc2.path ? loc2.path : loc1.path,
+              lines1: { start: loc1.startLine, end: loc1.endLine },
+              lines2: { start: loc2.startLine, end: loc2.endLine },
               duplicates: [],
+              totalDuplicatedLines: 0,
             });
           }
 
-          pairMap.get(key).duplicates.push({
+          const pair = pairMap.get(key);
+          pair.duplicates.push({
             lines1: { start: loc1.startLine, end: loc1.endLine },
             lines2: { start: loc2.startLine, end: loc2.endLine },
             lineCount: dup.lineCount,
           });
+          pair.totalDuplicatedLines += dup.lineCount;
         }
       }
     }
 
-    return Array.from(pairMap.values()).map((pair) => ({
-      ...pair,
-      totalDuplicatedLines: pair.duplicates.reduce((sum, d) => sum + d.lineCount, 0),
-    }));
+    return Array.from(pairMap.values());
   }
 
   /**
@@ -287,24 +297,28 @@ class DuplicationDetector {
 
     for (const file of processed) {
       const totalLines = file.lines.length;
-      let duplicatedLines = 0;
+
+      // Track which lines are duplicated (using Set to avoid counting overlaps)
+      const duplicatedLineNumbers = new Set();
 
       for (const dup of duplicates) {
         for (const loc of dup.locations) {
           if (loc.path === file.path) {
-            duplicatedLines += loc.endLine - loc.startLine + 1;
+            for (let line = loc.startLine; line <= loc.endLine; line++) {
+              duplicatedLineNumbers.add(line);
+            }
           }
         }
       }
 
-      // Avoid counting overlapping duplicates multiple times
+      const duplicatedLines = duplicatedLineNumbers.size;
       const percentage = totalLines > 0
-        ? Math.min(100, Math.round((duplicatedLines / totalLines) * 100))
+        ? Math.round((duplicatedLines / totalLines) * 100)
         : 0;
 
       stats[file.path] = {
         totalLines,
-        duplicatedLines: Math.min(duplicatedLines, totalLines),
+        duplicatedLines,
         duplicationPercentage: percentage,
       };
     }

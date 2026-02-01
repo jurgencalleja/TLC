@@ -1,300 +1,422 @@
-import { describe, it, beforeEach, afterEach, expect, vi } from 'vitest';
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
-import { RefactorObserver } from './refactor-observer.js';
+/**
+ * Refactor Observer Tests
+ */
+
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 describe('RefactorObserver', () => {
-  let testDir;
-  let observer;
+  describe('background detection', () => {
+    it('detects refactoring opportunities during build', async () => {
+      const { RefactorObserver } = await import('./refactor-observer.js');
 
-  beforeEach(() => {
-    testDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tlc-refactor-observer-test-'));
-    // Create .tlc directory
-    fs.mkdirSync(path.join(testDir, '.tlc'), { recursive: true });
-    observer = new RefactorObserver(testDir);
-  });
+      const addMock = vi.fn();
+      const observer = new RefactorObserver({
+        astAnalyzer: {
+          analyze: () => ({
+            functions: [
+              { name: 'complexFn', complexity: 15, lines: 20, line: 10, maxNesting: 3 },
+            ],
+          }),
+        },
+        impactScorer: { score: () => ({ total: 75 }) },
+        candidatesTracker: { add: addMock },
+        debounceMs: 0,
+      });
 
-  afterEach(() => {
-    fs.rmSync(testDir, { recursive: true, force: true });
-    vi.restoreAllMocks();
-  });
-
-  describe('observeBuild', () => {
-    it('detects high-complexity function during build', async () => {
-      // Create a complex function with many branches
-      const complexCode = `
-function processOrder(order) {
-  if (!order) return null;
-  if (!order.items) return null;
-  if (order.items.length === 0) return null;
-
-  let total = 0;
-  for (const item of order.items) {
-    if (item.discount) {
-      if (item.discount > 50) {
-        total += item.price * 0.5;
-      } else if (item.discount > 25) {
-        total += item.price * 0.75;
-      } else {
-        total += item.price * (1 - item.discount / 100);
-      }
-    } else {
-      total += item.price;
-    }
-
-    if (item.tax) {
-      if (item.taxRate > 0.1) {
-        total += total * 0.1;
-      } else {
-        total += total * item.taxRate;
-      }
-    }
-  }
-
-  if (order.coupon) {
-    if (order.coupon.type === 'percent') {
-      total = total * (1 - order.coupon.value / 100);
-    } else if (order.coupon.type === 'fixed') {
-      total = total - order.coupon.value;
-    }
-  }
-
-  return total > 0 ? total : 0;
-}
-`;
-      const filePath = path.join(testDir, 'order.js');
-      fs.writeFileSync(filePath, complexCode);
-
-      await observer.observeBuild(filePath, complexCode);
-
-      // Give time for async processing
-      await new Promise(r => setTimeout(r, 100));
-
-      // Check candidates file was created
-      const candidatesPath = path.join(testDir, '.tlc', 'REFACTOR-CANDIDATES.md');
-      expect(fs.existsSync(candidatesPath)).toBe(true);
-
-      const content = fs.readFileSync(candidatesPath, 'utf8');
-      expect(content).toContain('processOrder');
-      expect(content).toContain('complexity');
-    });
-
-    it('adds to candidates without user prompt', async () => {
-      const code = `
-function deeplyNested(a, b, c) {
-  if (a) {
-    if (b) {
-      if (c) {
-        if (a > b) {
-          if (b > c) {
-            return a;
-          }
-        }
-      }
-    }
-  }
-  return null;
-}
-`;
-      const filePath = path.join(testDir, 'nested.js');
-      fs.writeFileSync(filePath, code);
-
-      // No user interaction should happen
-      const promptSpy = vi.fn();
-      global.prompt = promptSpy;
-
-      await observer.observeBuild(filePath, code);
-      await new Promise(r => setTimeout(r, 100));
-
-      expect(promptSpy).not.toHaveBeenCalled();
-
-      // But candidate should be added
-      const candidatesPath = path.join(testDir, '.tlc', 'REFACTOR-CANDIDATES.md');
-      expect(fs.existsSync(candidatesPath)).toBe(true);
-    });
-
-    it('runs in background (does not block main operation)', async () => {
-      const code = `function simple() { return 1; }`;
-      const filePath = path.join(testDir, 'simple.js');
-      fs.writeFileSync(filePath, code);
-
-      const start = Date.now();
-      await observer.observeBuild(filePath, code);
-      const elapsed = Date.now() - start;
-
-      // Should return quickly (fire-and-forget async)
-      expect(elapsed).toBeLessThan(100);
-    });
-
-    it('respects refactor.autoDetect: false config', async () => {
-      // Create config with autoDetect disabled
-      const config = { refactor: { autoDetect: false } };
-      fs.writeFileSync(
-        path.join(testDir, '.tlc.json'),
-        JSON.stringify(config)
+      const opportunities = await observer.observeImmediate(
+        'test.js',
+        'function complexFn() { /* complex code */ }',
+        { operation: 'build' }
       );
 
-      const disabledObserver = new RefactorObserver(testDir);
+      expect(opportunities.length).toBeGreaterThan(0);
+      expect(opportunities[0].context).toBe('build');
+      expect(addMock).toHaveBeenCalled();
+    });
 
-      const code = `
-function complex(a,b,c,d,e) {
-  if(a){if(b){if(c){if(d){if(e){return 1;}}}}}
-  return 0;
-}
-`;
-      const filePath = path.join(testDir, 'complex.js');
-      fs.writeFileSync(filePath, code);
+    it('adds to REFACTOR-CANDIDATES.md automatically', async () => {
+      const { RefactorObserver } = await import('./refactor-observer.js');
 
-      await disabledObserver.observeBuild(filePath, code);
-      await new Promise(r => setTimeout(r, 100));
+      const addMock = vi.fn();
+      const observer = new RefactorObserver({
+        astAnalyzer: {
+          analyze: () => ({
+            functions: [
+              { name: 'longFn', complexity: 5, lines: 100, line: 1, maxNesting: 2 },
+            ],
+          }),
+        },
+        impactScorer: { score: () => ({ total: 60 }) },
+        candidatesTracker: { add: addMock },
+        debounceMs: 0,
+      });
 
-      // No candidates file should be created
-      const candidatesPath = path.join(testDir, '.tlc', 'REFACTOR-CANDIDATES.md');
-      expect(fs.existsSync(candidatesPath)).toBe(false);
+      await observer.observeImmediate('utils.js', 'code');
+
+      expect(addMock).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            file: 'utils.js',
+            startLine: 1,
+            impact: 60,
+          }),
+        ])
+      );
     });
   });
 
-  describe('observeReview', () => {
-    it('captures refactoring suggestions from review', async () => {
-      const reviewResult = {
-        file: 'src/utils.js',
-        suggestions: [
-          'Consider extracting this logic into a helper function',
-          'This function is too long, split into smaller units',
-        ],
-        issues: [
-          { message: 'Function too complex', severity: 'warning' },
-        ],
-      };
+  describe('thresholds', () => {
+    it('uses configurable thresholds', async () => {
+      const { RefactorObserver } = await import('./refactor-observer.js');
 
-      await observer.observeReview(reviewResult);
-      await new Promise(r => setTimeout(r, 100));
+      const observer = new RefactorObserver({
+        astAnalyzer: {
+          analyze: () => ({
+            functions: [
+              { name: 'fn', complexity: 8, lines: 40, line: 1, maxNesting: 3 },
+            ],
+          }),
+        },
+        impactScorer: { score: () => ({ total: 50 }) },
+        candidatesTracker: { add: vi.fn() },
+        complexityThreshold: 10, // 8 is below this
+        lengthThreshold: 50, // 40 is below this
+        debounceMs: 0,
+      });
 
-      const candidatesPath = path.join(testDir, '.tlc', 'REFACTOR-CANDIDATES.md');
-      expect(fs.existsSync(candidatesPath)).toBe(true);
+      const opportunities = await observer.observeImmediate('test.js', 'code');
 
-      const content = fs.readFileSync(candidatesPath, 'utf8');
-      expect(content).toContain('src/utils.js');
-      expect(content).toContain('extracting');
+      // No opportunities because values are below thresholds
+      expect(opportunities).toHaveLength(0);
     });
 
-    it('handles review with no suggestions', async () => {
-      const reviewResult = {
-        file: 'src/clean.js',
-        suggestions: [],
-        issues: [],
-      };
+    it('detects when above thresholds', async () => {
+      const { RefactorObserver } = await import('./refactor-observer.js');
 
-      await observer.observeReview(reviewResult);
-      await new Promise(r => setTimeout(r, 100));
+      const observer = new RefactorObserver({
+        astAnalyzer: {
+          analyze: () => ({
+            functions: [
+              { name: 'fn', complexity: 12, lines: 60, line: 1, maxNesting: 5 },
+            ],
+          }),
+        },
+        impactScorer: { score: () => ({ total: 70 }) },
+        candidatesTracker: { add: vi.fn() },
+        complexityThreshold: 10,
+        lengthThreshold: 50,
+        nestingThreshold: 4,
+        debounceMs: 0,
+      });
 
-      // Should not create file for empty suggestions
-      const candidatesPath = path.join(testDir, '.tlc', 'REFACTOR-CANDIDATES.md');
-      // If file exists, should not have entry for this file
-      if (fs.existsSync(candidatesPath)) {
-        const content = fs.readFileSync(candidatesPath, 'utf8');
-        expect(content).not.toContain('src/clean.js');
-      }
+      const opportunities = await observer.observeImmediate('test.js', 'code');
+
+      expect(opportunities).toHaveLength(1);
+      expect(opportunities[0].issues).toHaveLength(3); // complexity, length, nesting
+    });
+  });
+
+  describe('impact filtering', () => {
+    it('filters by minimum impact score', async () => {
+      const { RefactorObserver } = await import('./refactor-observer.js');
+
+      const observer = new RefactorObserver({
+        astAnalyzer: {
+          analyze: () => ({
+            functions: [
+              { name: 'fn', complexity: 12, lines: 20, line: 1, maxNesting: 2 },
+            ],
+          }),
+        },
+        impactScorer: { score: () => ({ total: 40 }) }, // Below minImpact
+        candidatesTracker: { add: vi.fn() },
+        minImpact: 50,
+        debounceMs: 0,
+      });
+
+      const opportunities = await observer.observeImmediate('test.js', 'code');
+
+      expect(opportunities).toHaveLength(0);
+    });
+  });
+
+  describe('enable/disable', () => {
+    it('can be disabled', async () => {
+      const { RefactorObserver } = await import('./refactor-observer.js');
+
+      const analyzeMock = vi.fn().mockReturnValue({ functions: [] });
+      const observer = new RefactorObserver({
+        astAnalyzer: { analyze: analyzeMock },
+        impactScorer: { score: () => ({ total: 80 }) },
+        candidatesTracker: { add: vi.fn() },
+        enabled: false,
+        debounceMs: 0,
+      });
+
+      await observer.observeImmediate('test.js', 'code');
+
+      expect(analyzeMock).not.toHaveBeenCalled();
+    });
+
+    it('can toggle enabled state', async () => {
+      const { RefactorObserver } = await import('./refactor-observer.js');
+
+      const observer = new RefactorObserver({
+        astAnalyzer: { analyze: () => ({ functions: [] }) },
+        impactScorer: { score: () => ({ total: 80 }) },
+        candidatesTracker: { add: vi.fn() },
+        debounceMs: 0,
+      });
+
+      expect(observer.isEnabled()).toBe(true);
+
+      observer.disable();
+      expect(observer.isEnabled()).toBe(false);
+
+      observer.enable();
+      expect(observer.isEnabled()).toBe(true);
+    });
+  });
+
+  describe('hooks', () => {
+    it('creates build hook', async () => {
+      const { RefactorObserver } = await import('./refactor-observer.js');
+
+      const observer = new RefactorObserver({
+        astAnalyzer: { analyze: () => ({ functions: [] }) },
+        impactScorer: { score: () => ({ total: 80 }) },
+        candidatesTracker: { add: vi.fn() },
+        debounceMs: 0,
+      });
+
+      const hook = observer.createBuildHook();
+
+      expect(hook.name).toBe('refactor-observer');
+      expect(typeof hook.afterFileWrite).toBe('function');
+    });
+
+    it('creates verify hook', async () => {
+      const { RefactorObserver } = await import('./refactor-observer.js');
+
+      const observer = new RefactorObserver({
+        astAnalyzer: { analyze: () => ({ functions: [] }) },
+        impactScorer: { score: () => ({ total: 80 }) },
+        candidatesTracker: { add: vi.fn() },
+        debounceMs: 0,
+      });
+
+      const hook = observer.createVerifyHook();
+
+      expect(hook.name).toBe('refactor-observer');
+      expect(typeof hook.afterVerify).toBe('function');
+    });
+  });
+
+  describe('batch observation', () => {
+    it('observes multiple files', async () => {
+      const { RefactorObserver } = await import('./refactor-observer.js');
+
+      let analyzeCount = 0;
+      const observer = new RefactorObserver({
+        astAnalyzer: {
+          analyze: () => {
+            analyzeCount++;
+            return {
+              functions: [
+                { name: 'fn', complexity: 12, lines: 20, line: 1, maxNesting: 2 },
+              ],
+            };
+          },
+        },
+        impactScorer: { score: () => ({ total: 70 }) },
+        candidatesTracker: { add: vi.fn() },
+        debounceMs: 0,
+      });
+
+      const files = [
+        { path: 'a.js', content: 'a' },
+        { path: 'b.js', content: 'b' },
+        { path: 'c.js', content: 'c' },
+      ];
+
+      const opportunities = await observer.observeBatch(files);
+
+      expect(analyzeCount).toBe(3);
+      expect(opportunities).toHaveLength(3);
+    });
+  });
+
+  describe('callbacks', () => {
+    it('calls onCandidateFound for each opportunity', async () => {
+      const { RefactorObserver } = await import('./refactor-observer.js');
+
+      const candidates = [];
+      const observer = new RefactorObserver({
+        astAnalyzer: {
+          analyze: () => ({
+            functions: [
+              { name: 'fn1', complexity: 12, lines: 20, line: 1, maxNesting: 2 },
+              { name: 'fn2', complexity: 15, lines: 30, line: 50, maxNesting: 3 },
+            ],
+          }),
+        },
+        impactScorer: { score: () => ({ total: 70 }) },
+        candidatesTracker: { add: vi.fn() },
+        onCandidateFound: (c) => candidates.push(c),
+        debounceMs: 0,
+      });
+
+      await observer.observeImmediate('test.js', 'code');
+
+      expect(candidates).toHaveLength(2);
+    });
+  });
+
+  describe('debouncing', () => {
+    it('debounces rapid calls for same file', async () => {
+      const { RefactorObserver } = await import('./refactor-observer.js');
+
+      let analyzeCount = 0;
+      const observer = new RefactorObserver({
+        astAnalyzer: {
+          analyze: () => {
+            analyzeCount++;
+            return { functions: [] };
+          },
+        },
+        impactScorer: { score: () => ({ total: 80 }) },
+        candidatesTracker: { add: vi.fn() },
+        debounceMs: 50,
+      });
+
+      // Rapid calls
+      observer.observe('test.js', 'code1');
+      observer.observe('test.js', 'code2');
+      observer.observe('test.js', 'code3');
+
+      // Wait for debounce
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Should only analyze once
+      expect(analyzeCount).toBe(1);
+    });
+
+    it('tracks pending count', async () => {
+      const { RefactorObserver } = await import('./refactor-observer.js');
+
+      const observer = new RefactorObserver({
+        astAnalyzer: { analyze: () => ({ functions: [] }) },
+        impactScorer: { score: () => ({ total: 80 }) },
+        candidatesTracker: { add: vi.fn() },
+        debounceMs: 100,
+      });
+
+      observer.observe('a.js', 'code');
+      observer.observe('b.js', 'code');
+
+      expect(observer.getPendingCount()).toBe(2);
+
+      observer.cancelPending();
+
+      expect(observer.getPendingCount()).toBe(0);
+    });
+  });
+
+  describe('configuration', () => {
+    it('can update configuration', async () => {
+      const { RefactorObserver } = await import('./refactor-observer.js');
+
+      const observer = new RefactorObserver({
+        astAnalyzer: { analyze: () => ({ functions: [] }) },
+        impactScorer: { score: () => ({ total: 80 }) },
+        candidatesTracker: { add: vi.fn() },
+      });
+
+      observer.configure({
+        complexityThreshold: 15,
+        lengthThreshold: 100,
+        minImpact: 70,
+      });
+
+      const config = observer.getConfig();
+
+      expect(config.complexityThreshold).toBe(15);
+      expect(config.lengthThreshold).toBe(100);
+      expect(config.minImpact).toBe(70);
+    });
+
+    it('returns current configuration', async () => {
+      const { RefactorObserver } = await import('./refactor-observer.js');
+
+      const observer = new RefactorObserver({
+        astAnalyzer: { analyze: () => ({ functions: [] }) },
+        impactScorer: { score: () => ({ total: 80 }) },
+        candidatesTracker: { add: vi.fn() },
+        complexityThreshold: 12,
+        lengthThreshold: 60,
+        nestingThreshold: 5,
+        minImpact: 55,
+        debounceMs: 200,
+      });
+
+      const config = observer.getConfig();
+
+      expect(config).toEqual({
+        enabled: true,
+        complexityThreshold: 12,
+        lengthThreshold: 60,
+        nestingThreshold: 5,
+        minImpact: 55,
+        debounceMs: 200,
+      });
     });
   });
 
   describe('error handling', () => {
-    it('handles file write errors gracefully', async () => {
-      // Make .tlc directory read-only (this won't work on Windows, so we mock)
-      const mockWriteFile = vi.spyOn(fs, 'writeFileSync').mockImplementation(() => {
-        throw new Error('EACCES: permission denied');
-      });
-      const mockAppendFile = vi.spyOn(fs, 'appendFileSync').mockImplementation(() => {
-        throw new Error('EACCES: permission denied');
-      });
+    it('silently handles parse errors in background', async () => {
+      const { RefactorObserver } = await import('./refactor-observer.js');
 
-      const code = `
-function complex(a,b,c) {
-  if(a){if(b){if(c){return 1;}}}
-  return 0;
-}
-`;
-      const filePath = path.join(testDir, 'test.js');
+      const observer = new RefactorObserver({
+        astAnalyzer: {
+          analyze: () => {
+            throw new Error('Parse error');
+          },
+        },
+        impactScorer: { score: () => ({ total: 80 }) },
+        candidatesTracker: { add: vi.fn() },
+        debounceMs: 0,
+      });
 
       // Should not throw
-      await expect(observer.observeBuild(filePath, code)).resolves.not.toThrow();
+      const opportunities = await observer.observeImmediate('test.js', 'invalid code');
 
-      mockWriteFile.mockRestore();
-      mockAppendFile.mockRestore();
-    });
-
-    it('handles parse errors gracefully', async () => {
-      const invalidCode = `function broken( { syntax error`;
-      const filePath = path.join(testDir, 'broken.js');
-
-      // Should not throw
-      await expect(observer.observeBuild(filePath, invalidCode)).resolves.not.toThrow();
-    });
-
-    it('handles missing .tlc directory', async () => {
-      // Remove .tlc directory
-      fs.rmSync(path.join(testDir, '.tlc'), { recursive: true, force: true });
-
-      const code = `function test() { return 1; }`;
-      const filePath = path.join(testDir, 'test.js');
-
-      // Should not throw, and should create directory
-      await expect(observer.observeBuild(filePath, code)).resolves.not.toThrow();
+      expect(opportunities).toHaveLength(0);
     });
   });
 
-  describe('getCandidates', () => {
-    it('returns empty array when no candidates file exists', () => {
-      const candidates = observer.getCandidates();
-      expect(candidates).toEqual([]);
-    });
+  describe('description generation', () => {
+    it('generates human-readable descriptions', async () => {
+      const { RefactorObserver } = await import('./refactor-observer.js');
 
-    it('returns parsed candidates from file', async () => {
-      const code = `
-function veryComplex(a,b,c,d,e,f) {
-  if(a){if(b){if(c){if(d){if(e){if(f){return 1;}}}}}}
-  return 0;
-}
-`;
-      const filePath = path.join(testDir, 'complex.js');
-      fs.writeFileSync(filePath, code);
+      const observer = new RefactorObserver({
+        astAnalyzer: {
+          analyze: () => ({
+            functions: [
+              { name: 'processData', complexity: 15, lines: 80, line: 1, maxNesting: 5 },
+            ],
+          }),
+        },
+        impactScorer: { score: () => ({ total: 85 }) },
+        candidatesTracker: { add: vi.fn() },
+        debounceMs: 0,
+      });
 
-      await observer.observeBuild(filePath, code);
-      await new Promise(r => setTimeout(r, 100));
+      const opportunities = await observer.observeImmediate('data.js', 'code');
 
-      const candidates = observer.getCandidates();
-      expect(candidates.length).toBeGreaterThan(0);
-      expect(candidates[0]).toHaveProperty('file');
-      expect(candidates[0]).toHaveProperty('reason');
-    });
-  });
-
-  describe('isEnabled', () => {
-    it('returns true by default', () => {
-      expect(observer.isEnabled()).toBe(true);
-    });
-
-    it('returns false when config disables it', () => {
-      const config = { refactor: { autoDetect: false } };
-      fs.writeFileSync(
-        path.join(testDir, '.tlc.json'),
-        JSON.stringify(config)
-      );
-
-      const disabledObserver = new RefactorObserver(testDir);
-      expect(disabledObserver.isEnabled()).toBe(false);
-    });
-
-    it('returns true when config explicitly enables it', () => {
-      const config = { refactor: { autoDetect: true } };
-      fs.writeFileSync(
-        path.join(testDir, '.tlc.json'),
-        JSON.stringify(config)
-      );
-
-      const enabledObserver = new RefactorObserver(testDir);
-      expect(enabledObserver.isEnabled()).toBe(true);
+      expect(opportunities[0].description).toContain('processData');
+      expect(opportunities[0].description).toContain('complexity');
+      expect(opportunities[0].description).toContain('long function');
+      expect(opportunities[0].description).toContain('nesting');
     });
   });
 });

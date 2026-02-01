@@ -1,357 +1,291 @@
 /**
- * Refactor Observer - Background detection of refactoring opportunities
- * Hooks into /tlc:build and /tlc:review to silently capture candidates
+ * Refactor Observer
+ * Background hook that watches for refactoring opportunities during normal TLC operations
  */
 
-const fs = require('fs');
-const path = require('path');
 const { AstAnalyzer } = require('./ast-analyzer.js');
+const { ImpactScorer } = require('./impact-scorer.js');
+const { CandidatesTracker } = require('./candidates-tracker.js');
 
-const CANDIDATES_FILE = 'REFACTOR-CANDIDATES.md';
-const TLC_DIR = '.tlc';
-
-/**
- * Observer that auto-detects refactoring opportunities during normal TLC work
- */
 class RefactorObserver {
-  constructor(projectRoot, options = {}) {
-    this.projectRoot = projectRoot;
-    this.options = {
-      complexityThreshold: options.complexityThreshold || 10,
-      nestingThreshold: options.nestingThreshold || 4,
-      longFunctionThreshold: options.longFunctionThreshold || 50,
-      ...options,
-    };
-    this.analyzer = new AstAnalyzer({
-      highComplexityThreshold: this.options.complexityThreshold,
-      deepNestingThreshold: this.options.nestingThreshold,
-      longFunctionThreshold: this.options.longFunctionThreshold,
-    });
-    this._enabled = this._loadEnabledState();
+  constructor(options = {}) {
+    this.options = options;
+    this.astAnalyzer = options.astAnalyzer || new AstAnalyzer();
+    this.impactScorer = options.impactScorer || new ImpactScorer();
+    this.candidatesTracker = options.candidatesTracker || new CandidatesTracker(options.trackerOptions);
+
+    // Configuration
+    this.enabled = options.enabled !== false;
+    this.complexityThreshold = options.complexityThreshold || 10;
+    this.lengthThreshold = options.lengthThreshold || 50;
+    this.nestingThreshold = options.nestingThreshold || 4;
+    this.minImpact = options.minImpact || 50;
+
+    // Debounce for file watching
+    this.pendingFiles = new Map();
+    this.debounceMs = options.debounceMs || 500;
+
+    // Callbacks
+    this.onCandidateFound = options.onCandidateFound || (() => {});
   }
 
   /**
-   * Load enabled state from config
-   * @returns {boolean} Whether auto-detect is enabled
+   * Enable the observer
    */
-  _loadEnabledState() {
-    try {
-      const configPath = path.join(this.projectRoot, '.tlc.json');
-      if (!fs.existsSync(configPath)) {
-        return true; // Default enabled
-      }
-      const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-      if (config.refactor && config.refactor.autoDetect === false) {
-        return false;
-      }
-      return true;
-    } catch (e) {
-      return true; // Default enabled on error
-    }
+  enable() {
+    this.enabled = true;
   }
 
   /**
-   * Check if auto-detection is enabled
-   * @returns {boolean}
+   * Disable the observer
+   */
+  disable() {
+    this.enabled = false;
+  }
+
+  /**
+   * Check if observer is enabled
    */
   isEnabled() {
-    return this._enabled;
+    return this.enabled;
   }
 
   /**
-   * Observe code being written during build
-   * Fire-and-forget - does not block
-   * @param {string} filePath - Path to file being built
-   * @param {string} code - Source code content
+   * Observe a file for refactoring opportunities
+   * Called automatically during TLC operations (build, verify, etc.)
+   * @param {string} filePath - Path to the file
+   * @param {string} content - File content
+   * @param {Object} context - Additional context (e.g., which operation triggered this)
+   * @returns {Array} Found opportunities
    */
-  async observeBuild(filePath, code) {
-    if (!this._enabled) {
-      return;
-    }
-
-    // Fire and forget - don't await the full processing
-    setImmediate(async () => {
-      try {
-        await this._analyzeBuild(filePath, code);
-      } catch (e) {
-        // Silently fail - observation is nice-to-have
-        console.error('Refactor observation failed:', e.message);
-      }
-    });
-  }
-
-  /**
-   * Internal build analysis
-   * @param {string} filePath - Path to file
-   * @param {string} code - Source code
-   */
-  async _analyzeBuild(filePath, code) {
-    const result = this.analyzer.analyze(code, filePath);
-
-    if (result.error) {
-      return; // Skip files with parse errors
-    }
-
-    const candidates = [];
-
-    for (const func of result.functions) {
-      if (func.isComplex) {
-        candidates.push({
-          file: filePath,
-          function: func.name,
-          line: func.startLine,
-          reason: `High cyclomatic complexity (${func.complexity})`,
-          type: 'complexity',
-          severity: 'medium',
-          detectedAt: new Date().toISOString(),
-        });
-      }
-
-      if (func.isDeeplyNested) {
-        candidates.push({
-          file: filePath,
-          function: func.name,
-          line: func.startLine,
-          reason: `Deep nesting (${func.maxNesting} levels)`,
-          type: 'nesting',
-          severity: 'low',
-          detectedAt: new Date().toISOString(),
-        });
-      }
-
-      if (func.isLong) {
-        candidates.push({
-          file: filePath,
-          function: func.name,
-          line: func.startLine,
-          reason: `Long function (${func.lineCount} lines)`,
-          type: 'length',
-          severity: 'low',
-          detectedAt: new Date().toISOString(),
-        });
-      }
-    }
-
-    if (candidates.length > 0) {
-      await this._addCandidates(candidates);
-    }
-  }
-
-  /**
-   * Observe review results to capture suggestions
-   * Fire-and-forget - does not block
-   * @param {Object} reviewResult - Review result with suggestions
-   */
-  async observeReview(reviewResult) {
-    if (!this._enabled) {
-      return;
-    }
-
-    // Fire and forget
-    setImmediate(async () => {
-      try {
-        await this._analyzeReview(reviewResult);
-      } catch (e) {
-        console.error('Refactor review observation failed:', e.message);
-      }
-    });
-  }
-
-  /**
-   * Internal review analysis
-   * @param {Object} reviewResult - Review result
-   */
-  async _analyzeReview(reviewResult) {
-    const candidates = [];
-    const file = reviewResult.file || 'unknown';
-
-    // Extract refactoring suggestions
-    const suggestions = reviewResult.suggestions || [];
-    for (const suggestion of suggestions) {
-      // Filter for refactoring-related suggestions
-      const lowerSuggestion = suggestion.toLowerCase();
-      if (
-        lowerSuggestion.includes('extract') ||
-        lowerSuggestion.includes('refactor') ||
-        lowerSuggestion.includes('split') ||
-        lowerSuggestion.includes('simplify') ||
-        lowerSuggestion.includes('too long') ||
-        lowerSuggestion.includes('too complex')
-      ) {
-        candidates.push({
-          file,
-          function: null,
-          line: null,
-          reason: suggestion,
-          type: 'review-suggestion',
-          severity: 'medium',
-          detectedAt: new Date().toISOString(),
-        });
-      }
-    }
-
-    // Extract from issues as well
-    const issues = reviewResult.issues || [];
-    for (const issue of issues) {
-      const message = (issue.message || '').toLowerCase();
-      if (
-        message.includes('complex') ||
-        message.includes('refactor') ||
-        message.includes('simplify')
-      ) {
-        candidates.push({
-          file,
-          function: null,
-          line: issue.line || null,
-          reason: issue.message,
-          type: 'review-issue',
-          severity: issue.severity || 'medium',
-          detectedAt: new Date().toISOString(),
-        });
-      }
-    }
-
-    if (candidates.length > 0) {
-      await this._addCandidates(candidates);
-    }
-  }
-
-  /**
-   * Add candidates to the REFACTOR-CANDIDATES.md file
-   * @param {Array} candidates - Candidates to add
-   */
-  async _addCandidates(candidates) {
-    const tlcDir = path.join(this.projectRoot, TLC_DIR);
-    const candidatesPath = path.join(tlcDir, CANDIDATES_FILE);
-
-    // Ensure .tlc directory exists
-    if (!fs.existsSync(tlcDir)) {
-      fs.mkdirSync(tlcDir, { recursive: true });
-    }
-
-    // Read existing content or create header
-    let content = '';
-    if (fs.existsSync(candidatesPath)) {
-      content = fs.readFileSync(candidatesPath, 'utf8');
-    } else {
-      content = this._createHeader();
-    }
-
-    // Append new candidates
-    for (const candidate of candidates) {
-      content += this._formatCandidate(candidate);
-    }
-
-    fs.writeFileSync(candidatesPath, content, 'utf8');
-  }
-
-  /**
-   * Create header for candidates file
-   * @returns {string} Header markdown
-   */
-  _createHeader() {
-    return `# Refactoring Candidates
-
-Auto-detected opportunities for code improvement.
-Generated by TLC Refactor Observer.
-
----
-
-`;
-  }
-
-  /**
-   * Format a single candidate as markdown
-   * @param {Object} candidate - Candidate object
-   * @returns {string} Formatted markdown
-   */
-  _formatCandidate(candidate) {
-    const location = candidate.function
-      ? `\`${candidate.function}\` in \`${candidate.file}\``
-      : `\`${candidate.file}\``;
-
-    const line = candidate.line ? ` (line ${candidate.line})` : '';
-
-    return `## ${candidate.type}: ${location}${line}
-
-- **Reason:** ${candidate.reason}
-- **Severity:** ${candidate.severity}
-- **Detected:** ${candidate.detectedAt}
-
----
-
-`;
-  }
-
-  /**
-   * Get all current candidates
-   * @returns {Array} List of candidates
-   */
-  getCandidates() {
-    const candidatesPath = path.join(this.projectRoot, TLC_DIR, CANDIDATES_FILE);
-
-    if (!fs.existsSync(candidatesPath)) {
+  async observe(filePath, content, context = {}) {
+    if (!this.enabled) {
       return [];
     }
+
+    // Debounce rapid calls for same file
+    if (this.pendingFiles.has(filePath)) {
+      clearTimeout(this.pendingFiles.get(filePath));
+    }
+
+    return new Promise((resolve) => {
+      const timeout = setTimeout(async () => {
+        this.pendingFiles.delete(filePath);
+        const opportunities = await this.analyzeFile(filePath, content, context);
+        resolve(opportunities);
+      }, this.debounceMs);
+
+      this.pendingFiles.set(filePath, timeout);
+    });
+  }
+
+  /**
+   * Observe a file immediately (no debounce)
+   */
+  async observeImmediate(filePath, content, context = {}) {
+    if (!this.enabled) {
+      return [];
+    }
+
+    return this.analyzeFile(filePath, content, context);
+  }
+
+  /**
+   * Analyze a single file
+   */
+  async analyzeFile(filePath, content, context = {}) {
+    const opportunities = [];
 
     try {
-      const content = fs.readFileSync(candidatesPath, 'utf8');
-      return this._parseCandidates(content);
-    } catch (e) {
-      return [];
-    }
-  }
+      const analysis = this.astAnalyzer.analyze(content, filePath);
 
-  /**
-   * Parse candidates from markdown content
-   * @param {string} content - Markdown content
-   * @returns {Array} Parsed candidates
-   */
-  _parseCandidates(content) {
-    const candidates = [];
-    const sections = content.split(/^## /m).slice(1); // Skip header
+      // Check each function for issues
+      for (const fn of analysis.functions || []) {
+        const issues = [];
 
-    for (const section of sections) {
-      const lines = section.split('\n');
-      const headerMatch = lines[0].match(/^(\w+(?:-\w+)?): `([^`]+)`(?: in `([^`]+)`)?(?: \(line (\d+)\))?/);
-
-      if (headerMatch) {
-        const candidate = {
-          type: headerMatch[1],
-          function: headerMatch[2].includes('/') ? null : headerMatch[2],
-          file: headerMatch[3] || headerMatch[2],
-          line: headerMatch[4] ? parseInt(headerMatch[4], 10) : null,
-          reason: '',
-          severity: 'medium',
-        };
-
-        // Parse bullet points
-        for (const line of lines) {
-          const reasonMatch = line.match(/^\- \*\*Reason:\*\* (.+)$/);
-          if (reasonMatch) {
-            candidate.reason = reasonMatch[1];
-          }
-          const severityMatch = line.match(/^\- \*\*Severity:\*\* (.+)$/);
-          if (severityMatch) {
-            candidate.severity = severityMatch[1];
-          }
+        if (fn.complexity > this.complexityThreshold) {
+          issues.push({
+            type: 'complexity',
+            message: `High cyclomatic complexity (${fn.complexity})`,
+            threshold: this.complexityThreshold,
+            value: fn.complexity,
+          });
         }
 
-        candidates.push(candidate);
+        if (fn.lines > this.lengthThreshold) {
+          issues.push({
+            type: 'length',
+            message: `Function too long (${fn.lines} lines)`,
+            threshold: this.lengthThreshold,
+            value: fn.lines,
+          });
+        }
+
+        if (fn.maxNesting > this.nestingThreshold) {
+          issues.push({
+            type: 'nesting',
+            message: `Deep nesting (${fn.maxNesting} levels)`,
+            threshold: this.nestingThreshold,
+            value: fn.maxNesting,
+          });
+        }
+
+        if (issues.length > 0) {
+          const opportunity = {
+            file: filePath,
+            startLine: fn.line,
+            endLine: fn.endLine || fn.line,
+            name: fn.name,
+            issues,
+            context: context.operation || 'background',
+          };
+
+          // Calculate impact score
+          const score = this.impactScorer.score({
+            file: filePath,
+            complexity: fn.complexity,
+            lines: fn.lines,
+            nesting: fn.maxNesting,
+          });
+
+          if (score.total >= this.minImpact) {
+            opportunity.impact = score.total;
+            opportunity.description = this.describeOpportunity(fn, issues);
+            opportunities.push(opportunity);
+          }
+        }
+      }
+
+      // Add to candidates tracker if any found
+      if (opportunities.length > 0) {
+        await this.candidatesTracker.add(opportunities);
+
+        // Notify callback
+        for (const opp of opportunities) {
+          this.onCandidateFound(opp);
+        }
+      }
+    } catch (error) {
+      // Silently ignore parse errors in background mode
+      if (context.verbose) {
+        console.error(`Observer error for ${filePath}:`, error.message);
       }
     }
 
-    return candidates;
+    return opportunities;
   }
 
   /**
-   * Clear all candidates
+   * Generate a human-readable description of the opportunity
    */
-  clearCandidates() {
-    const candidatesPath = path.join(this.projectRoot, TLC_DIR, CANDIDATES_FILE);
-    if (fs.existsSync(candidatesPath)) {
-      fs.unlinkSync(candidatesPath);
+  describeOpportunity(fn, issues) {
+    const parts = [];
+
+    if (issues.find(i => i.type === 'complexity')) {
+      parts.push(`high complexity (${fn.complexity})`);
     }
+    if (issues.find(i => i.type === 'length')) {
+      parts.push(`long function (${fn.lines} lines)`);
+    }
+    if (issues.find(i => i.type === 'nesting')) {
+      parts.push(`deep nesting (${fn.maxNesting} levels)`);
+    }
+
+    return `${fn.name}: ${parts.join(', ')}`;
+  }
+
+  /**
+   * Batch observe multiple files
+   */
+  async observeBatch(files, context = {}) {
+    if (!this.enabled) {
+      return [];
+    }
+
+    const allOpportunities = [];
+
+    for (const file of files) {
+      const opportunities = await this.observeImmediate(file.path, file.content, context);
+      allOpportunities.push(...opportunities);
+    }
+
+    return allOpportunities;
+  }
+
+  /**
+   * Hook into TLC build process
+   */
+  createBuildHook() {
+    return {
+      name: 'refactor-observer',
+      afterFileWrite: async (filePath, content) => {
+        await this.observe(filePath, content, { operation: 'build' });
+      },
+    };
+  }
+
+  /**
+   * Hook into TLC verify process
+   */
+  createVerifyHook() {
+    return {
+      name: 'refactor-observer',
+      afterVerify: async (files) => {
+        await this.observeBatch(files, { operation: 'verify' });
+      },
+    };
+  }
+
+  /**
+   * Get summary of pending observations
+   */
+  getPendingCount() {
+    return this.pendingFiles.size;
+  }
+
+  /**
+   * Cancel all pending observations
+   */
+  cancelPending() {
+    for (const timeout of this.pendingFiles.values()) {
+      clearTimeout(timeout);
+    }
+    this.pendingFiles.clear();
+  }
+
+  /**
+   * Update configuration
+   */
+  configure(options) {
+    if (options.complexityThreshold !== undefined) {
+      this.complexityThreshold = options.complexityThreshold;
+    }
+    if (options.lengthThreshold !== undefined) {
+      this.lengthThreshold = options.lengthThreshold;
+    }
+    if (options.nestingThreshold !== undefined) {
+      this.nestingThreshold = options.nestingThreshold;
+    }
+    if (options.minImpact !== undefined) {
+      this.minImpact = options.minImpact;
+    }
+    if (options.enabled !== undefined) {
+      this.enabled = options.enabled;
+    }
+  }
+
+  /**
+   * Get current configuration
+   */
+  getConfig() {
+    return {
+      enabled: this.enabled,
+      complexityThreshold: this.complexityThreshold,
+      lengthThreshold: this.lengthThreshold,
+      nestingThreshold: this.nestingThreshold,
+      minImpact: this.minImpact,
+      debounceMs: this.debounceMs,
+    };
   }
 }
 
