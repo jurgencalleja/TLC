@@ -765,20 +765,30 @@ Add architecture-level operations: multi-LLM code review with consensus, systema
 
 ---
 
-### Phase 25: Usage Dashboard [ ]
+### Phase 25: Usage Dashboard [x]
 
 **Goal:** Budget and usage visibility.
 
 **Deliverables:**
-- [ ] `/tlc:usage` command
-- [ ] Usage history (7-day rolling)
-- [ ] Budget alerts at threshold
-- [ ] Admin reset capability
+- [x] `/tlc:usage` command
+- [x] Usage history (7-day rolling)
+- [x] Budget alerts at threshold
+- [x] Admin reset capability
+- [x] Dashboard UsagePane component
+
+**Test Progress:**
+- usage-history: 14 tests
+- usage-formatter: 23 tests
+- budget-alerts: 21 tests
+- usage-command: 25 tests
+- UsagePane: 15 tests
+- Total: 98 new tests (3881 total)
 
 **Success Criteria:**
-- [ ] Shows daily/monthly spend per model
-- [ ] Alerts at configured threshold (e.g., 80%)
-- [ ] Usage persists across sessions
+- [x] Shows daily/monthly spend per model
+- [x] Alerts at configured threshold (50%, 80%, 100%)
+- [x] Usage persists across sessions
+- [x] Visual progress bars in dashboard
 
 ---
 
