@@ -108,6 +108,37 @@ Task(description="Agent 2: Task 2", prompt="...", subagent_type="general-purpose
 Task(description="Agent 3: Task 3", prompt="...", subagent_type="general-purpose", run_in_background=true)
 ```
 
+**Live Progress Monitoring:**
+
+While agents run in background, show live status using the AgentProgressMonitor:
+
+```bash
+node -e "
+const { AgentProgressMonitor } = require('./server/lib/agent-progress-monitor.js');
+const monitor = new AgentProgressMonitor('/tmp/claude-1000/-mnt-c-Code-TLC/tasks');
+const agents = ['AGENT_ID_1', 'AGENT_ID_2', 'AGENT_ID_3'];
+console.log(monitor.formatTable(agents));
+"
+```
+
+Display format:
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚀 OVERDRIVE STATUS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+| Agent | Task | Tests | Phase |
+|-------|------|-------|-------|
+| a1b2c3 | README Generator | 29 ✓ | committed |
+| d4e5f6 | Flow Diagrams | 18 ✓ | implementing |
+| g7h8i9 | ADR Generator | - | writing-tests |
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**Show status automatically:**
+- When receiving agent progress notifications
+- When user asks "check on agents"
+- After each agent completes
+
 **After all agents complete:**
 1. Run full test suite
 2. Verify all tasks pass
