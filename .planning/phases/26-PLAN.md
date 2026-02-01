@@ -22,23 +22,55 @@ Manage multiple repositories as a unified workspace. Engineers working on micros
 
 **Acceptance Criteria:**
 - [ ] Creates .tlc-workspace.json in root
-- [ ] Stores list of repo paths (relative or absolute)
-- [ ] Validates repos exist and have .tlc.json
+- [ ] Stores list of repo paths (relative)
+- [ ] Auto-discovers subdirectories with package.json
 - [ ] Supports glob patterns for monorepo packages
+- [ ] Detects npm/pnpm/yarn workspaces automatically
 
 **Test Cases:**
 - Creates workspace config file
 - Adds repo to workspace
 - Removes repo from workspace
-- Validates repo has TLC config
-- Handles relative and absolute paths
+- Auto-discovers repos in subdirectories
+- Detects package.json in subdirs
 - Expands glob patterns (packages/*)
-- Returns error for missing repos
-- Returns error for non-TLC repos
+- Detects npm workspaces from root package.json
+- Handles relative paths only (portable)
+- Ignores node_modules, .git, etc.
 
 ---
 
-### Task 2: Workspace Scanner [ ]
+### Task 2: Bulk Repo Initializer [ ]
+
+**Goal:** Initialize TLC in multiple repos at once
+
+**Files:**
+- server/lib/bulk-repo-init.js
+- server/lib/bulk-repo-init.test.js
+
+**Acceptance Criteria:**
+- [ ] Detects repos without .tlc.json
+- [ ] Creates minimal .tlc.json for each
+- [ ] Infers project type (node, python, go, etc.)
+- [ ] Infers test framework from existing config
+- [ ] Reports success/failure per repo
+
+**Test Cases:**
+- Detects repo without .tlc.json
+- Creates .tlc.json with inferred settings
+- Detects Node.js project (package.json)
+- Detects Python project (pyproject.toml, setup.py)
+- Detects Go project (go.mod)
+- Infers vitest from vite.config
+- Infers jest from jest.config
+- Infers pytest from pytest.ini
+- Handles mixed project types in workspace
+- Reports summary (X initialized, Y failed)
+- Skips repos that already have .tlc.json
+
+---
+
+### Task 3: Workspace Scanner [ ]
 
 **Goal:** Discover and index repos in workspace
 
@@ -64,7 +96,7 @@ Manage multiple repositories as a unified workspace. Engineers working on micros
 
 ---
 
-### Task 3: Cross-Repo Dependency Tracker [ ]
+### Task 4: Cross-Repo Dependency Tracker [ ]
 
 **Goal:** Track dependencies between repos
 
@@ -89,7 +121,7 @@ Manage multiple repositories as a unified workspace. Engineers working on micros
 
 ---
 
-### Task 4: Unified Test Runner [ ]
+### Task 5: Unified Test Runner [ ]
 
 **Goal:** Run tests across all workspace repos
 
@@ -115,7 +147,7 @@ Manage multiple repositories as a unified workspace. Engineers working on micros
 
 ---
 
-### Task 5: Workspace Memory [ ]
+### Task 6: Workspace Memory [ ]
 
 **Goal:** Share memory across workspace repos
 
@@ -141,7 +173,7 @@ Manage multiple repositories as a unified workspace. Engineers working on micros
 
 ---
 
-### Task 6: Workspace Command [ ]
+### Task 7: Workspace Command [ ]
 
 **Goal:** `/tlc:workspace` CLI command
 
@@ -150,26 +182,30 @@ Manage multiple repositories as a unified workspace. Engineers working on micros
 - server/lib/workspace-command.test.js
 
 **Acceptance Criteria:**
-- [ ] `--init` creates workspace config
-- [ ] `--add <path>` adds repo
-- [ ] `--remove <path>` removes repo
-- [ ] `--list` shows all repos
+- [ ] `--init` scans, prompts, and bulk-initializes repos
+- [ ] `--add <path>` adds repo (auto-inits if needed)
+- [ ] `--remove <path>` removes repo from workspace
+- [ ] `--list` shows all repos with TLC status
 - [ ] `--test` runs workspace tests
 - [ ] `--graph` shows dependency graph
 
 **Test Cases:**
+- Init scans subdirectories for repos
+- Init shows which repos need TLC setup
+- Init bulk-initializes repos on confirm
 - Init creates .tlc-workspace.json
-- Add validates and adds repo
+- Add auto-initializes repo if no .tlc.json
 - Remove removes repo from config
-- List shows repos with status
+- List shows repos with status (ready/needs-init)
 - Test runs unified test runner
 - Graph outputs Mermaid diagram
 - Status shows repo health (tests, coverage)
 - Handles workspace not initialized error
+- Skips hidden directories and node_modules
 
 ---
 
-### Task 7: Dashboard WorkspacePane [ ]
+### Task 8: Dashboard WorkspacePane [ ]
 
 **Goal:** Dashboard component for workspace view
 
@@ -200,23 +236,24 @@ Manage multiple repositories as a unified workspace. Engineers working on micros
 
 | Task | Depends On | Reason |
 |------|------------|--------|
-| 2 | 1 | Scanner needs config to know which repos |
-| 3 | 2 | Dependency tracker uses scanner output |
-| 4 | 2, 3 | Test runner needs scan and dependency order |
-| 5 | 1 | Memory needs workspace root |
-| 6 | 1-5 | Command orchestrates all modules |
-| 7 | 6 | Pane uses command output |
+| 2 | 1 | Bulk init needs config to know workspace root |
+| 3 | 1 | Scanner needs config to know which repos |
+| 4 | 3 | Dependency tracker uses scanner output |
+| 5 | 3, 4 | Test runner needs scan and dependency order |
+| 6 | 1 | Memory needs workspace root |
+| 7 | 1-6 | Command orchestrates all modules |
+| 8 | 7 | Pane uses command output |
 
 **Parallel groups:**
 - Group A: Task 1 (foundation)
-- Group B: Tasks 2, 5 (after Task 1, can run in parallel)
-- Group C: Task 3 (after Task 2)
-- Group D: Task 4 (after Tasks 2, 3)
-- Group E: Task 6 (after Tasks 1-5)
-- Group F: Task 7 (after Task 6)
+- Group B: Tasks 2, 3, 6 (after Task 1, independent)
+- Group C: Task 4 (after Task 3)
+- Group D: Task 5 (after Tasks 3, 4)
+- Group E: Task 7 (after Tasks 1-6)
+- Group F: Task 8 (after Task 7)
 
 ## Estimated Scope
 
-- Tasks: 7
-- Files: 14 (7 implementations + 7 tests)
-- Tests: ~120 estimated
+- Tasks: 8
+- Files: 16 (8 implementations + 8 tests)
+- Tests: ~140 estimated
