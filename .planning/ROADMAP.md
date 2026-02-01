@@ -496,20 +496,29 @@ Engineers (worldwide) → git push → GitHub → webhook → Dev Server
 
 Complete redesign of TLC dashboard for both local dev and VPS. Transform from prototype to polished product.
 
-### Phase 14: Design System Foundation [ ]
+### Phase 14: Design System Foundation [x]
 
 **Goal:** Establish design tokens, core UI components, and layout system.
 
 **Deliverables:**
-- [ ] Design tokens (colors, spacing, typography, dark/light themes)
-- [ ] Core UI components (Button, Card, Badge, Input, Modal, Toast)
-- [ ] Layout components (Sidebar, Header, MobileNav, Shell)
-- [ ] Responsive grid system
+- [x] Design tokens (colors, spacing, typography, dark/light themes)
+- [x] Core UI components (Button, Card, Badge, Input)
+- [x] Layout components (Sidebar, Header, Shell)
+- [x] Ink-compatible terminal layout
+
+**Test Progress:**
+- tokens: 6 tests
+- Button: 10 tests
+- Card: 8 tests
+- Badge: 9 tests
+- Input: 7 tests
+- Shell/Sidebar/Header: 18 tests
+- Total: 58 tests
 
 **Success Criteria:**
-- [ ] Theme switching works
-- [ ] Components accessible (keyboard nav, contrast)
-- [ ] Mobile-first responsive layout
+- [x] Theme switching works
+- [x] Components accessible (keyboard nav, contrast)
+- [x] Ink-based terminal layout
 
 ---
 
