@@ -20,6 +20,7 @@
     "http-proxy-middleware": "^2.0.6",
     "pg": "^8.17.2",
     "sudo-prompt": "^9.2.1",
+    "typescript": "^5.9.3",
     "ws": "^8.14.2"
   },
   "devDependencies": {
