@@ -697,21 +697,34 @@ Add architecture-level operations: multi-LLM code review with consensus, systema
 
 ---
 
-### Phase 23: Architecture Commands [ ]
+### Phase 23: Architecture Commands [x]
 
 **Goal:** Architecture analysis and microservice conversion.
 
 **Deliverables:**
-- [ ] `/tlc:architecture` - analyze current state
-- [ ] `/tlc:architecture --boundaries` - suggest services
-- [ ] `/tlc:convert microservice` - conversion plan
-- [ ] Dependency graph generation (Mermaid)
+- [x] `/tlc:architecture` - analyze current state
+- [x] `/tlc:architecture --boundaries` - suggest services
+- [x] `/tlc:convert microservice` - conversion plan
+- [x] Dependency graph generation (Mermaid)
+
+**Test Progress:**
+- dependency-graph: 22 tests
+- coupling-calculator: 19 tests
+- cohesion-analyzer: 15 tests
+- circular-detector: 16 tests
+- mermaid-generator: 16 tests
+- boundary-detector: 13 tests
+- architecture-command: 33 tests
+- conversion-planner: 19 tests
+- service-scaffold: 20 tests
+- convert-command: 30 tests
+- Total: 203 new tests (2180 total)
 
 **Success Criteria:**
-- [ ] Calculates coupling/cohesion metrics
-- [ ] Detects circular dependencies
-- [ ] Generates service scaffolds with API contracts
-- [ ] Creates migration tests for service extraction
+- [x] Calculates coupling/cohesion metrics
+- [x] Detects circular dependencies
+- [x] Generates service scaffolds with API contracts
+- [x] Creates migration tests for service extraction
 
 ---
 
