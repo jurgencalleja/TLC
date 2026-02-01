@@ -21,24 +21,6 @@ export interface WorkspaceDocsPaneProps {
 }
 
 /**
- * Parse markdown content and render as terminal-friendly text
- */
-function renderMarkdownLine(line: string): { text: string; bold: boolean; dimColor: boolean; color?: string } {
-  // Heading detection
-  if (line.startsWith('# ')) {
-    return { text: line.slice(2), bold: true, dimColor: false, color: 'cyan' };
-  }
-  if (line.startsWith('## ')) {
-    return { text: line.slice(3), bold: true, dimColor: false, color: 'cyan' };
-  }
-  if (line.startsWith('### ')) {
-    return { text: line.slice(4), bold: true, dimColor: false };
-  }
-
-  return { text: line, bold: false, dimColor: false };
-}
-
-/**
  * Parse markdown content into renderable blocks
  */
 interface ContentBlock {
