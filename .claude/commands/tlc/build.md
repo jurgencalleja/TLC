@@ -103,9 +103,9 @@ Agent 3: Task 3 - Write migration scripts
 **CRITICAL: Spawn all agents in a SINGLE message using multiple Task tool calls.**
 
 ```
-Task(description="Agent 1: Task 1", prompt="...", subagent_type="tlc-executor", run_in_background=true)
-Task(description="Agent 2: Task 2", prompt="...", subagent_type="tlc-executor", run_in_background=true)
-Task(description="Agent 3: Task 3", prompt="...", subagent_type="tlc-executor", run_in_background=true)
+Task(description="Agent 1: Task 1", prompt="...", subagent_type="general-purpose", run_in_background=true)
+Task(description="Agent 2: Task 2", prompt="...", subagent_type="general-purpose", run_in_background=true)
+Task(description="Agent 3: Task 3", prompt="...", subagent_type="general-purpose", run_in_background=true)
 ```
 
 **After all agents complete:**
