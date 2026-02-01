@@ -792,14 +792,107 @@ Add architecture-level operations: multi-LLM code review with consensus, systema
 
 ---
 
-## Future Milestones (v1.x)
+---
 
-### v1.4 - Enterprise Features
-- Multi-repo support
-- Audit logs for all agent actions
-- SOC 2 documentation
-- Zero-data-retention mode
-- SSO integration (OAuth, SAML)
+## Milestone: v1.4 - Enterprise Features
+
+Enterprise-grade capabilities for large teams and compliance requirements.
+
+### Phase 26: Multi-Repo Support [ ]
+
+**Goal:** Manage multiple repositories as a unified project.
+
+**Deliverables:**
+- [ ] `/tlc:workspace` command for multi-repo management
+- [ ] Cross-repo dependency tracking
+- [ ] Unified test runs across repos
+- [ ] Shared memory across workspace
+- [ ] Dashboard workspace view
+
+**Success Criteria:**
+- [ ] Add/remove repos from workspace
+- [ ] Run tests across all repos
+- [ ] Track dependencies between repos
+- [ ] Single dashboard for entire workspace
+
+---
+
+### Phase 27: Audit Logging [ ]
+
+**Goal:** Complete audit trail of all agent actions.
+
+**Deliverables:**
+- [ ] Audit log storage (append-only)
+- [ ] Action classification (read, write, execute, etc.)
+- [ ] User attribution (who triggered)
+- [ ] Searchable audit queries
+- [ ] Export to SIEM formats
+
+**Success Criteria:**
+- [ ] Every file change logged with context
+- [ ] Every command execution logged
+- [ ] Logs tamper-evident (checksums)
+- [ ] Export to JSON, CSV, Splunk format
+
+---
+
+### Phase 28: Zero-Data-Retention Mode [ ]
+
+**Goal:** Privacy-first mode that doesn't persist sensitive data.
+
+**Deliverables:**
+- [ ] Ephemeral session mode
+- [ ] Auto-purge on session end
+- [ ] Configurable retention policies
+- [ ] Sensitive data detection
+- [ ] Memory exclusion patterns
+
+**Success Criteria:**
+- [ ] No data persists after session
+- [ ] Secrets never written to disk
+- [ ] Configurable per-project
+
+---
+
+### Phase 29: SSO Integration [ ]
+
+**Goal:** Enterprise authentication with OAuth and SAML.
+
+**Deliverables:**
+- [ ] OAuth 2.0 providers (GitHub, Google, Azure AD)
+- [ ] SAML 2.0 support
+- [ ] Role mapping from IdP
+- [ ] Session management
+- [ ] MFA support
+
+**Success Criteria:**
+- [ ] Login via GitHub/Google works
+- [ ] SAML IdP integration
+- [ ] Roles sync from provider
+- [ ] Session timeout configurable
+
+---
+
+### Phase 30: Compliance Documentation [ ]
+
+**Goal:** SOC 2 and security compliance tooling.
+
+**Deliverables:**
+- [ ] Security policy generator
+- [ ] Access control documentation
+- [ ] Data flow diagrams
+- [ ] Compliance checklist
+- [ ] Evidence collection
+
+**Success Criteria:**
+- [ ] Generate SOC 2 Type II evidence
+- [ ] Document all data flows
+- [ ] Track access permissions
+- [ ] Exportable compliance reports
+
+---
+
+## Future Milestones (v1.x)
 
 ### v1.5 - Advanced AI
 - [x] Parallel agent execution (Overdrive module - auto-detects independent tasks)
