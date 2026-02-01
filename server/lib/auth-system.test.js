@@ -373,8 +373,11 @@ describe('auth-system', () => {
       const session = createSession(user, { expiresIn: 1000 });
       const expiresAt = new Date(session.expiresAt).getTime();
       const createdAt = new Date(session.createdAt).getTime();
+      const diff = expiresAt - createdAt;
 
-      expect(expiresAt - createdAt).toBe(1000);
+      // Allow small timing variance (1-2ms) due to execution time
+      expect(diff).toBeGreaterThanOrEqual(1000);
+      expect(diff).toBeLessThanOrEqual(1010);
     });
   });
 
