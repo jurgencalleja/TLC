@@ -828,23 +828,33 @@ Enterprise-grade capabilities for large teams and compliance requirements.
 
 ---
 
-### Phase 27: Workspace Documentation [ ]
+### Phase 27: Workspace Documentation [x]
 
 **Goal:** Auto-generate documentation for multi-repo workspaces.
 
 **Deliverables:**
-- [ ] Per-repo README generation
-- [ ] Cross-repo flow diagrams (data flow, API chains)
-- [ ] "What does this repo do" summaries
-- [ ] Architecture decision records (ADRs)
-- [ ] Mermaid diagrams for service interactions
-- [ ] `/tlc:workspace --docs` command
+- [x] Per-repo README generation
+- [x] Cross-repo flow diagrams (data flow, API chains)
+- [x] "What does this repo do" summaries
+- [x] Architecture decision records (ADRs)
+- [x] Mermaid diagrams for service interactions
+- [x] `/tlc:workspace --docs` command
+
+**Test Progress:**
+- readme-generator: 29 tests
+- flow-diagram-generator: 18 tests
+- service-summary: 34 tests
+- adr-generator: 39 tests
+- service-interaction-diagram: 27 tests
+- workspace-docs-command: 51 tests
+- WorkspaceDocsPane: 20 tests
+- Total: 218 new tests
 
 **Success Criteria:**
-- [ ] Each repo has generated README
-- [ ] Cross-repo dependencies visualized
-- [ ] Data flow between services documented
-- [ ] ADRs track architectural decisions
+- [x] Each repo has generated README
+- [x] Cross-repo dependencies visualized
+- [x] Data flow between services documented
+- [x] ADRs track architectural decisions
 
 ---
 
