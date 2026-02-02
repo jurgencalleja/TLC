@@ -2,7 +2,7 @@
  * @vitest-environment node
  */
 import { describe, it, expect, vi } from 'vitest';
-import { getTasks, parseTasksFromPlan, Task, FileSystem } from './tasks-api';
+import { getTasks, parseTasksFromPlan, Task, FileSystem } from './tasks-api.js';
 import type { Dirent } from 'fs';
 
 // Helper to create a mock Dirent

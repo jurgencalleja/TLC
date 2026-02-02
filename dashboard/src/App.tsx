@@ -181,6 +181,7 @@ export function App({ isTTY = true }: AppProps) {
   useEffect(() => {
     async function checkUpdates() {
       try {
+        // @ts-ignore - version-checker is a JS module
         const { checkForUpdates } = await import('../server/lib/version-checker.js');
         const info = await checkForUpdates();
         setUpdateInfo(info);

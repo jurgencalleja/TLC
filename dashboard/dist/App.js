@@ -1,6 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { Box, Text, useApp, useInput } from 'ink';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 // Layout components
 import { Shell } from './components/layout/Shell.js';
 import { Sidebar, SidebarItem } from './components/layout/Sidebar.js';
@@ -21,6 +21,7 @@ import { UsagePane } from './components/UsagePane.js';
 import { SettingsPanel } from './components/SettingsPanel.js';
 import { AgentRegistryPane } from './components/AgentRegistryPane.js';
 import { BugsPane } from './components/BugsPane.js';
+import { UpdateBanner } from './components/UpdateBanner.js';
 // Utility components
 import { CommandPalette } from './components/CommandPalette.js';
 import { KeyboardHelp } from './components/KeyboardHelp.js';
@@ -134,6 +135,24 @@ export function App({ isTTY = true }) {
     // Data state
     const [selectedProject, setSelectedProject] = useState(null);
     const [connectionState] = useState('connected');
+    // Update banner state
+    const [updateInfo, setUpdateInfo] = useState(null);
+    const [updateDismissed, setUpdateDismissed] = useState(false);
+    // Check for updates on mount
+    useEffect(() => {
+        async function checkUpdates() {
+            try {
+                // @ts-ignore - version-checker is a JS module
+                const { checkForUpdates } = await import('../server/lib/version-checker.js');
+                const info = await checkForUpdates();
+                setUpdateInfo(info);
+            }
+            catch {
+                // Silently fail if version checker not available
+            }
+        }
+        checkUpdates();
+    }, []);
     // Keyboard handling
     useInput((input, key) => {
         // Global shortcuts
@@ -248,5 +267,5 @@ export function App({ isTTY = true }) {
     const renderHeader = () => (_jsx(Header, { title: "TLC Dashboard", subtitle: viewTitle, status: connectionState === 'connected' ? 'online' : 'offline', actions: _jsxs(Box, { children: [_jsx(ConnectionStatus, { state: connectionState }), _jsx(Text, { color: "gray", children: " | " }), _jsx(Text, { dimColor: true, children: "v1.2.24" })] }) }));
     // Render footer/status bar
     const renderFooter = () => (_jsxs(Box, { justifyContent: "space-between", children: [_jsx(Text, { dimColor: true, children: "Tab: cycle | 1-0: jump | Ctrl+B: sidebar | Ctrl+K: commands | ?: help | Ctrl+Q: quit" }), _jsx(StatusBar, {})] }));
-    return (_jsxs(Box, { flexDirection: "column", width: "100%", height: "100%", children: [_jsx(Shell, { header: renderHeader(), footer: renderFooter(), sidebar: showSidebar ? renderSidebar() : undefined, showSidebar: showSidebar, sidebarWidth: 20, children: _jsxs(Box, { flexDirection: "column", flexGrow: 1, children: [_jsxs(Box, { borderStyle: "single", borderColor: "cyan", borderBottom: true, borderTop: false, borderLeft: false, borderRight: false, paddingX: 1, marginBottom: 1, children: [_jsx(Text, { bold: true, color: "cyan", children: viewTitle }), selectedProject && (_jsxs(_Fragment, { children: [_jsx(Text, { color: "gray", children: " \u203A " }), _jsx(Text, { children: selectedProject.name })] }))] }), _jsx(Box, { flexGrow: 1, children: renderMainContent() })] }) }), showCommandPalette && (_jsx(Box, { position: "absolute", width: "60%", height: "50%", marginLeft: 10, marginTop: 5, borderStyle: "double", borderColor: "cyan", flexDirection: "column", children: _jsx(CommandPalette, { commands: commands, onSelect: handleCommandSelect, onClose: () => setShowCommandPalette(false) }) })), showHelp && (_jsx(Box, { position: "absolute", width: "70%", height: "80%", marginLeft: 8, marginTop: 3, borderStyle: "double", borderColor: "yellow", flexDirection: "column", children: _jsx(KeyboardHelp, { shortcuts: shortcuts, onClose: () => setShowHelp(false) }) }))] }));
+    return (_jsxs(Box, { flexDirection: "column", width: "100%", height: "100%", children: [_jsxs(Shell, { header: renderHeader(), footer: renderFooter(), sidebar: showSidebar ? renderSidebar() : undefined, showSidebar: showSidebar, sidebarWidth: 20, children: [updateInfo && !updateDismissed && (_jsx(UpdateBanner, { current: updateInfo.current, latest: updateInfo.latest, updateAvailable: updateInfo.updateAvailable, changelog: updateInfo.changelog, dismissable: true, onDismiss: () => setUpdateDismissed(true), compact: false, isActive: !showCommandPalette && !showHelp })), _jsxs(Box, { flexDirection: "column", flexGrow: 1, children: [_jsxs(Box, { borderStyle: "single", borderColor: "cyan", borderBottom: true, borderTop: false, borderLeft: false, borderRight: false, paddingX: 1, marginBottom: 1, children: [_jsx(Text, { bold: true, color: "cyan", children: viewTitle }), selectedProject && (_jsxs(_Fragment, { children: [_jsx(Text, { color: "gray", children: " \u203A " }), _jsx(Text, { children: selectedProject.name })] }))] }), _jsx(Box, { flexGrow: 1, children: renderMainContent() })] })] }), showCommandPalette && (_jsx(Box, { position: "absolute", width: "60%", height: "50%", marginLeft: 10, marginTop: 5, borderStyle: "double", borderColor: "cyan", flexDirection: "column", children: _jsx(CommandPalette, { commands: commands, onSelect: handleCommandSelect, onClose: () => setShowCommandPalette(false) }) })), showHelp && (_jsx(Box, { position: "absolute", width: "70%", height: "80%", marginLeft: 8, marginTop: 3, borderStyle: "double", borderColor: "yellow", flexDirection: "column", children: _jsx(KeyboardHelp, { shortcuts: shortcuts, onClose: () => setShowHelp(false) }) }))] }));
 }
