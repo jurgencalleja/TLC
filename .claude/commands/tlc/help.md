@@ -57,6 +57,16 @@ Launches the visual dashboard. Detects where you are, shows what's next.
 | `/tlc:release` | Release a claimed task |
 | `/tlc:who` | Show who's working on what |
 
+### Enterprise (v1.4+)
+
+| Command | What It Does |
+|---------|--------------|
+| `/tlc:workspace` | Multi-repo workspace management |
+| `/tlc:audit` | Audit logging with SIEM export |
+| `/tlc:retention` | Zero-data-retention mode (HIPAA/PCI-DSS) |
+| `/tlc:sso` | SSO integration (OAuth/SAML) |
+| `/tlc:compliance` | SOC 2 compliance tooling |
+
 ---
 
 ## Workflow

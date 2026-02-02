@@ -330,6 +330,59 @@ If yes, run the docs setup:
 - Add `.github/workflows/docs-sync.yml`
 - Add npm scripts for docs maintenance
 
+### Step 10: Enterprise Features (Optional)
+
+If compliance requirements were mentioned in Step 1, or for enterprise projects:
+
+```
+Enterprise Features (v1.4+)
+
+Based on your requirements, you may benefit from enterprise features:
+
+  • Audit logging - tamper-evident logs with SIEM export
+  • Zero-data-retention - for HIPAA/PCI-DSS compliance
+  • SSO integration - OAuth 2.0 and SAML 2.0
+  • Compliance tooling - SOC 2 Type II checklist
+
+Enable enterprise features? (Y/n)
+```
+
+If yes:
+
+```
+Which enterprise features do you need?
+
+  [x] Audit logging
+  [ ] Zero-data-retention (HIPAA/PCI-DSS)
+  [ ] SSO integration
+  [x] SOC 2 compliance
+
+Continue with selected features? (Y/n)
+```
+
+Add enterprise config to `.tlc.json`:
+
+```json
+{
+  "enterprise": {
+    "enabled": true,
+    "audit": { "enabled": true },
+    "compliance": { "enabled": true, "framework": "soc2" }
+  }
+}
+```
+
+Show summary:
+```
+Enterprise features enabled:
+  ✓ Audit logging - run /tlc:audit to view logs
+  ✓ SOC 2 compliance - run /tlc:compliance status
+
+Skipped (available later via /tlc:config --enterprise):
+  • Zero-data-retention
+  • SSO integration
+```
+
 ## Usage
 
 ```
@@ -343,3 +396,4 @@ Interactive flow that:
 4. Creates roadmap
 5. Sets up tests
 6. Sets up documentation automation
+7. Optionally enables enterprise features

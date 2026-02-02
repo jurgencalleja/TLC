@@ -368,7 +368,53 @@ Set up documentation automation? (Y/n)
 
 If yes, run `/tlc:docs setup`.
 
-### 12. Report Summary
+### 12. Enterprise Features (Optional)
+
+After basic setup, offer enterprise features:
+
+```
+Enterprise Features (v1.4+)
+
+TLC includes enterprise-grade features for compliance and security:
+
+  • Audit logging - tamper-evident logs with SIEM export
+  • Zero-data-retention - HIPAA/PCI-DSS compliant ephemeral mode
+  • SSO integration - OAuth 2.0 and SAML 2.0 support
+  • Compliance tooling - SOC 2 Type II checklist and evidence
+
+Enable enterprise features? (Y/n)
+```
+
+If yes, add enterprise config to `.tlc.json`:
+
+```json
+{
+  "enterprise": {
+    "enabled": true,
+    "audit": {
+      "enabled": true,
+      "storage": ".tlc/audit/"
+    },
+    "compliance": {
+      "enabled": true,
+      "framework": "soc2"
+    }
+  }
+}
+```
+
+Then show:
+```
+Enterprise features enabled.
+
+Commands available:
+  /tlc:audit       - View and export audit logs
+  /tlc:retention   - Configure zero-data-retention
+  /tlc:sso         - Set up SSO providers
+  /tlc:compliance  - SOC 2 compliance dashboard
+```
+
+### 13. Report Summary
 
 ```
 TLC initialized for [project name]
@@ -379,6 +425,7 @@ Test directory: [path]
 Existing tests: [count] files
 Untested files: [count] identified
 Docs automation: [enabled/skipped]
+Enterprise features: [enabled/skipped]
 
 Next steps:
 - Run /tlc:build backlog to write tests for existing code

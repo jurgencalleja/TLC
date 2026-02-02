@@ -228,9 +228,168 @@ Updated scripts:
   npm run test:legacy - runs jest only
 ```
 
+## Enterprise Configuration (v1.4+)
+
+Run `/tlc:config --enterprise` to configure enterprise features:
+
+```
+Enterprise Features Configuration
+
+1) Audit Logging
+2) Zero-Data-Retention
+3) SSO Integration
+4) Compliance (SOC 2)
+5) All of the above
+6) Back to main menu
+
+Which to configure? [1-6]:
+```
+
+### Audit Logging Setup
+
+```
+Audit Logging Configuration
+
+Enable audit logging? (Y/n)
+
+Storage location: [.tlc/audit/]
+Retention period: [90d]
+
+SIEM Export:
+1) None
+2) JSON
+3) Splunk HEC
+4) CEF (ArcSight)
+
+> 3
+
+Splunk endpoint: https://splunk.example.com/hec
+Splunk token: [enter token]
+
+✓ Audit logging configured
+```
+
+### Zero-Data-Retention Setup
+
+```
+Zero-Data-Retention Mode
+
+For HIPAA/PCI-DSS compliance, TLC can operate in zero-retention mode:
+  • Ephemeral storage (AES-256-GCM encrypted)
+  • Auto-purge on session end
+  • Sensitive data never written to disk
+
+Enable zero-retention mode? (Y/n)
+
+Sensitive patterns to detect:
+  [x] API keys
+  [x] Passwords
+  [x] Tokens
+  [x] Credit card numbers
+  [ ] Custom pattern: ___
+
+✓ Zero-retention mode enabled
+```
+
+### SSO Setup
+
+```
+SSO Configuration
+
+Add identity provider:
+1) OAuth 2.0 (GitHub, Google, Azure AD)
+2) SAML 2.0 (Okta, OneLogin, custom)
+
+> 1
+
+Select OAuth provider:
+1) GitHub
+2) Google
+3) Azure AD
+4) Custom
+
+> 1
+
+Client ID: [enter]
+Client Secret: [enter]
+
+Test connection? (Y/n)
+✓ GitHub OAuth configured
+
+Enable MFA? (Y/n)
+> Y
+
+MFA methods:
+  [x] TOTP (Authenticator app)
+  [x] Backup codes
+
+✓ MFA enabled
+```
+
+### Compliance Setup
+
+```
+Compliance Configuration
+
+Framework:
+1) SOC 2 Type II
+2) Custom
+
+> 1
+
+Trust Service Categories to track:
+  [x] Security (CC1-CC9)
+  [x] Availability (A1)
+  [x] Processing Integrity (PI1)
+  [x] Confidentiality (C1)
+  [x] Privacy (P1-P8)
+
+Evidence auto-collection: (Y/n)
+Evidence directory: [.tlc/compliance/evidence/]
+
+✓ SOC 2 compliance configured
+
+Run /tlc:compliance status to see your compliance score
+```
+
+### Enterprise Config in .tlc.json
+
+```json
+{
+  "enterprise": {
+    "enabled": true,
+    "audit": {
+      "enabled": true,
+      "storage": ".tlc/audit/",
+      "retention": "90d",
+      "siem": {
+        "format": "splunk",
+        "endpoint": "https://splunk.example.com/hec"
+      }
+    },
+    "zeroRetention": {
+      "enabled": true,
+      "sensitivePatterns": ["password", "api_key", "token"]
+    },
+    "sso": {
+      "providers": {
+        "github": { "type": "oauth", "clientId": "xxx" }
+      },
+      "mfa": { "required": true, "methods": ["totp", "backup"] }
+    },
+    "compliance": {
+      "framework": "soc2",
+      "categories": ["Security", "Availability", "Confidentiality"],
+      "autoCollect": true
+    }
+  }
+}
+```
+
 ## Notes
 
 - TLC defaults to mocha for consistency across projects
 - Multiple frameworks can coexist when inheriting codebases
 - Use `run` array to control which frameworks execute
 - The `primary` framework is used for new test generation
+- Enterprise features are opt-in and don't affect non-enterprise users
