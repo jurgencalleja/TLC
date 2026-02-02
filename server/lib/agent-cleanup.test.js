@@ -16,9 +16,11 @@ import { STATES } from './agent-state.js';
 describe('agent-cleanup', () => {
   let registry;
   let hooks;
+  const BASE_TIME = new Date('2025-01-01T12:00:00Z').getTime();
 
   beforeEach(() => {
     vi.useFakeTimers();
+    vi.setSystemTime(BASE_TIME);
     resetRegistry();
     resetHooks();
     resetCleanup();
@@ -240,7 +242,7 @@ describe('agent-cleanup', () => {
       expect(stats.totalCleaned).toBe(1);
     });
 
-    it('uses configurable interval', () => {
+    it('uses configurable interval', async () => {
       const customInterval = 5 * 60 * 1000; // 5 minutes
 
       scheduleCleanup({ interval: customInterval });
@@ -255,11 +257,11 @@ describe('agent-cleanup', () => {
       });
 
       // Advance 1 minute - no cleanup yet
-      vi.advanceTimersByTime(60 * 1000);
+      await vi.advanceTimersByTimeAsync(60 * 1000);
       expect(getCleanupStats().totalCleaned).toBe(0);
 
       // Advance to 5 minutes - cleanup should run
-      vi.advanceTimersByTime(4 * 60 * 1000);
+      await vi.advanceTimersByTimeAsync(4 * 60 * 1000);
       expect(getCleanupStats().totalCleaned).toBe(1);
     });
   });
