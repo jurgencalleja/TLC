@@ -1,15 +1,21 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { vol } from 'memfs';
+import { vol, fs as memfsFs } from 'memfs';
 
-// Mock fs module
+// Mock fs modules with memfs
 vi.mock('node:fs', async () => {
   const memfs = await import('memfs');
-  return memfs.fs;
+  return {
+    ...memfs.fs,
+    default: memfs.fs,
+  };
 });
 
 vi.mock('node:fs/promises', async () => {
   const memfs = await import('memfs');
-  return memfs.fs.promises;
+  return {
+    ...memfs.fs.promises,
+    default: memfs.fs.promises,
+  };
 });
 
 import { createTask } from './tasks-api.js';
