@@ -1066,6 +1066,44 @@ Intelligent agent orchestration with model selection, cost optimization, and qua
 
 ---
 
+### Phase 38: Dashboard Completion [>]
+
+**Goal:** Complete Dashboard Refresh milestone by filling gaps from specification.
+
+**Deliverables:**
+- [ ] Modal component (focus trap, ESC close, portal)
+- [ ] Dropdown component (keyboard nav, type-ahead, multi-select)
+- [ ] Toast component (variants, auto-dismiss, stacking)
+- [ ] Skeleton component (loading placeholders)
+- [ ] MobileNav component (bottom navigation for phones)
+- [ ] Zustand stores (ui, project, task, log)
+- [ ] Custom hooks (useWebSocket, useProjects, useTasks, useLogs, useTheme)
+- [ ] Accessibility audit (WCAG 2.1 AA)
+- [ ] Mobile responsiveness (tablet + phone)
+- [ ] Performance optimization (<2s load on 3G)
+
+**Test Progress:**
+- [ ] Modal: ~10 tests
+- [ ] Dropdown: ~12 tests
+- [ ] Toast: ~10 tests
+- [ ] Skeleton: ~8 tests
+- [ ] MobileNav: ~8 tests
+- [ ] Stores: ~20 tests
+- [ ] Hooks: ~15 tests
+- [ ] Accessibility: ~12 tests
+- [ ] Responsiveness: ~10 tests
+- [ ] Performance: ~5 tests
+- Total: ~120 tests (estimated)
+
+**Success Criteria:**
+- [ ] New user can navigate without documentation
+- [ ] Works on tablet (PMs use iPads)
+- [ ] Real-time updates feel instant (<500ms perceived)
+- [ ] Loads in <2s on 3G connection
+- [ ] Accessibility: keyboard nav, proper contrast, screen reader friendly
+
+---
+
 ## Future Milestones (v1.x)
 
 ### v1.6 - Ecosystem
