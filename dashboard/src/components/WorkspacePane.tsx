@@ -1,6 +1,6 @@
 import { Box, Text } from 'ink';
 
-interface RepoInfo {
+export interface RepoInfo {
   name: string;
   path: string;
   status: 'ready' | 'needs-init';

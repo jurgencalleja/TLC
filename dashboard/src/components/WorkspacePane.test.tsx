@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render } from 'ink-testing-library';
-import { WorkspacePane } from './WorkspacePane.js';
+import { WorkspacePane, RepoInfo } from './WorkspacePane.js';
 
 describe('WorkspacePane', () => {
   describe('repo list', () => {
     it('renders repo list', () => {
-      const repos = [
+      const repos: RepoInfo[] = [
         { name: 'core', path: 'core', status: 'ready', packageName: '@org/core' },
         { name: 'api', path: 'api', status: 'ready', packageName: '@org/api' },
       ];
@@ -18,7 +18,7 @@ describe('WorkspacePane', () => {
     });
 
     it('shows repo names and paths', () => {
-      const repos = [
+      const repos: RepoInfo[] = [
         { name: 'my-app', path: 'packages/my-app', status: 'ready', packageName: '@scope/my-app' },
       ];
 
@@ -29,7 +29,7 @@ describe('WorkspacePane', () => {
     });
 
     it('shows test status per repo', () => {
-      const repos = [
+      const repos: RepoInfo[] = [
         { name: 'tested', path: 'tested', status: 'ready', tests: { passed: 10, failed: 2 } },
       ];
 
@@ -40,7 +40,7 @@ describe('WorkspacePane', () => {
     });
 
     it('shows aggregate totals', () => {
-      const repos = [
+      const repos: RepoInfo[] = [
         { name: 'a', path: 'a', status: 'ready', tests: { passed: 5, failed: 1 } },
         { name: 'b', path: 'b', status: 'ready', tests: { passed: 3, failed: 0 } },
       ];
@@ -55,7 +55,7 @@ describe('WorkspacePane', () => {
 
   describe('dependency graph', () => {
     it('renders dependency graph section', () => {
-      const repos = [{ name: 'core', path: 'core', status: 'ready' }];
+      const repos: RepoInfo[] = [{ name: 'core', path: 'core', status: 'ready' }];
       const graph = 'graph TD\n  core[core]';
 
       const { lastFrame } = render(<WorkspacePane repos={repos} dependencyGraph={graph} />);
@@ -67,7 +67,7 @@ describe('WorkspacePane', () => {
 
   describe('highlighting', () => {
     it('highlights repos with failing tests', () => {
-      const repos = [
+      const repos: RepoInfo[] = [
         { name: 'passing', path: 'passing', status: 'ready', tests: { passed: 5, failed: 0 } },
         { name: 'failing', path: 'failing', status: 'ready', tests: { passed: 3, failed: 2 } },
       ];
