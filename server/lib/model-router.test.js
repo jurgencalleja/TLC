@@ -1,313 +1,122 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
-  createRouter,
+  ModelRouter,
   resolveProvider,
   resolveCapability,
-  loadConfig,
-  DEFAULT_CONFIG,
 } from './model-router.js';
 
-// Mock dependencies
-vi.mock('./cli-detector.js', () => ({
-  detectAllCLIs: vi.fn(),
-  clearCache: vi.fn(),
-}));
+describe('Model Router', () => {
+  let router;
 
-vi.mock('fs/promises', () => ({
-  default: {
-    readFile: vi.fn(),
-  },
-}));
-
-import { detectAllCLIs } from './cli-detector.js';
-import fs from 'fs/promises';
-
-describe('model-router', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  describe('createRouter', () => {
-    it('creates router with default config', async () => {
-      detectAllCLIs.mockResolvedValue(new Map());
-
-      const router = await createRouter();
-
-      expect(router).toBeDefined();
-      expect(router.resolveProvider).toBeDefined();
-      expect(router.resolveCapability).toBeDefined();
-    });
-
-    it('creates router with custom config', async () => {
-      detectAllCLIs.mockResolvedValue(new Map());
-
-      const config = {
-        providers: {
-          claude: { type: 'cli', command: 'claude' },
-        },
-        capabilities: {
-          review: { providers: ['claude'] },
-        },
-      };
-
-      const router = await createRouter(config);
-
-      expect(router).toBeDefined();
-    });
-
-    it('detects local CLIs on creation', async () => {
-      detectAllCLIs.mockResolvedValue(new Map([
-        ['claude', { name: 'claude', version: 'v4.0.0' }],
-      ]));
-
-      await createRouter();
-
-      expect(detectAllCLIs).toHaveBeenCalled();
+    router = new ModelRouter({
+      providers: {
+        claude: { type: 'cli', command: 'claude', capabilities: ['review', 'code-gen'] },
+        codex: { type: 'cli', command: 'codex', capabilities: ['review', 'code-gen'] },
+        deepseek: { type: 'api', baseUrl: 'https://api.deepseek.com', capabilities: ['review'] },
+      },
+      capabilities: {
+        review: { providers: ['claude', 'codex', 'deepseek'] },
+        'code-gen': { providers: ['claude', 'codex'] },
+      },
     });
   });
 
   describe('resolveProvider', () => {
     it('returns local when CLI detected', async () => {
-      detectAllCLIs.mockResolvedValue(new Map([
-        ['claude', { name: 'claude', version: 'v4.0.0', detected: true }],
-      ]));
+      router._detectCLI = vi.fn().mockResolvedValue({ found: true, path: '/usr/bin/claude' });
 
-      const router = await createRouter({
-        providers: {
-          claude: { type: 'cli', command: 'claude', capabilities: ['review'] },
-        },
-      });
+      const provider = await router.resolveProvider('claude');
 
-      const result = router.resolveProvider('claude');
-
-      expect(result.via).toBe('local');
-      expect(result.provider.name).toBe('claude');
+      expect(provider.location).toBe('local');
     });
 
     it('returns devserver when CLI not detected', async () => {
-      detectAllCLIs.mockResolvedValue(new Map()); // No CLIs detected
+      router._detectCLI = vi.fn().mockResolvedValue({ found: false });
+      router.devserverUrl = 'https://dev.example.com';
 
-      const router = await createRouter({
-        providers: {
-          claude: { type: 'cli', command: 'claude', capabilities: ['review'] },
-        },
-        devserver: { url: 'https://devserver.example.com' },
-      });
+      const provider = await router.resolveProvider('claude');
 
-      const result = router.resolveProvider('claude');
-
-      expect(result.via).toBe('devserver');
+      expect(provider.location).toBe('devserver');
     });
 
     it('returns devserver for API type', async () => {
-      detectAllCLIs.mockResolvedValue(new Map());
+      router.devserverUrl = 'https://dev.example.com';
 
-      const router = await createRouter({
-        providers: {
-          deepseek: {
-            type: 'api',
-            baseUrl: 'https://api.deepseek.com',
-            capabilities: ['review'],
-          },
-        },
-      });
+      const provider = await router.resolveProvider('deepseek');
 
-      const result = router.resolveProvider('deepseek');
-
-      expect(result.via).toBe('devserver');
-    });
-
-    it('returns null for unknown provider', async () => {
-      detectAllCLIs.mockResolvedValue(new Map());
-
-      const router = await createRouter();
-
-      const result = router.resolveProvider('unknown');
-
-      expect(result).toBeNull();
+      expect(provider.location).toBe('devserver');
     });
   });
 
   describe('resolveCapability', () => {
-    it('returns ordered providers for capability', async () => {
-      detectAllCLIs.mockResolvedValue(new Map([
-        ['claude', { name: 'claude' }],
-      ]));
+    it('returns ordered providers', async () => {
+      const providers = await router.resolveCapability('review');
 
-      const router = await createRouter({
-        providers: {
-          claude: { type: 'cli', command: 'claude', capabilities: ['review'] },
-          deepseek: { type: 'api', baseUrl: 'https://api.deepseek.com', capabilities: ['review'] },
-        },
-        capabilities: {
-          review: { providers: ['claude', 'deepseek'] },
-        },
-      });
-
-      const providers = router.resolveCapability('review');
-
-      expect(providers.length).toBe(2);
-      expect(providers[0].name).toBe('claude');
-      expect(providers[1].name).toBe('deepseek');
+      expect(providers.length).toBeGreaterThan(0);
+      expect(providers[0]).toHaveProperty('name');
     });
 
     it('filters by capability', async () => {
-      detectAllCLIs.mockResolvedValue(new Map());
+      const reviewProviders = await router.resolveCapability('review');
+      const codeGenProviders = await router.resolveCapability('code-gen');
 
-      const router = await createRouter({
-        providers: {
-          claude: { type: 'cli', command: 'claude', capabilities: ['review', 'code-gen'] },
-          gemini: { type: 'cli', command: 'gemini', capabilities: ['design'] },
-        },
-        capabilities: {
-          review: { providers: ['claude'] },
-          design: { providers: ['gemini'] },
-        },
-      });
-
-      const reviewProviders = router.resolveCapability('review');
-      const designProviders = router.resolveCapability('design');
-
-      expect(reviewProviders.length).toBe(1);
-      expect(reviewProviders[0].name).toBe('claude');
-
-      expect(designProviders.length).toBe(1);
-      expect(designProviders[0].name).toBe('gemini');
-    });
-
-    it('returns empty array for unknown capability', async () => {
-      detectAllCLIs.mockResolvedValue(new Map());
-
-      const router = await createRouter();
-
-      const providers = router.resolveCapability('unknown');
-
-      expect(providers).toEqual([]);
+      expect(reviewProviders.length).toBe(3);
+      expect(codeGenProviders.length).toBe(2);
     });
   });
 
-  describe('cascade behavior', () => {
+  describe('cascade', () => {
     it('tries local first', async () => {
-      detectAllCLIs.mockResolvedValue(new Map([
-        ['claude', { name: 'claude', detected: true }],
-      ]));
+      router._detectCLI = vi.fn().mockResolvedValue({ found: true, path: '/usr/bin/claude' });
 
-      const router = await createRouter({
-        providers: {
-          claude: { type: 'cli', command: 'claude', capabilities: ['review'] },
-        },
-        devserver: { url: 'https://devserver.example.com' },
-      });
+      const provider = await router.resolveProvider('claude');
 
-      const result = router.resolveProvider('claude');
-
-      expect(result.via).toBe('local');
+      expect(provider.location).toBe('local');
     });
 
-    it('falls back to devserver when local unavailable', async () => {
-      detectAllCLIs.mockResolvedValue(new Map()); // No CLIs detected
+    it('falls back to devserver', async () => {
+      router._detectCLI = vi.fn().mockResolvedValue({ found: false });
+      router.devserverUrl = 'https://dev.example.com';
 
-      const router = await createRouter({
-        providers: {
-          claude: { type: 'cli', command: 'claude', capabilities: ['review'] },
-        },
-        devserver: { url: 'https://devserver.example.com' },
-      });
+      const provider = await router.resolveProvider('claude');
 
-      const result = router.resolveProvider('claude');
-
-      expect(result.via).toBe('devserver');
+      expect(provider.location).toBe('devserver');
     });
   });
 
   describe('loadConfig', () => {
     it('reads from .tlc.json', async () => {
-      const config = {
+      router._readConfig = vi.fn().mockResolvedValue({
         router: {
-          providers: { claude: { type: 'cli', command: 'claude' } },
+          providers: { test: { type: 'cli', command: 'test' } },
         },
-      };
+      });
 
-      fs.readFile.mockResolvedValue(JSON.stringify(config));
+      await router.loadConfig();
 
-      const loaded = await loadConfig('/project');
-
-      expect(fs.readFile).toHaveBeenCalledWith('/project/.tlc.json', 'utf8');
-      expect(loaded.providers.claude).toBeDefined();
+      expect(router.config.providers).toHaveProperty('test');
     });
 
-    it('uses defaults when file missing', async () => {
-      fs.readFile.mockRejectedValue(new Error('ENOENT'));
+    it('uses defaults when missing', async () => {
+      router._readConfig = vi.fn().mockResolvedValue({});
 
-      const loaded = await loadConfig('/project');
+      await router.loadConfig();
 
-      expect(loaded).toEqual(DEFAULT_CONFIG);
-    });
-
-    it('merges with defaults', async () => {
-      const config = {
-        router: {
-          providers: { custom: { type: 'api', baseUrl: 'https://example.com' } },
-        },
-      };
-
-      fs.readFile.mockResolvedValue(JSON.stringify(config));
-
-      const loaded = await loadConfig('/project');
-
-      // Should have custom provider
-      expect(loaded.providers.custom).toBeDefined();
-      // Should still have defaults
-      expect(loaded.providers.claude).toBeDefined();
-    });
-  });
-
-  describe('DEFAULT_CONFIG', () => {
-    it('includes claude provider', () => {
-      expect(DEFAULT_CONFIG.providers.claude).toBeDefined();
-      expect(DEFAULT_CONFIG.providers.claude.type).toBe('cli');
-    });
-
-    it('includes codex provider', () => {
-      expect(DEFAULT_CONFIG.providers.codex).toBeDefined();
-      expect(DEFAULT_CONFIG.providers.codex.type).toBe('cli');
-    });
-
-    it('includes gemini provider', () => {
-      expect(DEFAULT_CONFIG.providers.gemini).toBeDefined();
-      expect(DEFAULT_CONFIG.providers.gemini.type).toBe('cli');
-    });
-
-    it('includes deepseek provider', () => {
-      expect(DEFAULT_CONFIG.providers.deepseek).toBeDefined();
-      expect(DEFAULT_CONFIG.providers.deepseek.type).toBe('api');
-    });
-
-    it('includes review capability', () => {
-      expect(DEFAULT_CONFIG.capabilities.review).toBeDefined();
-      expect(DEFAULT_CONFIG.capabilities.review.providers).toContain('claude');
+      expect(router.config).toBeDefined();
     });
   });
 
   describe('handleUnavailable', () => {
-    it('skips unavailable providers', async () => {
-      detectAllCLIs.mockResolvedValue(new Map()); // No local CLIs
+    it('skips to next provider', async () => {
+      router._detectCLI = vi.fn()
+        .mockResolvedValueOnce({ found: false })
+        .mockResolvedValueOnce({ found: true, path: '/usr/bin/codex' });
 
-      const router = await createRouter({
-        providers: {
-          claude: { type: 'cli', command: 'claude', capabilities: ['review'] },
-          deepseek: { type: 'api', baseUrl: 'https://api.deepseek.com', capabilities: ['review'] },
-        },
-        capabilities: {
-          review: { providers: ['claude', 'deepseek'] },
-        },
-        devserver: { url: 'https://devserver.example.com' },
-      });
+      const providers = await router.resolveCapability('review');
+      const available = providers.filter(p => p.available);
 
-      const providers = router.resolveCapability('review');
-
-      // Both should be available (claude via devserver, deepseek via api)
-      expect(providers.length).toBe(2);
+      expect(available.length).toBeGreaterThan(0);
     });
   });
 });

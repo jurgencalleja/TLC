@@ -1,221 +1,99 @@
 /**
- * Router Config - Configuration schema for .tlc.json router section
+ * Router Config Schema - Configuration for .tlc.json router section
+ * Phase 33, Task 9
  */
 
-import fs from 'fs/promises';
-import path from 'path';
+import { readFile, writeFile } from 'fs/promises';
+import { join } from 'path';
 
-/**
- * Default router configuration
- */
 export const defaultConfig = {
   providers: {
-    claude: {
-      type: 'cli',
-      command: 'claude',
-      headlessArgs: ['-p', '--output-format', 'json'],
-      capabilities: ['review', 'code-gen', 'refactor', 'explain'],
-    },
-    codex: {
-      type: 'cli',
-      command: 'codex',
-      headlessArgs: ['exec', '--json', '--sandbox', 'read-only'],
-      capabilities: ['review', 'code-gen', 'refactor'],
-    },
-    gemini: {
-      type: 'cli',
-      command: 'gemini',
-      headlessArgs: ['-p', '--output-format', 'json'],
-      capabilities: ['design', 'vision', 'review', 'image-gen'],
-    },
-    deepseek: {
-      type: 'api',
-      baseUrl: 'https://api.deepseek.com',
-      model: 'deepseek-coder',
-      capabilities: ['review'],
-      devserverOnly: true,
-    },
+    claude: { type: 'cli', command: 'claude', capabilities: ['review', 'code-gen', 'refactor'] },
+    codex: { type: 'cli', command: 'codex', capabilities: ['review', 'code-gen'] },
+    gemini: { type: 'cli', command: 'gemini', capabilities: ['design', 'vision'] },
   },
   capabilities: {
-    review: {
-      providers: ['claude', 'codex', 'deepseek'],
-      consensus: 'majority',
-    },
-    design: {
-      providers: ['gemini'],
-    },
-    'code-gen': {
-      providers: ['claude'],
-    },
+    review: { providers: ['claude', 'codex'] },
+    'code-gen': { providers: ['claude'] },
+    design: { providers: ['gemini'] },
   },
-  devserver: {
-    url: null,
-    queue: {
-      maxConcurrent: 3,
-      timeout: 120000,
-    },
-  },
+  devserver: { url: null, queue: { maxConcurrent: 3, timeout: 120000 } },
 };
 
-/**
- * Validate provider configurations
- * @param {Object} providers - Provider configs
- * @throws {Error} If validation fails
- */
-export function validateProviders(providers) {
-  for (const [name, config] of Object.entries(providers)) {
-    if (!config.type) {
-      throw new Error(`Provider ${name}: type is required`);
+export async function loadRouterConfig(options = {}) {
+  try {
+    let content;
+    if (options._readFile) {
+      content = await options._readFile();
+    } else {
+      const configPath = join(process.cwd(), '.tlc.json');
+      content = await readFile(configPath, 'utf-8');
     }
-
-    if (config.type === 'cli' && !config.command) {
-      throw new Error(`Provider ${name}: command is required for CLI providers`);
-    }
-
-    if (config.type === 'api' && !config.baseUrl) {
-      throw new Error(`Provider ${name}: baseUrl is required for API providers`);
-    }
+    
+    const data = JSON.parse(content);
+    const routerConfig = data.router || {};
+    
+    return {
+      providers: { ...defaultConfig.providers, ...routerConfig.providers },
+      capabilities: { ...defaultConfig.capabilities, ...routerConfig.capabilities },
+      devserver: { ...defaultConfig.devserver, ...routerConfig.devserver },
+    };
+  } catch {
+    return { ...defaultConfig };
   }
 }
 
-/**
- * Validate capability configurations
- * @param {Object} config - Full config with providers and capabilities
- * @throws {Error} If validation fails
- */
-export function validateCapabilities(config) {
-  const { providers, capabilities } = config;
+export function validateConfig(config) {
+  const errors = [];
 
-  for (const [capName, capConfig] of Object.entries(capabilities || {})) {
-    for (const providerName of capConfig.providers || []) {
-      if (!providers[providerName]) {
-        throw new Error(
-          `Capability ${capName}: references unknown provider "${providerName}"`
-        );
+  // Check capability provider references
+  if (config.capabilities) {
+    for (const [cap, capConfig] of Object.entries(config.capabilities)) {
+      for (const provider of capConfig.providers || []) {
+        if (!config.providers?.[provider]) {
+          errors.push('Capability ' + cap + ' references unknown provider: ' + provider);
+        }
       }
     }
   }
+
+  return { valid: errors.length === 0, errors };
 }
 
-/**
- * Get provider configuration by name
- * @param {Object} config - Router config
- * @param {string} name - Provider name
- * @returns {Object|null} Provider config or null
- */
 export function getProviderConfig(config, name) {
   return config.providers?.[name] || null;
 }
 
-/**
- * Get capability configuration by name
- * @param {Object} config - Router config
- * @param {string} name - Capability name
- * @returns {Object|null} Capability config or null
- */
 export function getCapabilityConfig(config, name) {
   return config.capabilities?.[name] || null;
 }
 
-/**
- * Migrate old config format to new format
- * @param {Object} config - Possibly old format config
- * @returns {Object} New format config
- */
-export function migrateConfig(config) {
-  // If already has router section, extract it
-  if (config.router) {
-    return {
-      providers: {
-        ...defaultConfig.providers,
-        ...(config.router.providers || {}),
-      },
-      capabilities: {
-        ...defaultConfig.capabilities,
-        ...(config.router.capabilities || {}),
-      },
-      devserver: {
-        ...defaultConfig.devserver,
-        ...(config.router.devserver || {}),
-      },
-    };
-  }
-
-  // Handle old adapter-based format
-  if (config.adapters) {
-    const providers = {};
-
-    for (const [name, adapter] of Object.entries(config.adapters)) {
-      providers[name] = {
-        type: adapter.type || 'cli',
-        command: adapter.command || name,
-        capabilities: adapter.capabilities || [],
-      };
-    }
-
-    return {
-      providers: {
-        ...defaultConfig.providers,
-        ...providers,
-      },
-      capabilities: defaultConfig.capabilities,
-      devserver: defaultConfig.devserver,
-    };
-  }
-
-  // Return defaults
-  return defaultConfig;
-}
-
-/**
- * Load router configuration from .tlc.json
- * @param {string} projectDir - Project directory
- * @returns {Promise<Object>} Router configuration
- */
-export async function loadRouterConfig(projectDir) {
-  const configPath = path.join(projectDir, '.tlc.json');
-
-  let fileConfig = {};
+export async function saveRouterConfig(config, options = {}) {
+  const configPath = join(process.cwd(), '.tlc.json');
+  
+  let existing = {};
   try {
-    const content = await fs.readFile(configPath, 'utf8');
-    fileConfig = JSON.parse(content);
-  } catch (err) {
-    // File doesn't exist, use defaults
-    return defaultConfig;
+    const content = await readFile(configPath, 'utf-8');
+    existing = JSON.parse(content);
+  } catch {
+    // New file
   }
 
-  // Migrate if needed
-  const config = migrateConfig(fileConfig);
+  existing.router = config;
+  const json = JSON.stringify(existing, null, 2);
 
-  // Validate
-  validateProviders(config.providers);
-  validateCapabilities(config);
-
-  return config;
-}
-
-/**
- * Save router configuration to .tlc.json
- * @param {string} projectDir - Project directory
- * @param {Object} routerConfig - Router configuration
- */
-export async function saveRouterConfig(projectDir, routerConfig) {
-  const configPath = path.join(projectDir, '.tlc.json');
-
-  // Read existing config
-  let existingConfig = {};
-  try {
-    const content = await fs.readFile(configPath, 'utf8');
-    existingConfig = JSON.parse(content);
-  } catch (err) {
-    // File doesn't exist
+  if (options._writeFile) {
+    await options._writeFile(json);
+  } else {
+    await writeFile(configPath, json);
   }
-
-  // Merge router config
-  const newConfig = {
-    ...existingConfig,
-    router: routerConfig,
-  };
-
-  await fs.writeFile(configPath, JSON.stringify(newConfig, null, 2));
 }
+
+export default {
+  loadRouterConfig,
+  validateConfig,
+  getProviderConfig,
+  getCapabilityConfig,
+  defaultConfig,
+  saveRouterConfig,
+};
