@@ -35,7 +35,8 @@ class AgentRegistry {
    * @returns {string} Generated agent ID
    */
   registerAgent(agentData) {
-    const id = generateId();
+    // Use provided ID or generate one
+    const id = agentData.id || generateId();
     const agent = {
       id,
       name: agentData.name,

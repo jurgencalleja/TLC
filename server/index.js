@@ -471,6 +471,184 @@ app.post('/api/test', (req, res) => {
   res.json({ success: true });
 });
 
+// ============================================
+// Agent Registry API (Phase 32)
+// ============================================
+const { getAgentRegistry } = require('./lib/agent-registry');
+const { createAgentState } = require('./lib/agent-state');
+const { createMetadata } = require('./lib/agent-metadata');
+
+// Helper to format agent for API response
+function formatAgent(agent) {
+  return {
+    id: agent.id,
+    name: agent.name,
+    state: {
+      current: agent.stateMachine ? agent.stateMachine.getState() : 'pending',
+      history: agent.stateMachine ? agent.stateMachine.getHistory() : [],
+    },
+    metadata: {
+      model: agent.model,
+      taskType: agent.taskType || 'unknown',
+      tokens: agent.metadataObj ? {
+        input: agent.metadataObj.inputTokens,
+        output: agent.metadataObj.outputTokens,
+        total: agent.metadataObj.totalTokens,
+      } : { input: 0, output: 0, total: 0 },
+    },
+    createdAt: agent.createdAt || agent.registeredAt,
+  };
+}
+
+// List agents
+app.get('/api/agents', (req, res) => {
+  try {
+    const registry = getAgentRegistry();
+    let agents = registry.listAgents();
+
+    // Filter by status (state.current)
+    if (req.query.status) {
+      agents = agents.filter(a =>
+        a.stateMachine ? a.stateMachine.getState() === req.query.status : false
+      );
+    }
+    // Filter by model
+    if (req.query.model) {
+      agents = agents.filter(a => a.model === req.query.model);
+    }
+    // Filter by type
+    if (req.query.type) {
+      agents = agents.filter(a => a.taskType === req.query.type);
+    }
+
+    res.json({ success: true, agents: agents.map(formatAgent) });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Get single agent
+app.get('/api/agents/:id', (req, res) => {
+  try {
+    const registry = getAgentRegistry();
+    const agent = registry.getAgent(req.params.id);
+    if (!agent) {
+      return res.status(404).json({ success: false, error: 'Agent not found' });
+    }
+    res.json({ success: true, agent: formatAgent(agent) });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Register new agent
+app.post('/api/agents', (req, res) => {
+  try {
+    const registry = getAgentRegistry();
+    const { id, name, model, taskType } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ success: false, error: 'name is required' });
+    }
+
+    // Create state machine and metadata
+    const stateMachine = createAgentState({ agentId: id });
+    const metadataObj = createMetadata({
+      model: model || 'unknown',
+      taskType: taskType || 'default',
+    });
+
+    // Register with all components
+    const agentId = registry.registerAgent({
+      id,
+      name,
+      model: model || 'unknown',
+      taskType: taskType || 'default',
+      stateMachine,
+      metadataObj,
+      createdAt: Date.now(),
+    });
+
+    const agent = registry.getAgent(agentId);
+    res.status(201).json({ success: true, agent: formatAgent(agent) });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Update agent (state transitions, token updates)
+app.patch('/api/agents/:id', (req, res) => {
+  try {
+    const registry = getAgentRegistry();
+    const agent = registry.getAgent(req.params.id);
+    if (!agent) {
+      return res.status(404).json({ success: false, error: 'Agent not found' });
+    }
+
+    // Handle state transition
+    if (req.body.state) {
+      if (!agent.stateMachine) {
+        return res.status(400).json({ success: false, error: 'Agent has no state machine' });
+      }
+      const result = agent.stateMachine.transition(req.body.state, { reason: req.body.reason });
+      if (!result.success) {
+        return res.status(400).json({ success: false, error: result.error });
+      }
+    }
+
+    // Handle token updates
+    if (req.body.tokens && agent.metadataObj) {
+      agent.metadataObj.updateTokens({
+        input: req.body.tokens.input || 0,
+        output: req.body.tokens.output || 0,
+      });
+    }
+
+    res.json({ success: true, agent: formatAgent(agent) });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Delete agent
+app.delete('/api/agents/:id', (req, res) => {
+  try {
+    const registry = getAgentRegistry();
+    const removed = registry.removeAgent(req.params.id);
+    if (!removed) {
+      return res.status(404).json({ success: false, error: 'Agent not found' });
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Get registry stats
+app.get('/api/agents-stats', (req, res) => {
+  try {
+    const registry = getAgentRegistry();
+    const agents = registry.listAgents();
+
+    const stats = {
+      total: agents.length,
+      byStatus: {},
+      byModel: {}
+    };
+
+    agents.forEach(agent => {
+      const status = agent.stateMachine ? agent.stateMachine.getState() : 'pending';
+      const model = agent.model || 'unknown';
+      stats.byStatus[status] = (stats.byStatus[status] || 0) + 1;
+      stats.byModel[model] = (stats.byModel[model] || 0) + 1;
+    });
+
+    res.json({ success: true, stats });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.post('/api/restart', (req, res) => {
   addLog('app', '--- Restarting app ---', 'warn');
   broadcast('app-restart', {});

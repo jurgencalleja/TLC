@@ -33,7 +33,9 @@
     "docs": "node scripts/docs-update.js",
     "docs:check": "node scripts/docs-update.js --check",
     "docs:screenshots": "node scripts/generate-screenshots.js",
-    "docs:capture": "node scripts/capture-screenshots.js"
+    "docs:capture": "node scripts/capture-screenshots.js",
+    "test:e2e": "npx playwright test",
+    "test:e2e:ui": "npx playwright test --ui"
   },
   "repository": {
     "type": "git",
@@ -50,6 +52,7 @@
   "author": "Jurgen Calleja",
   "license": "MIT",
   "devDependencies": {
+    "@playwright/test": "^1.58.1",
     "playwright": "^1.58.1",
     "text-to-image": "^8.0.1"
   }

@@ -16,7 +16,8 @@
 | 7 | Registry Command | 25 | ✅ Verified |
 | 8 | AgentRegistryPane | 15 | ✅ Verified |
 
-**Total Tests:** 209 passing
+**Total Unit Tests:** 209 passing
+**E2E Tests:** 22 passing (Playwright)
 
 ## Acceptance Criteria Verification
 
@@ -101,6 +102,19 @@ server/lib/agent-registry-command.js
 server/lib/agent-registry-command.test.js
 dashboard/src/components/AgentRegistryPane.tsx
 dashboard/src/components/AgentRegistryPane.test.tsx
+tests/e2e/agent-registry.spec.ts
+playwright.config.ts
+```
+
+## API Endpoints Added
+
+```
+GET    /api/agents          - List agents with filters
+GET    /api/agents/:id      - Get agent by ID
+POST   /api/agents          - Register new agent
+PATCH  /api/agents/:id      - Update agent state/tokens
+DELETE /api/agents/:id      - Remove agent
+GET    /api/agents-stats    - Get registry statistics
 ```
 
 ## Notes
@@ -108,5 +122,5 @@ dashboard/src/components/AgentRegistryPane.test.tsx
 - All modules use test-first development (TDD)
 - Vitest used for all unit tests
 - Dashboard component uses Ink for terminal UI
-- Playwright E2E tests not applicable (no web UI in this phase)
+- Playwright E2E tests cover REST API endpoints
 - Ready for Phase 33: Multi-Model Router
