@@ -924,22 +924,27 @@ Enterprise-grade capabilities for large teams and compliance requirements.
 
 ---
 
-### Phase 31: Compliance Documentation [ ]
+### Phase 31: Compliance Documentation [x]
 
 **Goal:** SOC 2 and security compliance tooling.
 
 **Deliverables:**
-- [ ] Security policy generator
-- [ ] Access control documentation
-- [ ] Data flow diagrams
-- [ ] Compliance checklist
-- [ ] Evidence collection
+- [x] Security policy generator (security-policy-generator.js - 56 tests)
+- [x] Access control documentation (access-control-doc.js - 48 tests)
+- [x] Data flow diagrams (data-flow-doc.js - 31 tests)
+- [x] Compliance checklist (compliance-checklist.js - 55 tests)
+- [x] Evidence collection (evidence-collector.js - 61 tests)
+- [x] Compliance reporter (compliance-reporter.js - 53 tests)
+- [x] Compliance CLI command (compliance-command.js - 38 tests)
+- [x] Dashboard CompliancePane (CompliancePane.tsx - 19 tests)
+
+**Test Progress:** 361 tests (8 tasks)
 
 **Success Criteria:**
-- [ ] Generate SOC 2 Type II evidence
-- [ ] Document all data flows
-- [ ] Track access permissions
-- [ ] Exportable compliance reports
+- [x] Generate SOC 2 Type II evidence (evidence collector with hashing)
+- [x] Document all data flows (Mermaid diagrams, sensitivity classification)
+- [x] Track access permissions (user/role matrix, change history)
+- [x] Exportable compliance reports (HTML, Markdown, JSON, CSV)
 
 ---
 
