@@ -1,5 +1,5 @@
 import { Box, Text, useApp, useInput } from 'ink';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 // Layout components
 import { Shell } from './components/layout/Shell.js';
@@ -22,6 +22,7 @@ import { UsagePane } from './components/UsagePane.js';
 import { SettingsPanel } from './components/SettingsPanel.js';
 import { AgentRegistryPane } from './components/AgentRegistryPane.js';
 import { BugsPane } from './components/BugsPane.js';
+import { UpdateBanner } from './components/UpdateBanner.js';
 
 // Utility components
 import { CommandPalette, Command } from './components/CommandPalette.js';
@@ -166,6 +167,29 @@ export function App({ isTTY = true }: AppProps) {
   // Data state
   const [selectedProject, setSelectedProject] = useState<ProjectDetailData | null>(null);
   const [connectionState] = useState<ConnectionState>('connected');
+
+  // Update banner state
+  const [updateInfo, setUpdateInfo] = useState<{
+    current: string;
+    latest: string;
+    updateAvailable: boolean;
+    changelog: string[];
+  } | null>(null);
+  const [updateDismissed, setUpdateDismissed] = useState(false);
+
+  // Check for updates on mount
+  useEffect(() => {
+    async function checkUpdates() {
+      try {
+        const { checkForUpdates } = await import('../server/lib/version-checker.js');
+        const info = await checkForUpdates();
+        setUpdateInfo(info);
+      } catch {
+        // Silently fail if version checker not available
+      }
+    }
+    checkUpdates();
+  }, []);
 
   // Keyboard handling
   useInput((input, key) => {
@@ -394,6 +418,20 @@ export function App({ isTTY = true }: AppProps) {
         showSidebar={showSidebar}
         sidebarWidth={20}
       >
+        {/* Update banner */}
+        {updateInfo && !updateDismissed && (
+          <UpdateBanner
+            current={updateInfo.current}
+            latest={updateInfo.latest}
+            updateAvailable={updateInfo.updateAvailable}
+            changelog={updateInfo.changelog}
+            dismissable={true}
+            onDismiss={() => setUpdateDismissed(true)}
+            compact={false}
+            isActive={!showCommandPalette && !showHelp}
+          />
+        )}
+
         {/* Main content area */}
         <Box flexDirection="column" flexGrow={1}>
           {/* View header */}
