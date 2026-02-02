@@ -1,224 +1,186 @@
+import React, { useState, useEffect, useCallback } from 'react';
 import { Box, Text } from 'ink';
-import { useState, useEffect } from 'react';
+import Spinner from 'ink-spinner';
+import { safeFetch, type FetchError } from '../api/safeFetch.js';
+import { ErrorState } from './ui/ErrorState.js';
+import { EmptyState } from './ui/EmptyState.js';
+import { Skeleton } from './ui/Skeleton.js';
 
-interface Provider {
+interface ProviderInfo {
+  detected: boolean;
   type: 'cli' | 'api';
-  detected?: boolean;
   version?: string;
-  healthy?: boolean;
   capabilities?: string[];
+  healthy?: boolean;
 }
 
-interface DevserverStatus {
-  configured: boolean;
-  connected?: boolean;
-  url?: string;
-}
-
-interface CostEstimate {
-  [capability: string]: {
-    local: number;
-    devserver: number;
+interface RouterApiResponse {
+  providers: Record<string, ProviderInfo>;
+  devserver: {
+    configured: boolean;
+    connected?: boolean;
+    url?: string;
   };
-}
-
-interface RouterStatus {
-  providers: Record<string, Provider>;
-  devserver: DevserverStatus;
   capabilities?: Record<string, { providers: string[] }>;
-  costEstimate?: CostEstimate;
+  costEstimate?: Record<string, { local: number; devserver: number }>;
 }
 
 interface RouterPaneProps {
-  apiUrl?: string;
+  apiBaseUrl?: string;
+  refreshInterval?: number;
 }
 
-export default function RouterPane({ apiUrl = '/api/router/status' }: RouterPaneProps) {
-  const [status, setStatus] = useState<RouterStatus | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+type LoadingState = 'loading' | 'success' | 'error' | 'empty';
+
+export function RouterPane({
+  apiBaseUrl = 'http://localhost:5001',
+  refreshInterval = 30000,
+}: RouterPaneProps) {
+  const [data, setData] = useState<RouterApiResponse | null>(null);
+  const [error, setError] = useState<FetchError | null>(null);
+  const [loadingState, setLoadingState] = useState<LoadingState>('loading');
+
+  const fetchRouterData = useCallback(async () => {
+    const result = await safeFetch<RouterApiResponse>(`${apiBaseUrl}/api/router`);
+
+    if (result.error) {
+      setError(result.error);
+      setLoadingState('error');
+      return;
+    }
+
+    if (!result.data || Object.keys(result.data.providers || {}).length === 0) {
+      setData(result.data);
+      setLoadingState('empty');
+      return;
+    }
+
+    setData(result.data);
+    setError(null);
+    setLoadingState('success');
+  }, [apiBaseUrl]);
 
   useEffect(() => {
-    const fetchStatus = async () => {
-      try {
-        const response = await fetch(apiUrl);
-        if (!response.ok) {
-          throw new Error('Failed to fetch');
-        }
-        const data = await response.json();
-        setStatus(data);
-        setError(null);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error');
-      } finally {
-        setLoading(false);
-      }
-    };
+    fetchRouterData();
+    const interval = setInterval(fetchRouterData, refreshInterval);
+    return () => clearInterval(interval);
+  }, [fetchRouterData, refreshInterval]);
 
-    fetchStatus();
-  }, [apiUrl]);
-
-  if (loading) {
+  // Loading state with skeleton
+  if (loadingState === 'loading') {
     return (
-      <Box padding={1} flexDirection="column">
+      <Box flexDirection="column" padding={1}>
         <Text bold>Model Router</Text>
         <Box marginTop={1}>
-          <Text color="gray">Loading router status...</Text>
+          <Text color="yellow">
+            <Spinner type="dots" />
+          </Text>
+          <Text> Loading...</Text>
+        </Box>
+        <Box marginTop={1} flexDirection="column">
+          <Skeleton.Text lines={3} width={30} />
         </Box>
       </Box>
     );
   }
 
-  if (error) {
+  // Error state
+  if (loadingState === 'error' && error) {
     return (
-      <Box padding={1} flexDirection="column">
+      <Box flexDirection="column" padding={1}>
         <Text bold>Model Router</Text>
         <Box marginTop={1}>
-          <Text color="red">Error: {error}</Text>
+          <ErrorState error={error} onRetry={fetchRouterData} />
         </Box>
       </Box>
     );
   }
 
-  if (!status) {
-    return null;
+  // Empty state
+  if (loadingState === 'empty' || !data) {
+    return (
+      <Box flexDirection="column" padding={1}>
+        <Text bold>Model Router</Text>
+        <Box marginTop={1}>
+          <EmptyState type="router" />
+        </Box>
+      </Box>
+    );
   }
 
-  const providers = Object.entries(status.providers);
-  const capabilities = Object.entries(status.capabilities || {});
+  // Calculate total estimated cost
+  let totalCost = 0;
+  if (data.costEstimate) {
+    for (const cap of Object.values(data.costEstimate)) {
+      totalCost += cap.devserver || 0;
+    }
+  }
+  const costStr = totalCost > 0 ? `$${totalCost.toFixed(2)}` : '$0.00';
+
+  // Build routing display from capabilities
+  const routingEntries: Array<{ capability: string; providers: Array<{ name: string; location: string }> }> = [];
+  if (data.capabilities) {
+    for (const [capability, info] of Object.entries(data.capabilities)) {
+      const providers = info.providers.map((name) => {
+        const providerInfo = data.providers[name];
+        const location = providerInfo?.type === 'cli' && providerInfo?.detected ? 'local' : 'devserver';
+        return { name, location };
+      });
+      routingEntries.push({ capability, providers });
+    }
+  }
 
   return (
-    <Box padding={1} flexDirection="column">
+    <Box flexDirection="column" padding={1}>
       <Text bold>Model Router</Text>
+      <Text> </Text>
 
-      {/* Providers Section */}
-      <Box marginTop={1} flexDirection="column">
-        <Text bold color="cyan">Providers</Text>
-        <Box marginTop={1} flexDirection="column">
-          {providers.map(([name, provider]) => (
-            <ProviderRow key={name} name={name} provider={provider} />
-          ))}
-          {providers.length === 0 && (
-            <Text color="gray">No providers configured</Text>
-          )}
+      {/* Local CLIs */}
+      <Text bold>Local CLIs</Text>
+      {Object.entries(data.providers).map(([name, info]) => (
+        <Box key={name}>
+          <Text color={info.detected ? 'green' : 'gray'}>
+            {info.detected ? '\u2713' : '\u25CB'} {name}
+          </Text>
+          {info.version && <Text dimColor> v{info.version}</Text>}
+          <Text dimColor> - {info.detected ? 'available' : 'not found'}</Text>
         </Box>
-      </Box>
+      ))}
 
-      {/* Devserver Section */}
-      <Box marginTop={1} flexDirection="column">
-        <Text bold color="cyan">Devserver</Text>
-        <DevserverRow devserver={status.devserver} />
-      </Box>
+      <Text> </Text>
+
+      {/* Devserver */}
+      <Text bold>Devserver</Text>
+      <Text color={data.devserver.connected ? 'green' : 'red'}>
+        {data.devserver.connected ? '\u25CF Connected' : '\u25CF Disconnected'}
+      </Text>
 
       {/* Routing Table */}
-      {capabilities.length > 0 && (
-        <Box marginTop={1} flexDirection="column">
-          <Text bold color="cyan">Routing</Text>
-          <Box marginTop={1} flexDirection="column">
-            {capabilities.map(([name, cap]) => (
-              <CapabilityRow
-                key={name}
-                name={name}
-                providers={cap.providers}
-                allProviders={status.providers}
-              />
-            ))}
-          </Box>
-        </Box>
+      {routingEntries.length > 0 && (
+        <>
+          <Text> </Text>
+          <Text bold>Routing</Text>
+          {routingEntries.map(({ capability, providers }) => (
+            <Box key={capability}>
+              <Text>{capability}: </Text>
+              {providers.map((p, i) => (
+                <Text key={p.name} color={p.location === 'local' ? 'cyan' : 'yellow'}>
+                  {i > 0 ? ' \u2192 ' : ''}
+                  {p.name} ({p.location})
+                </Text>
+              ))}
+            </Box>
+          ))}
+        </>
       )}
 
-      {/* Cost Estimates */}
-      {status.costEstimate && (
-        <Box marginTop={1} flexDirection="column">
-          <Text bold color="cyan">Cost Estimates (Monthly)</Text>
-          <Box marginTop={1} flexDirection="column">
-            {Object.entries(status.costEstimate).map(([name, costs]) => (
-              <Box key={name}>
-                <Text>{name.padEnd(12)}</Text>
-                <Text color="green">local: $0.00</Text>
-                <Text>  </Text>
-                <Text color="yellow">devserver: ${costs.devserver.toFixed(2)}</Text>
-              </Box>
-            ))}
-          </Box>
-        </Box>
-      )}
+      <Text> </Text>
+
+      {/* Estimated Cost */}
+      <Text bold>Estimated Cost</Text>
+      <Text color="yellow">{costStr}/day</Text>
     </Box>
   );
 }
 
-function ProviderRow({ name, provider }: { name: string; provider: Provider }) {
-  const isLocal = provider.type === 'cli' && provider.detected;
-  const healthIndicator = provider.healthy !== false ? '●' : '○';
-  const healthColor = provider.healthy !== false ? 'green' : 'red';
-  const routingBadge = isLocal ? 'local' : 'devserver';
-  const badgeColor = isLocal ? 'green' : 'yellow';
-
-  return (
-    <Box>
-      <Text color={healthColor}>{healthIndicator} </Text>
-      <Text bold>{name.padEnd(10)}</Text>
-      {provider.version && <Text color="gray"> {provider.version.padEnd(10)}</Text>}
-      <Text color={badgeColor}>[{routingBadge}]</Text>
-      {provider.capabilities && provider.capabilities.length > 0 && (
-        <Text color="gray"> ({provider.capabilities.join(', ')})</Text>
-      )}
-    </Box>
-  );
-}
-
-function DevserverRow({ devserver }: { devserver: DevserverStatus }) {
-  if (!devserver.configured) {
-    return (
-      <Box marginTop={1}>
-        <Text color="gray">Not configured - run </Text>
-        <Text color="cyan">tlc router setup</Text>
-      </Box>
-    );
-  }
-
-  const statusText = devserver.connected ? 'Connected' : 'Disconnected';
-  const statusColor = devserver.connected ? 'green' : 'red';
-  const indicator = devserver.connected ? '●' : '○';
-
-  return (
-    <Box marginTop={1} flexDirection="column">
-      <Box>
-        <Text color={statusColor}>{indicator} {statusText}</Text>
-      </Box>
-      {devserver.url && (
-        <Box>
-          <Text color="gray">{devserver.url}</Text>
-        </Box>
-      )}
-    </Box>
-  );
-}
-
-function CapabilityRow({
-  name,
-  providers,
-  allProviders,
-}: {
-  name: string;
-  providers: string[];
-  allProviders: Record<string, Provider>;
-}) {
-  return (
-    <Box>
-      <Text color="white">{name.padEnd(12)}</Text>
-      <Text>→ </Text>
-      {providers.map((p, idx) => {
-        const provider = allProviders[p];
-        const isLocal = provider?.type === 'cli' && provider?.detected;
-        const color = isLocal ? 'green' : 'yellow';
-        return (
-          <Text key={p}>
-            <Text color={color}>{p}</Text>
-            {idx < providers.length - 1 && <Text>, </Text>}
-          </Text>
-        );
-      })}
-    </Box>
-  );
-}
+export default RouterPane;
