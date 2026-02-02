@@ -12,6 +12,9 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const serverDir = path.resolve(__dirname, '..');
 
+// Longer timeout for filesystem operations with many files
+const SCAN_TIMEOUT = 30000;
+
 describe('introspect', () => {
   describe('scanModules', () => {
     it('returns array of module objects', async () => {
@@ -19,7 +22,7 @@ describe('introspect', () => {
 
       expect(Array.isArray(modules)).toBe(true);
       expect(modules.length).toBeGreaterThan(0);
-    });
+    }, SCAN_TIMEOUT);
 
     it('each module has name, hasTests, testCount properties', async () => {
       const modules = await scanModules(serverDir);
@@ -32,7 +35,7 @@ describe('introspect', () => {
         expect(typeof mod.hasTests).toBe('boolean');
         expect(typeof mod.testCount).toBe('number');
       });
-    });
+    }, SCAN_TIMEOUT);
 
     it('detects modules with existing test files', async () => {
       const modules = await scanModules(serverDir);
@@ -41,7 +44,7 @@ describe('introspect', () => {
       const agentRegistry = modules.find(m => m.name === 'agent-registry');
       expect(agentRegistry).toBeDefined();
       expect(agentRegistry.hasTests).toBe(true);
-    });
+    }, SCAN_TIMEOUT);
 
     it('counts test cases in test files', async () => {
       const modules = await scanModules(serverDir);
@@ -50,7 +53,7 @@ describe('introspect', () => {
       const agentRegistry = modules.find(m => m.name === 'agent-registry');
       expect(agentRegistry).toBeDefined();
       expect(agentRegistry.testCount).toBeGreaterThan(0);
-    });
+    }, SCAN_TIMEOUT);
 
     it('identifies modules without tests', async () => {
       const modules = await scanModules(serverDir);
@@ -59,7 +62,7 @@ describe('introspect', () => {
       const withoutTests = modules.filter(m => !m.hasTests);
       // This is just to verify the structure works
       expect(Array.isArray(withoutTests)).toBe(true);
-    });
+    }, SCAN_TIMEOUT);
   });
 
   describe('scanAPIs', () => {
@@ -168,14 +171,14 @@ describe('introspect', () => {
 
       expect(typeof manifest).toBe('string');
       expect(manifest.length).toBeGreaterThan(0);
-    });
+    }, SCAN_TIMEOUT);
 
     it('includes auto-generated header with timestamp', async () => {
       const manifest = await generateManifest(serverDir);
 
       expect(manifest).toContain('# TLC Manifest (auto-generated)');
       expect(manifest).toContain('Generated:');
-    });
+    }, SCAN_TIMEOUT);
 
     it('includes Modules section with table', async () => {
       const manifest = await generateManifest(serverDir);
@@ -183,7 +186,7 @@ describe('introspect', () => {
       expect(manifest).toContain('## Modules');
       expect(manifest).toContain('| Module | Has Tests | Test Count |');
       expect(manifest).toContain('|--------|-----------|------------|');
-    });
+    }, SCAN_TIMEOUT);
 
     it('includes API Endpoints section with table', async () => {
       const manifest = await generateManifest(serverDir);
@@ -191,7 +194,7 @@ describe('introspect', () => {
       expect(manifest).toContain('## API Endpoints');
       expect(manifest).toContain('| Method | Path | Handler |');
       expect(manifest).toContain('|--------|------|---------|');
-    });
+    }, SCAN_TIMEOUT);
 
     it('includes Dashboard Panels section with table', async () => {
       const manifest = await generateManifest(serverDir);
@@ -199,13 +202,13 @@ describe('introspect', () => {
       expect(manifest).toContain('## Dashboard Panels');
       expect(manifest).toContain('| Panel | API Calls |');
       expect(manifest).toContain('|-------|-----------|');
-    });
+    }, SCAN_TIMEOUT);
 
     it('includes Issues Detected section', async () => {
       const manifest = await generateManifest(serverDir);
 
       expect(manifest).toContain('## Issues Detected');
-    });
+    }, SCAN_TIMEOUT);
   });
 
   describe('detectMismatches', () => {
@@ -217,7 +220,7 @@ describe('introspect', () => {
       const mismatches = detectMismatches(modules, apis, panels);
 
       expect(Array.isArray(mismatches)).toBe(true);
-    });
+    }, SCAN_TIMEOUT);
 
     it('detects panels calling non-existent APIs', () => {
       const modules = [];
