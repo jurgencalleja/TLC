@@ -877,21 +877,26 @@ Enterprise-grade capabilities for large teams and compliance requirements.
 
 ---
 
-### Phase 29: Zero-Data-Retention Mode [ ]
+### Phase 29: Zero-Data-Retention Mode [x]
 
 **Goal:** Privacy-first mode that doesn't persist sensitive data.
 
 **Deliverables:**
-- [ ] Ephemeral session mode
-- [ ] Auto-purge on session end
-- [ ] Configurable retention policies
-- [ ] Sensitive data detection
-- [ ] Memory exclusion patterns
+- [x] Ephemeral session mode (ephemeral-storage.js - 20 tests)
+- [x] Auto-purge on session end (session-purge.js - 17 tests)
+- [x] Configurable retention policies (retention-policy.js - 38 tests)
+- [x] Sensitive data detection (sensitive-detector.js - 27 tests)
+- [x] Memory exclusion patterns (memory-exclusion.js - 25 tests)
+- [x] Zero-retention mode master switch (zero-retention.js - 18 tests)
+- [x] Zero-retention CLI command (zero-retention-command.js - 31 tests)
+- [x] Dashboard ZeroRetentionPane (ZeroRetentionPane.tsx - 12 tests)
+
+**Test Progress:** 188 tests (8 tasks)
 
 **Success Criteria:**
-- [ ] No data persists after session
-- [ ] Secrets never written to disk
-- [ ] Configurable per-project
+- [x] No data persists after session (ephemeral storage)
+- [x] Secrets never written to disk (memory exclusion + sensitive detection)
+- [x] Configurable per-project (.tlc.json support)
 
 ---
 
