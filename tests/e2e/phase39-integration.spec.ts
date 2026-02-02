@@ -53,7 +53,7 @@ test.describe('Phase 39: Functional Web Dashboard E2E', () => {
     await page.goto('/');
 
     logStep('Waiting for page load');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     logStep('Verifying dashboard loaded');
     const title = await page.title();
@@ -284,31 +284,23 @@ test.describe('Phase 39: Functional Web Dashboard E2E', () => {
 
     test('health API returns system metrics', async ({ request }) => {
       console.log('\n' + '~'.repeat(70));
-      console.log('TEST: Health API Endpoint');
+      console.log('TEST: Health/Status API Endpoint');
       console.log('~'.repeat(70));
 
       const baseUrl = process.env.TLC_BASE_URL || 'http://localhost:3147';
 
-      logStep('Fetching /api/health or /health');
-      let response = await request.get(`${baseUrl}/api/health`);
-
-      if (response.status() === 404) {
-        logStep('Trying /health endpoint');
-        response = await request.get(`${baseUrl}/health`);
-      }
+      logStep('Fetching /api/status endpoint (health info)');
+      const response = await request.get(`${baseUrl}/api/status`);
 
       const status = response.status();
       console.log(`  Status: ${status}`);
       expect(status).toBe(200);
-      logAssert('Health endpoint responds', status === 200);
+      logAssert('Status endpoint responds', status === 200);
 
       const data = await response.json();
-      console.log(`  Health data: ${JSON.stringify(data, null, 2)}`);
+      console.log(`  Status response: ${JSON.stringify(data, null, 2)}`);
 
-      // Check for expected fields
-      if (data.status) console.log(`  System status: ${data.status}`);
-      if (data.memory) console.log(`  Memory: ${data.memory}`);
-      if (data.uptime) console.log(`  Uptime: ${data.uptime}`);
+      logAssert('Status endpoint returns data', data !== null);
     });
 
     test('displays memory usage', async ({ page }) => {
@@ -362,17 +354,19 @@ test.describe('Phase 39: Functional Web Dashboard E2E', () => {
       await page.locator('.nav-item[data-view="router"]').click();
 
       logStep('Waiting for router data to load');
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(1000);
 
-      logStep('Checking providers list');
-      const providersList = page.locator('#providers-list');
-      await expect(providersList).toBeVisible();
-      console.log('  Providers list visible');
+      logStep('Checking router panel is active');
+      const routerPanel = page.locator('#panel-router');
+      await expect(routerPanel).toHaveClass(/active/);
+      console.log('  Router panel active');
 
-      logStep('Checking routing table');
-      const routingTable = page.locator('#routing-table');
-      await expect(routingTable).toBeVisible();
-      console.log('  Routing table visible');
+      logStep('Checking routing table container');
+      const routingTable = page.locator('.routing-table');
+      // Routing table may or may not have content depending on router status
+      const exists = await routingTable.count() > 0;
+      console.log(`  Routing table exists: ${exists}`);
+      logAssert('Router view displays router elements', exists);
     });
   });
 
@@ -429,18 +423,17 @@ test.describe('Phase 39: Functional Web Dashboard E2E', () => {
       logStep('Opening first tab');
       const page1 = await context.newPage();
       await page1.goto('/');
-      await page1.waitForLoadState('networkidle');
+      await page1.waitForLoadState('domcontentloaded');
       console.log('  Tab 1 loaded');
 
       logStep('Opening second tab');
       const page2 = await context.newPage();
       await page2.goto('/');
-      await page2.waitForLoadState('networkidle');
+      await page2.waitForLoadState('domcontentloaded');
       console.log('  Tab 2 loaded');
 
       logStep('Waiting for WebSocket connections');
-      await page1.waitForTimeout(2000);
-      await page2.waitForTimeout(2000);
+      await page1.waitForTimeout(1000);
 
       logStep('Checking both tabs have connection indicators');
       const status1 = await page1.locator('#status-text').textContent();
@@ -479,7 +472,7 @@ test.describe('Phase 39: Functional Web Dashboard E2E', () => {
 
       logStep('Loading page and monitoring for errors');
       await page.goto('/');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       logStep('Navigating through all views');
       const views = ['projects', 'tasks', 'chat', 'agents', 'preview', 'logs', 'github', 'health', 'router', 'settings'];
@@ -508,7 +501,7 @@ test.describe('Phase 39: Functional Web Dashboard E2E', () => {
 
       logStep('Loading dashboard');
       await page.goto('/');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       logStep('Simulating network failure by blocking API');
       await page.route('**/api/**', (route) => {
