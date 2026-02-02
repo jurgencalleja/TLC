@@ -64,6 +64,18 @@ tlc
 | `/tlc:bug` | Report a bug |
 | `tlc init` | Set up dev server |
 
+## Enterprise Features (v1.4+)
+
+| Command | Description |
+|---------|-------------|
+| `/tlc:workspace` | Multi-repo workspace management |
+| `/tlc:audit` | Audit logging with SIEM export |
+| `/tlc:retention` | Zero-data-retention mode |
+| `/tlc:sso` | SSO (OAuth/SAML) integration |
+| `/tlc:compliance` | SOC 2 compliance tooling |
+
+Enterprise features are opt-in and don't affect non-enterprise users.
+
 ## Documentation
 
 ### Wiki

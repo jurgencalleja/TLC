@@ -469,3 +469,133 @@ Archives milestone and prepares for next version.
 ```
 
 Creates new version cycle with fresh roadmap.
+
+---
+
+## Enterprise Features (v1.4+)
+
+### /tlc:workspace
+
+**Multi-repo workspace management**.
+
+```bash
+/tlc:workspace                    # Show workspace status
+/tlc:workspace --init             # Initialize workspace
+/tlc:workspace --add ../core      # Add repo to workspace
+/tlc:workspace --remove api       # Remove repo from workspace
+/tlc:workspace --test             # Run tests across all repos
+/tlc:workspace --graph            # Generate dependency graph
+/tlc:workspace --docs             # Generate workspace documentation
+```
+
+Features:
+- Cross-repo dependency tracking
+- Unified test runs
+- Shared memory across workspace
+- Per-repo README generation
+- Cross-repo flow diagrams
+
+### /tlc:audit
+
+**Audit logging management**.
+
+```bash
+/tlc:audit status                 # Show audit log status
+/tlc:audit query                  # Search audit logs
+/tlc:audit query --action write   # Filter by action type
+/tlc:audit query --user alice     # Filter by user
+/tlc:audit query --since 7d       # Last 7 days
+/tlc:audit export                 # Export to JSON
+/tlc:audit export --format splunk # Export to Splunk HEC format
+/tlc:audit export --format cef    # Export to CEF format
+```
+
+Action types:
+- `read` - File reads
+- `write` - File writes
+- `execute` - Command execution
+- `config` - Configuration changes
+- `auth` - Authentication events
+
+Logs are tamper-evident with blockchain-style SHA-256 chaining.
+
+### /tlc:retention
+
+**Zero-data-retention mode**.
+
+```bash
+/tlc:retention status             # Show retention status
+/tlc:retention enable             # Enable zero-retention mode
+/tlc:retention disable            # Disable zero-retention mode
+/tlc:retention purge              # Purge current session data
+/tlc:retention scan               # Scan for sensitive data
+```
+
+Features:
+- Ephemeral session storage (AES-256-GCM encrypted)
+- Auto-purge on session end
+- Sensitive data detection (API keys, passwords, tokens)
+- Memory exclusion patterns
+- HIPAA/PCI-DSS compliance support
+
+### /tlc:sso
+
+**SSO/authentication management**.
+
+```bash
+/tlc:sso status                   # Show SSO status
+/tlc:sso providers                # List configured providers
+/tlc:sso add github               # Add OAuth provider
+/tlc:sso add --saml okta          # Add SAML provider
+/tlc:sso remove github            # Remove provider
+/tlc:sso test github              # Test provider connection
+/tlc:sso roles                    # Show role mappings
+/tlc:sso mfa status               # Show MFA status
+/tlc:sso mfa setup                # Setup TOTP MFA
+```
+
+Supported providers:
+- OAuth 2.0: GitHub, Google, Azure AD, GitLab, Bitbucket
+- SAML 2.0: Okta, OneLogin, Azure AD, custom IdPs
+
+Features:
+- PKCE for secure authorization
+- Role mapping from IdP groups
+- TOTP MFA with backup codes
+- Session management and timeouts
+
+### /tlc:compliance
+
+**SOC 2 compliance tooling**.
+
+```bash
+/tlc:compliance status            # Show compliance score
+/tlc:compliance checklist         # Show SOC 2 checklist
+/tlc:compliance checklist --category security   # Filter by category
+/tlc:compliance evidence          # Collect compliance evidence
+/tlc:compliance report            # Generate compliance report
+/tlc:compliance report --format html   # PDF-ready HTML report
+/tlc:compliance policies          # Generate security policies
+/tlc:compliance gaps              # Show compliance gaps
+```
+
+Categories (SOC 2 Trust Service Criteria):
+- Security (CC1-CC9)
+- Availability (A1)
+- Processing Integrity (PI1)
+- Confidentiality (C1)
+- Privacy (P1-P8)
+
+Generated policies:
+- Access Control Policy
+- Data Protection Policy
+- Incident Response Policy
+- Authentication Policy
+- Acceptable Use Policy
+
+Evidence collection:
+- Audit logs with SHA-256 hashing
+- Access control snapshots
+- Configuration snapshots
+- Policy documents
+- All packaged as ZIP with verification hashes

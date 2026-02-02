@@ -124,3 +124,97 @@ Choose option 2 to change coverage settings.
 
 **Team mode not working?**
 Check that `TLC_USER` is set, or run `/tlc:config` to enable team mode.
+
+---
+
+## Enterprise Configuration (v1.4+)
+
+Enterprise features are opt-in. Configure via `/tlc:config --enterprise` or in `.tlc.json`:
+
+### Multi-Repo Workspace
+
+```json
+{
+  "workspace": {
+    "enabled": true,
+    "repos": ["../core", "../api", "../web"],
+    "sharedMemory": true
+  }
+}
+```
+
+### Audit Logging
+
+```json
+{
+  "audit": {
+    "enabled": true,
+    "storage": ".tlc/audit/",
+    "retention": "90d",
+    "siem": {
+      "enabled": true,
+      "format": "splunk",
+      "endpoint": "https://splunk.example.com/hec"
+    }
+  }
+}
+```
+
+### Zero-Data-Retention Mode
+
+```json
+{
+  "zeroRetention": {
+    "enabled": true,
+    "ephemeralStorage": true,
+    "autoPurge": true,
+    "sensitivePatterns": ["password", "api_key", "token"]
+  }
+}
+```
+
+### SSO Integration
+
+```json
+{
+  "sso": {
+    "enabled": true,
+    "providers": {
+      "github": {
+        "type": "oauth",
+        "clientId": "xxx",
+        "clientSecret": "xxx"
+      },
+      "okta": {
+        "type": "saml",
+        "entryPoint": "https://okta.example.com/sso",
+        "cert": "..."
+      }
+    },
+    "mfa": {
+      "required": true,
+      "methods": ["totp", "backup"]
+    },
+    "roleMapping": {
+      "admin-group": "admin",
+      "dev-group": "developer"
+    }
+  }
+}
+```
+
+### Compliance Settings
+
+```json
+{
+  "compliance": {
+    "enabled": true,
+    "framework": "soc2",
+    "evidenceDir": ".tlc/compliance/evidence/",
+    "reportFormat": "html",
+    "autoCollect": true
+  }
+}
+```
+
+Enterprise features don't affect non-enterprise users - they remain dormant unless explicitly enabled.
