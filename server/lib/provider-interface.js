@@ -146,6 +146,7 @@ export function createProvider(config) {
     headlessArgs: config.headlessArgs,
     pricing: config.pricing,
     detected: config.detected || false,
+    devserverOnly: config.devserverOnly,
     capabilities,
     run,
   };
