@@ -948,14 +948,125 @@ Enterprise-grade capabilities for large teams and compliance requirements.
 
 ---
 
-## Future Milestones (v1.x)
+## Milestone: v1.5 - Advanced AI
 
-### v1.5 - Advanced AI
-- [x] Parallel agent execution (Overdrive module - auto-detects independent tasks)
-- Agent orchestration dashboard
-- Model selection per agent
-- Cost optimization mode
-- Quality optimization mode
+Intelligent agent orchestration with model selection, cost optimization, and quality control.
+
+### Phase 32: Agent Registry & Lifecycle [ ]
+
+**Goal:** Central registry for managing agent instances, their state, and lifecycle.
+
+**Deliverables:**
+- [ ] Agent registry (register, list, get, remove agents)
+- [ ] Agent state machine (pending → running → completed/failed/cancelled)
+- [ ] Agent metadata (model, tokens, cost, duration)
+- [ ] Lifecycle hooks (onStart, onComplete, onError)
+- [ ] Agent persistence (resume after restart)
+- [ ] Agent cleanup (timeout, orphan detection)
+
+**Success Criteria:**
+- [ ] All running agents tracked in registry
+- [ ] Agents can be cancelled mid-execution
+- [ ] State persisted across session restarts
+
+---
+
+### Phase 33: Model Router [ ]
+
+**Goal:** Intelligent routing of tasks to appropriate models based on complexity and cost.
+
+**Deliverables:**
+- [ ] Task complexity analyzer (tokens, code vs prose, domain)
+- [ ] Model capability profiles (speed, quality, cost per token)
+- [ ] Routing rules engine (match task to model)
+- [ ] Fallback chain (primary → secondary → tertiary)
+- [ ] Model health monitoring (latency, error rates)
+- [ ] `/tlc:models` command (list, configure, test)
+
+**Success Criteria:**
+- [ ] Simple tasks route to fast/cheap models
+- [ ] Complex tasks route to capable models
+- [ ] Automatic fallback on model failure
+
+---
+
+### Phase 34: Cost Controller [ ]
+
+**Goal:** Budget management and cost optimization across all AI operations.
+
+**Deliverables:**
+- [ ] Real-time cost tracking (per agent, per session, per day)
+- [ ] Budget limits (hard stop, soft warning)
+- [ ] Cost projections (estimate before execution)
+- [ ] Optimization suggestions (cheaper alternatives)
+- [ ] Cost reports (by model, by operation type)
+- [ ] `/tlc:cost` command (status, budget, report)
+
+**Success Criteria:**
+- [ ] Never exceed configured budget
+- [ ] Users see cost before expensive operations
+- [ ] Historical cost data available
+
+---
+
+### Phase 35: Quality Gate [ ]
+
+**Goal:** Ensure output quality meets thresholds before accepting results.
+
+**Deliverables:**
+- [ ] Quality scoring (code style, test coverage, completeness)
+- [ ] Quality thresholds (per operation type)
+- [ ] Auto-retry with better model on quality failure
+- [ ] Quality history (track improvements over time)
+- [ ] Quality presets (fast, balanced, thorough)
+- [ ] `/tlc:quality-gate` command (configure, status)
+
+**Success Criteria:**
+- [ ] Low-quality outputs automatically retried
+- [ ] Quality scores visible in dashboard
+- [ ] Configurable per-project thresholds
+
+---
+
+### Phase 36: Agent Orchestration Dashboard [ ]
+
+**Goal:** Visual UI for monitoring and controlling AI agents.
+
+**Deliverables:**
+- [ ] AgentList component (running, queued, completed)
+- [ ] AgentDetail component (tokens, cost, logs, output)
+- [ ] AgentControls (pause, resume, cancel, retry)
+- [ ] CostMeter component (budget vs spent)
+- [ ] ModelSelector component (override routing)
+- [ ] QualityIndicator component (per-agent scores)
+
+**Success Criteria:**
+- [ ] Real-time agent status updates
+- [ ] Cancel/retry agents from UI
+- [ ] Cost visibility at a glance
+
+---
+
+### Phase 37: Orchestration Command [ ]
+
+**Goal:** CLI for agent management and AI operations control.
+
+**Deliverables:**
+- [ ] `/tlc:agents` - list running/queued/completed agents
+- [ ] `/tlc:agents cancel <id>` - cancel agent
+- [ ] `/tlc:agents retry <id>` - retry failed agent
+- [ ] `/tlc:agents logs <id>` - view agent output
+- [ ] `/tlc:optimize` - suggest cost/quality optimizations
+- [ ] Integration with existing TLC commands
+
+**Success Criteria:**
+- [ ] Full agent control from CLI
+- [ ] Consistent with existing TLC UX
+- [ ] Works alongside dashboard
+
+---
+
+## Future Milestones (v1.x)
 
 ### v1.6 - Ecosystem
 - MCP tool publishing
