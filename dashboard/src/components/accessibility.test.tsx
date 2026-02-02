@@ -60,7 +60,7 @@ describe('Accessibility', () => {
     });
 
     it('Input shows focus state', () => {
-      const { lastFrame } = render(<Input placeholder="Type here" isFocused={true} />);
+      const { lastFrame } = render(<Input placeholder="Type here" focus={true} />);
       expect(lastFrame()).toBeDefined();
     });
   });
