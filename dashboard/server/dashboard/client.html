@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Project Preview</title>
+  <style>
+    /* Mobile-first dark theme */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      height: 100vh;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      height: 50px;
+    }
+    .project-name {
+      font-weight: 600;
+      font-size: 16px;
+    }
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #3fb950;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #3fb950;
+    }
+
+    /* Preview iframe */
+    .preview-frame {
+      width: 100%;
+      height: calc(100vh - 50px);
+      border: none;
+      background: #0d1117;
+    }
+
+    /* Floating Action Button */
+    .fab {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #f85149;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .fab:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+    }
+    .fab:active {
+      transform: scale(0.95);
+    }
+    .fab.hidden {
+      transform: scale(0);
+      opacity: 0;
+    }
+
+    /* Overlay */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+      z-index: 150;
+    }
+    .overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* Slide-up panel */
+    .bug-panel {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #161b22;
+      border-top: 1px solid #30363d;
+      border-radius: 16px 16px 0 0;
+      padding: 20px;
+      padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+      z-index: 200;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    .bug-panel.open {
+      transform: translateY(0);
+    }
+
+    /* Panel drag handle */
+    .panel-handle {
+      width: 40px;
+      height: 4px;
+      background: #30363d;
+      border-radius: 2px;
+      margin: 0 auto 16px;
+    }
+
+    /* Panel header */
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .panel-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .panel-close {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: transparent;
+      color: #8b949e;
+      font-size: 24px;
+      cursor: pointer;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .panel-close:hover {
+      background: #21262d;
+      color: #e6edf3;
+    }
+
+    /* Form elements */
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: #8b949e;
+      margin-bottom: 8px;
+    }
+    .bug-panel input,
+    .bug-panel textarea,
+    .bug-panel select {
+      width: 100%;
+      padding: 12px 14px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #e6edf3;
+      font-size: 16px;
+      font-family: inherit;
+      transition: border-color 0.2s ease;
+    }
+    .bug-panel input:focus,
+    .bug-panel textarea:focus,
+    .bug-panel select:focus {
+      outline: none;
+      border-color: #58a6ff;
+    }
+    .bug-panel input::placeholder,
+    .bug-panel textarea::placeholder {
+      color: #484f58;
+    }
+    .bug-panel textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+    .bug-panel select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238b949e' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+    }
+
+    /* Severity indicator */
+    .severity-indicator {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .severity-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #8b949e;
+    }
+    .severity-dot.low { background: #8b949e; }
+    .severity-dot.medium { background: #58a6ff; }
+    .severity-dot.high { background: #f0883e; }
+    .severity-dot.critical { background: #f85149; }
+
+    /* Submit button */
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      background: #238636;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      margin-top: 8px;
+    }
+    .submit-btn:hover {
+      background: #2ea043;
+    }
+    .submit-btn:active {
+      background: #238636;
+    }
+    .submit-btn:disabled {
+      background: #21262d;
+      color: #484f58;
+      cursor: not-allowed;
+    }
+
+    /* Success/Error messages */
+    .message {
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .message.success {
+      display: block;
+      background: rgba(35, 134, 54, 0.2);
+      border: 1px solid #238636;
+      color: #3fb950;
+    }
+    .message.error {
+      display: block;
+      background: rgba(248, 81, 73, 0.2);
+      border: 1px solid #f85149;
+      color: #f85149;
+    }
+
+    /* Loading state */
+    .loading-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(13, 17, 23, 0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+    .loading-overlay.active {
+      display: flex;
+    }
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #30363d;
+      border-top-color: #58a6ff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Responsive adjustments for larger screens */
+    @media (min-width: 768px) {
+      .fab {
+        bottom: 32px;
+        right: 32px;
+        width: 64px;
+        height: 64px;
+        font-size: 28px;
+      }
+      .bug-panel {
+        max-width: 480px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100%);
+        border-radius: 16px;
+        bottom: 32px;
+      }
+      .bug-panel.open {
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+
+    /* Safe area for notched devices */
+    @supports (padding: env(safe-area-inset-bottom)) {
+      .fab {
+        bottom: calc(24px + env(safe-area-inset-bottom));
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="project-name" id="project-name">Loading...</div>
+    <div class="status">
+      <span class="status-dot"></span>
+      <span>Connected</span>
+    </div>
+  </header>
+
+  <iframe class="preview-frame" id="preview" src="/app" title="App Preview"></iframe>
+
+  <button class="fab" id="fab" onclick="openBugForm()" aria-label="Report a bug">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+      <path d="M9 9l-2-2M15 9l2-2M9 15l-2 2M15 15l2 2"/>
+    </svg>
+  </button>
+
+  <div class="overlay" id="overlay" onclick="closeBugForm()"></div>
+
+  <div class="bug-panel" id="bug-panel">
+    <div class="panel-handle"></div>
+    <div class="panel-header">
+      <h2 class="panel-title">Report an Issue</h2>
+      <button class="panel-close" onclick="closeBugForm()" aria-label="Close">&times;</button>
+    </div>
+
+    <div class="message" id="message"></div>
+
+    <form id="bug-form" onsubmit="submitBug(event)">
+      <div class="form-group">
+        <label class="form-label" for="bug-title">What went wrong?</label>
+        <input type="text" id="bug-title" placeholder="Brief description of the issue" required />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="bug-desc">Tell us more (optional)</label>
+        <textarea id="bug-desc" rows="4" placeholder="What were you trying to do? What happened instead?"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="bug-severity">How serious is this?</label>
+        <select id="bug-severity" onchange="updateSeverityIndicator()">
+          <option value="low">Minor - Small inconvenience</option>
+          <option value="medium" selected>Moderate - Affects my work</option>
+          <option value="high">Major - Blocks important tasks</option>
+          <option value="critical">Critical - App is broken</option>
+        </select>
+        <div class="severity-indicator">
+          <span class="severity-dot medium" id="severity-dot"></span>
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submit-btn">Submit Report</button>
+    </form>
+
+    <div class="loading-overlay" id="loading">
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <script>
+    // Load project name from /api/status
+    async function loadProjectName() {
+      try {
+        const response = await fetch('/api/status');
+        if (response.ok) {
+          const data = await response.json();
+          const name = data.projectName || data.project || data.name;
+          if (name) {
+            document.getElementById('project-name').textContent = name;
+            document.title = name + ' - Preview';
+          } else {
+            document.getElementById('project-name').textContent = 'Project Preview';
+          }
+        } else {
+          document.getElementById('project-name').textContent = 'Project Preview';
+        }
+      } catch (e) {
+        document.getElementById('project-name').textContent = 'Project Preview';
+      }
+    }
+    loadProjectName();
+
+    function openBugForm() {
+      document.getElementById('overlay').classList.add('open');
+      document.getElementById('bug-panel').classList.add('open');
+      document.getElementById('fab').classList.add('hidden');
+      // Focus first input after animation
+      setTimeout(() => {
+        document.getElementById('bug-title').focus();
+      }, 300);
+    }
+
+    function closeBugForm() {
+      document.getElementById('overlay').classList.remove('open');
+      document.getElementById('bug-panel').classList.remove('open');
+      document.getElementById('fab').classList.remove('hidden');
+      // Clear any error messages
+      hideMessage();
+    }
+
+    function showMessage(type, text) {
+      const msg = document.getElementById('message');
+      msg.className = 'message ' + type;
+      msg.textContent = text;
+    }
+
+    function hideMessage() {
+      const msg = document.getElementById('message');
+      msg.className = 'message';
+      msg.textContent = '';
+    }
+
+    function updateSeverityIndicator() {
+      const severity = document.getElementById('bug-severity').value;
+      const dot = document.getElementById('severity-dot');
+      dot.className = 'severity-dot ' + severity;
+    }
+
+    function setLoading(loading) {
+      document.getElementById('loading').classList.toggle('active', loading);
+      document.getElementById('submit-btn').disabled = loading;
+    }
+
+    async function submitBug(event) {
+      event.preventDefault();
+
+      const title = document.getElementById('bug-title').value.trim();
+      const description = document.getElementById('bug-desc').value.trim();
+      const severity = document.getElementById('bug-severity').value;
+
+      if (!title) {
+        showMessage('error', 'Please describe the issue');
+        return;
+      }
+
+      setLoading(true);
+      hideMessage();
+
+      try {
+        const body = description
+          ? title + '\n\n' + description
+          : title;
+
+        const res = await fetch('/api/bug', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            description: body,
+            severity: severity
+          })
+        });
+
+        if (res.ok) {
+          showMessage('success', 'Thank you! Your report has been submitted.');
+          document.getElementById('bug-title').value = '';
+          document.getElementById('bug-desc').value = '';
+          document.getElementById('bug-severity').value = 'medium';
+          updateSeverityIndicator();
+
+          // Close panel after showing success
+          setTimeout(() => {
+            closeBugForm();
+          }, 1500);
+        } else {
+          const error = await res.json().catch(() => ({}));
+          showMessage('error', error.error || 'Could not submit report. Please try again.');
+        }
+      } catch (e) {
+        showMessage('error', 'Connection error. Please check your network and try again.');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // Handle Escape key to close panel
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeBugForm();
+      }
+    });
+
+    // Prevent body scroll when panel is open
+    const bugPanel = document.getElementById('bug-panel');
+    bugPanel.addEventListener('touchmove', (e) => {
+      e.stopPropagation();
+    }, { passive: true });
+  </script>
+</body>
+</html>

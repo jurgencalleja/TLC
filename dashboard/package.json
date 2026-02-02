@@ -10,6 +10,7 @@
     "dev": "tsx src/index.tsx",
     "build": "tsc",
     "start": "node dist/index.js",
+    "server": "node server/index.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
@@ -17,6 +18,7 @@
   "dependencies": {
     "chalk": "^5.3.0",
     "dockerode": "^4.0.2",
+    "express": "^4.22.1",
     "ink": "^5.0.1",
     "ink-spinner": "^5.0.0",
     "ink-text-input": "^6.0.0",
@@ -32,6 +34,7 @@
     "ink-testing-library": "^4.0.0",
     "jsdom": "^27.4.0",
     "memfs": "^4.56.10",
+    "supertest": "^7.2.2",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "vitest": "^4.0.18"
