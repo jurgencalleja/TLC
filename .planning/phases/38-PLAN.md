@@ -214,7 +214,7 @@ Complete the Dashboard Refresh milestone by implementing missing components iden
 
 ---
 
-### Task 8: Accessibility Audit & Fixes [ ]
+### Task 8: Accessibility Audit & Fixes [x]
 
 **Goal:** Ensure WCAG 2.1 AA compliance
 
@@ -241,7 +241,7 @@ Complete the Dashboard Refresh milestone by implementing missing components iden
 
 ---
 
-### Task 9: Mobile Responsiveness [ ]
+### Task 9: Mobile Responsiveness [x]
 
 **Goal:** Ensure tablet and phone layouts work correctly
 
@@ -264,7 +264,7 @@ Complete the Dashboard Refresh milestone by implementing missing components iden
 
 ---
 
-### Task 10: Performance Optimization [ ]
+### Task 10: Performance Optimization [x]
 
 **Goal:** Meet <2s load time on 3G
 
@@ -308,4 +308,4 @@ Complete the Dashboard Refresh milestone by implementing missing components iden
 
 - Tasks: 10
 - Files: ~30
-- Tests: ~120 (estimated)
+- Tests: 188 (actual)
