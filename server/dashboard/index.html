@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TLC Dev Server</title>
+  <title>TLC Dashboard</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -14,528 +14,855 @@
       overflow: hidden;
     }
 
+    /* Main Layout - Coolify Style */
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* Header */
     .header {
       background: #161b22;
-      padding: 12px 20px;
+      padding: 8px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       border-bottom: 1px solid #30363d;
+      height: 48px;
     }
-    .header h1 {
-      font-size: 18px;
-      color: #58a6ff;
+    .header-left {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 16px;
     }
-    .header h1 .logo {
+    .logo {
       font-family: monospace;
-      font-size: 16px;
-      color: #7ee787;
+      font-size: 18px;
       font-weight: bold;
+      color: #7ee787;
     }
-    .header .status {
+    .header-title {
+      font-size: 14px;
+      color: #8b949e;
+    }
+    .header-subtitle {
+      color: #58a6ff;
+      font-weight: 500;
+    }
+    .header-right {
       display: flex;
-      gap: 12px;
       align-items: center;
+      gap: 12px;
     }
-    .header .status .dot {
+    .connection-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+    }
+    .status-dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
     }
-    .header .status .dot.running { background: #3fb950; }
-    .header .status .dot.stopped { background: #f85149; }
-    .header .phase-badge {
-      padding: 4px 10px;
-      background: #238636;
-      border-radius: 12px;
+    .status-dot.connected { background: #3fb950; }
+    .status-dot.disconnected { background: #f85149; }
+    .version {
       font-size: 12px;
-      font-weight: 500;
+      color: #6e7681;
     }
 
+    /* Main Container */
     .container {
-      display: grid;
-      grid-template-columns: 1fr 300px;
-      height: calc(100vh - 54px);
-    }
-
-    .main-content {
       display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .tabs {
-      display: flex;
-      gap: 0;
-      background: #161b22;
-      border-bottom: 1px solid #30363d;
-    }
-    .tab {
-      padding: 12px 20px;
-      background: transparent;
-      border: none;
-      color: #8b949e;
-      cursor: pointer;
-      font-size: 14px;
-      border-bottom: 2px solid transparent;
-      transition: all 0.2s;
-    }
-    .tab:hover {
-      color: #e6edf3;
-      background: #21262d;
-    }
-    .tab.active {
-      color: #58a6ff;
-      border-bottom-color: #58a6ff;
-    }
-    .tab .badge {
-      background: #f85149;
-      color: white;
-      padding: 2px 6px;
-      border-radius: 10px;
-      font-size: 11px;
-      margin-left: 6px;
-    }
-
-    .tab-content {
       flex: 1;
       overflow: hidden;
     }
-    .tab-panel {
-      display: none;
-      height: 100%;
-      overflow-y: auto;
-      padding: 20px;
-    }
-    .tab-panel.active {
-      display: block;
-    }
 
-    /* Plan Panel */
-    .plan-content {
-      font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-      font-size: 13px;
-      line-height: 1.6;
-      white-space: pre-wrap;
+    /* Sidebar - Coolify Style */
+    .sidebar {
+      width: 200px;
+      background: #161b22;
+      border-right: 1px solid #30363d;
+      display: flex;
+      flex-direction: column;
+      transition: width 0.2s;
     }
-    .plan-content h1, .plan-content h2, .plan-content h3 {
-      font-family: system-ui, sans-serif;
-      color: #58a6ff;
-      margin: 20px 0 10px 0;
+    .sidebar.collapsed {
+      width: 56px;
     }
-    .plan-content h1 { font-size: 20px; }
-    .plan-content h2 { font-size: 16px; }
-    .plan-content h3 { font-size: 14px; }
-    .plan-content .task-done { color: #3fb950; }
-    .plan-content .task-working { color: #58a6ff; }
-    .plan-content .task-todo { color: #8b949e; }
-
-    /* Tests Panel */
-    .test-section {
-      margin-bottom: 30px;
-    }
-    .test-section h3 {
-      font-size: 14px;
-      color: #58a6ff;
-      margin-bottom: 15px;
-      padding-bottom: 8px;
+    .sidebar-header {
+      padding: 16px;
       border-bottom: 1px solid #30363d;
     }
-    .test-item {
-      padding: 12px 15px;
-      background: #161b22;
-      border-radius: 6px;
-      margin-bottom: 8px;
+    .sidebar-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #58a6ff;
+    }
+    .sidebar.collapsed .sidebar-title {
+      display: none;
+    }
+    .nav-items {
+      flex: 1;
+      padding: 8px;
+      overflow-y: auto;
+    }
+    .nav-item {
       display: flex;
       align-items: center;
       gap: 12px;
-    }
-    .test-item .checkbox {
-      width: 18px;
-      height: 18px;
-      border: 2px solid #30363d;
-      border-radius: 4px;
+      padding: 10px 12px;
+      border-radius: 6px;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .test-item .checkbox.checked {
-      background: #238636;
-      border-color: #238636;
-    }
-    .test-item .checkbox.checked::after {
-      content: '✓';
-      color: white;
-      font-size: 12px;
-    }
-    .test-item .text {
-      flex: 1;
-    }
-    .test-actions {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    /* Bugs Panel */
-    .bug-item {
-      padding: 15px;
-      background: #161b22;
-      border-radius: 6px;
-      margin-bottom: 10px;
-      border-left: 3px solid #f85149;
-    }
-    .bug-item.closed {
-      border-left-color: #3fb950;
-      opacity: 0.6;
-    }
-    .bug-item .bug-header {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 8px;
-    }
-    .bug-item .bug-id {
-      font-weight: bold;
-      color: #f85149;
-    }
-    .bug-item.closed .bug-id { color: #3fb950; }
-    .bug-item .bug-date {
       color: #8b949e;
-      font-size: 12px;
+      transition: all 0.15s;
+      margin-bottom: 2px;
     }
-    .bug-item .bug-desc {
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    .bug-form {
-      background: #161b22;
-      padding: 20px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-    }
-    .bug-form h3 {
-      font-size: 14px;
-      margin-bottom: 15px;
-      color: #e6edf3;
-    }
-    .bug-form textarea {
-      width: 100%;
-      height: 80px;
-      padding: 10px;
-      background: #0d1117;
-      border: 1px solid #30363d;
-      border-radius: 6px;
-      color: #e6edf3;
-      resize: vertical;
-      margin-bottom: 10px;
-      font-family: inherit;
-      font-size: 14px;
-    }
-    .bug-form textarea:focus {
-      outline: none;
-      border-color: #58a6ff;
-    }
-    .bug-form select {
-      padding: 8px 12px;
+    .nav-item:hover {
       background: #21262d;
-      border: 1px solid #30363d;
-      border-radius: 6px;
       color: #e6edf3;
-      margin-right: 10px;
     }
-    .image-drop-zone {
-      border: 2px dashed #30363d;
-      border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 10px;
+    .nav-item.active {
+      background: #1f6feb;
+      color: white;
+    }
+    .nav-item .icon {
+      font-size: 16px;
+      width: 24px;
       text-align: center;
-      cursor: pointer;
-      transition: all 0.2s;
-      min-height: 60px;
     }
-    .image-drop-zone:hover, .image-drop-zone.dragover {
-      border-color: #58a6ff;
-      background: rgba(88, 166, 255, 0.1);
-    }
-    .image-drop-zone .drop-hint {
-      color: #8b949e;
+    .nav-item .label {
+      flex: 1;
       font-size: 13px;
     }
-    .image-previews {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-    }
-    .image-preview {
-      position: relative;
-      width: 80px;
-      height: 80px;
-      border-radius: 6px;
-      overflow: hidden;
-      border: 1px solid #30363d;
-    }
-    .image-preview img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .image-preview .remove-btn {
-      position: absolute;
-      top: 2px;
-      right: 2px;
-      width: 20px;
-      height: 20px;
-      background: rgba(248, 81, 73, 0.9);
-      border: none;
-      border-radius: 50%;
-      color: white;
-      cursor: pointer;
-      font-size: 12px;
-      line-height: 18px;
-    }
-    .image-preview .remove-btn:hover {
-      background: #f85149;
-    }
-
-    /* Logs Panel */
-    .logs-tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 15px;
-    }
-    .logs-tabs button {
-      padding: 6px 14px;
+    .nav-item .shortcut {
+      font-size: 11px;
+      color: #6e7681;
+      padding: 2px 6px;
       background: #21262d;
-      border: 1px solid #30363d;
       border-radius: 4px;
-      color: #8b949e;
-      cursor: pointer;
-      font-size: 12px;
     }
-    .logs-tabs button.active {
-      background: #30363d;
-      color: #e6edf3;
-      border-color: #58a6ff;
+    .nav-item.active .shortcut {
+      background: rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.8);
     }
-    .logs-content {
-      background: #010409;
-      border-radius: 6px;
-      padding: 15px;
-      font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-      font-size: 12px;
-      line-height: 1.6;
-      height: calc(100% - 60px);
-      overflow-y: auto;
+    .sidebar.collapsed .nav-item .label,
+    .sidebar.collapsed .nav-item .shortcut {
+      display: none;
     }
-    .log-line { padding: 2px 0; white-space: pre-wrap; word-break: break-word; }
-    .log-line.error { color: #f85149; }
-    .log-line.success { color: #3fb950; }
-    .log-line.info { color: #58a6ff; }
-    .log-line.warn { color: #d29922; }
+    .sidebar-footer {
+      padding: 12px;
+      border-top: 1px solid #30363d;
+      font-size: 11px;
+      color: #6e7681;
+    }
+    .sidebar.collapsed .sidebar-footer span {
+      display: none;
+    }
 
-    /* Changelog Panel */
-    .commit {
-      padding: 15px;
-      background: #161b22;
-      border-radius: 6px;
-      margin-bottom: 10px;
-      display: flex;
-      gap: 15px;
-    }
-    .commit .hash {
-      font-family: monospace;
-      color: #58a6ff;
-      font-size: 12px;
-    }
-    .commit .message {
+    /* Main Content */
+    .main {
       flex: 1;
-    }
-    .commit .message .title {
-      font-weight: 500;
-      margin-bottom: 4px;
-    }
-    .commit .message .meta {
-      font-size: 12px;
-      color: #8b949e;
-    }
-
-    /* Sidebar */
-    .sidebar {
-      background: #161b22;
-      border-left: 1px solid #30363d;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
     }
 
-    .sidebar-section {
-      padding: 20px;
+    /* View Header */
+    .view-header {
+      padding: 12px 20px;
       border-bottom: 1px solid #30363d;
+      background: #0d1117;
     }
-    .sidebar-section h3 {
-      font-size: 11px;
-      text-transform: uppercase;
-      color: #8b949e;
-      margin-bottom: 15px;
-      letter-spacing: 0.5px;
+    .view-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #58a6ff;
+    }
+    .breadcrumb {
+      color: #6e7681;
+      font-size: 14px;
     }
 
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
+    /* View Content */
+    .view-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
     }
-    .stat {
+
+    /* Footer */
+    .footer {
+      padding: 8px 16px;
+      background: #161b22;
+      border-top: 1px solid #30363d;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #6e7681;
+    }
+
+    /* Panels - Hidden by default */
+    .panel {
+      display: none;
+      height: 100%;
+    }
+    .panel.active {
+      display: block;
+    }
+
+    /* Projects View */
+    .project-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .project-card:hover {
+      border-color: #58a6ff;
+    }
+    .project-name {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .project-desc {
+      color: #8b949e;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    .project-stats {
+      display: flex;
+      gap: 24px;
+    }
+    .project-stat {
       text-align: center;
-      padding: 15px 10px;
-      background: #0d1117;
-      border-radius: 6px;
     }
-    .stat-value {
+    .project-stat-value {
       font-size: 24px;
       font-weight: bold;
-      font-variant-numeric: tabular-nums;
     }
-    .stat-value.green { color: #3fb950; }
-    .stat-value.red { color: #f85149; }
-    .stat-value.blue { color: #58a6ff; }
-    .stat-value.yellow { color: #d29922; }
-    .stat-label {
-      font-size: 10px;
+    .project-stat-value.green { color: #3fb950; }
+    .project-stat-value.red { color: #f85149; }
+    .project-stat-value.blue { color: #58a6ff; }
+    .project-stat-label {
+      font-size: 11px;
       color: #8b949e;
       text-transform: uppercase;
-      margin-top: 4px;
     }
-
-    .quick-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .action-btn {
-      padding: 10px 15px;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.2s;
-    }
-    .action-btn.primary {
+    .phase-badge {
+      display: inline-block;
+      padding: 4px 12px;
       background: #238636;
-      color: white;
-    }
-    .action-btn.primary:hover { background: #2ea043; }
-    .action-btn.secondary {
-      background: #21262d;
-      color: #e6edf3;
-      border: 1px solid #30363d;
-    }
-    .action-btn.secondary:hover { background: #30363d; }
-    .action-btn .icon { font-size: 16px; }
-
-    .links {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .link {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px;
-      background: #0d1117;
-      border-radius: 6px;
-      text-decoration: none;
-      color: #e6edf3;
-      font-size: 13px;
-    }
-    .link:hover {
-      background: #21262d;
-    }
-    .link .url {
-      color: #8b949e;
-      font-family: monospace;
-      font-size: 11px;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 40px;
-      color: #8b949e;
-    }
-    .empty-state .icon {
-      font-size: 48px;
-      margin-bottom: 15px;
-      opacity: 0.5;
-    }
-
-    /* App Preview */
-    .app-preview-container {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-    .app-preview-toolbar {
-      display: flex;
-      gap: 10px;
-      padding: 10px 0;
-      align-items: center;
-      border-bottom: 1px solid #30363d;
-      margin-bottom: 10px;
-    }
-    .app-preview-toolbar .app-url {
-      margin-left: auto;
-      font-family: monospace;
+      border-radius: 12px;
       font-size: 12px;
-      color: #8b949e;
-    }
-    .app-iframe {
-      flex: 1;
-      border: 1px solid #30363d;
-      border-radius: 8px;
-      background: white;
-      width: 100%;
-      min-height: 500px;
-    }
-
-    /* Progress Bar */
-    .progress-container {
-      margin-bottom: 20px;
-    }
-    .progress-header {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 8px;
-      font-size: 13px;
-    }
-    .progress-header .phase-name {
-      color: #58a6ff;
-      font-weight: 500;
-    }
-    .progress-header .progress-pct {
-      color: #3fb950;
+      margin-bottom: 16px;
     }
     .progress-bar {
       height: 8px;
       background: #21262d;
       border-radius: 4px;
       overflow: hidden;
+      margin-top: 16px;
     }
     .progress-fill {
       height: 100%;
       background: linear-gradient(90deg, #238636, #3fb950);
       border-radius: 4px;
-      transition: width 0.3s ease;
+      transition: width 0.3s;
     }
+
+    /* Tasks View */
+    .task-board {
+      display: flex;
+      gap: 16px;
+    }
+    .task-column {
+      flex: 1;
+      min-width: 250px;
+    }
+    .task-column-header {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #8b949e;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #30363d;
+    }
+    .task-column-header.pending { border-color: #6e7681; }
+    .task-column-header.in-progress { border-color: #58a6ff; }
+    .task-column-header.completed { border-color: #3fb950; }
+    .task-item {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+    .task-item:hover {
+      border-color: #58a6ff;
+    }
+    .task-title {
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    .task-meta {
+      font-size: 11px;
+      color: #6e7681;
+    }
+
+    /* Chat View */
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+    .chat-message {
+      margin-bottom: 16px;
+    }
+    .chat-message.user .chat-bubble {
+      background: #1f6feb;
+      margin-left: 40px;
+    }
+    .chat-message.assistant .chat-bubble {
+      background: #21262d;
+      margin-right: 40px;
+    }
+    .chat-bubble {
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .chat-input-container {
+      padding: 16px;
+      border-top: 1px solid #30363d;
+    }
+    .chat-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      color: #e6edf3;
+      font-size: 14px;
+      resize: none;
+    }
+    .chat-input:focus {
+      outline: none;
+      border-color: #58a6ff;
+    }
+
+    /* Agents View */
+    .agent-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    .agent-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .agent-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .agent-name {
+      font-weight: 600;
+    }
+    .agent-status {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    .agent-status.running {
+      background: rgba(63, 185, 80, 0.2);
+      color: #3fb950;
+    }
+    .agent-status.idle {
+      background: rgba(139, 148, 158, 0.2);
+      color: #8b949e;
+    }
+    .agent-task {
+      font-size: 13px;
+      color: #8b949e;
+      margin-bottom: 8px;
+    }
+    .agent-progress {
+      height: 4px;
+      background: #21262d;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .agent-progress-fill {
+      height: 100%;
+      background: #58a6ff;
+    }
+
+    /* Preview View */
+    .preview-container {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    .preview-toolbar {
+      display: flex;
+      gap: 8px;
+      padding: 12px 0;
+      border-bottom: 1px solid #30363d;
+      align-items: center;
+    }
+    .preview-url {
+      flex: 1;
+      text-align: right;
+      font-family: monospace;
+      font-size: 12px;
+      color: #8b949e;
+    }
+    .preview-iframe {
+      flex: 1;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      background: white;
+      margin-top: 12px;
+    }
+
+    /* Logs View */
+    .logs-container {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    .logs-filter {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .logs-filter button {
+      padding: 6px 12px;
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 4px;
+      color: #8b949e;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .logs-filter button.active {
+      background: #30363d;
+      color: #e6edf3;
+      border-color: #58a6ff;
+    }
+    .logs-output {
+      flex: 1;
+      background: #010409;
+      border-radius: 6px;
+      padding: 16px;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      overflow-y: auto;
+    }
+    .log-line { padding: 2px 0; white-space: pre-wrap; }
+    .log-line.error { color: #f85149; }
+    .log-line.success { color: #3fb950; }
+    .log-line.info { color: #58a6ff; }
+    .log-line.warn { color: #d29922; }
+
+    /* GitHub View */
+    .github-section {
+      margin-bottom: 24px;
+    }
+    .github-section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #58a6ff;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #30363d;
+    }
+    .commit-item, .pr-item {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 8px;
+    }
+    .commit-hash {
+      font-family: monospace;
+      font-size: 12px;
+      color: #58a6ff;
+    }
+    .commit-message {
+      margin-top: 4px;
+    }
+    .commit-meta {
+      font-size: 11px;
+      color: #6e7681;
+      margin-top: 8px;
+    }
+
+    /* Health View */
+    .health-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .health-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+    .health-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+    .health-metric {
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    .health-metric.good { color: #3fb950; }
+    .health-metric.warning { color: #d29922; }
+    .health-metric.bad { color: #f85149; }
+    .health-label {
+      font-size: 12px;
+      color: #8b949e;
+      text-transform: uppercase;
+    }
+    .services-list {
+      margin-top: 24px;
+    }
+    .service-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+    .service-name {
+      font-weight: 500;
+    }
+    .service-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+    .service-status.running { color: #3fb950; }
+    .service-status.stopped { color: #f85149; }
+
+    /* Router View */
+    .router-section {
+      margin-bottom: 24px;
+    }
+    .router-section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #58a6ff;
+      margin-bottom: 12px;
+    }
+    .provider-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+    .provider-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .provider-indicator.healthy { background: #3fb950; }
+    .provider-indicator.unhealthy { background: #f85149; }
+    .provider-name {
+      font-weight: 500;
+      min-width: 100px;
+    }
+    .provider-version {
+      color: #6e7681;
+      font-size: 12px;
+      min-width: 80px;
+    }
+    .provider-badge {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+    .provider-badge.local {
+      background: rgba(63, 185, 80, 0.2);
+      color: #3fb950;
+    }
+    .provider-badge.devserver {
+      background: rgba(210, 153, 34, 0.2);
+      color: #d29922;
+    }
+    .routing-table {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .routing-row {
+      display: flex;
+      padding: 10px 16px;
+      border-bottom: 1px solid #30363d;
+    }
+    .routing-row:last-child {
+      border-bottom: none;
+    }
+    .routing-capability {
+      min-width: 120px;
+      font-weight: 500;
+    }
+    .routing-providers {
+      color: #8b949e;
+    }
+    .routing-providers .local { color: #3fb950; }
+    .routing-providers .devserver { color: #d29922; }
+
+    /* Settings View */
+    .settings-section {
+      margin-bottom: 32px;
+    }
+    .settings-section-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #30363d;
+    }
+    .settings-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+    }
+    .settings-label {
+      color: #e6edf3;
+    }
+    .settings-desc {
+      font-size: 12px;
+      color: #6e7681;
+      margin-top: 4px;
+    }
+    .settings-value {
+      color: #8b949e;
+      font-family: monospace;
+      font-size: 13px;
+    }
+    .quick-links {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .quick-link {
+      padding: 8px 16px;
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #8b949e;
+      text-decoration: none;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .quick-link:hover {
+      background: #30363d;
+      color: #e6edf3;
+    }
+    .quick-link kbd {
+      background: #161b22;
+      padding: 2px 6px;
+      border-radius: 3px;
+      margin-right: 8px;
+    }
+
+    /* Command Palette */
+    .command-palette-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 100px;
+    }
+    .command-palette-overlay.active {
+      display: flex;
+    }
+    .command-palette {
+      width: 600px;
+      max-width: 90vw;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+      overflow: hidden;
+    }
+    .command-palette-input {
+      width: 100%;
+      padding: 16px 20px;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid #30363d;
+      color: #e6edf3;
+      font-size: 16px;
+    }
+    .command-palette-input:focus {
+      outline: none;
+    }
+    .command-palette-results {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .command-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      cursor: pointer;
+    }
+    .command-item:hover, .command-item.selected {
+      background: #21262d;
+    }
+    .command-name {
+      font-size: 14px;
+    }
+    .command-desc {
+      font-size: 12px;
+      color: #6e7681;
+    }
+    .command-shortcut {
+      font-size: 11px;
+      padding: 2px 6px;
+      background: #21262d;
+      border-radius: 4px;
+      color: #8b949e;
+    }
+
+    /* Help Modal */
+    .help-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .help-overlay.active {
+      display: flex;
+    }
+    .help-modal {
+      width: 500px;
+      max-width: 90vw;
+      max-height: 80vh;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .help-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid #30363d;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .help-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #d29922;
+    }
+    .help-close {
+      background: none;
+      border: none;
+      color: #8b949e;
+      cursor: pointer;
+      font-size: 20px;
+    }
+    .help-content {
+      padding: 20px;
+      overflow-y: auto;
+      max-height: calc(80vh - 60px);
+    }
+    .help-section {
+      margin-bottom: 20px;
+    }
+    .help-section-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: #8b949e;
+      margin-bottom: 12px;
+    }
+    .shortcut-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+    }
+    .shortcut-keys {
+      font-family: monospace;
+      background: #21262d;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .shortcut-desc {
+      color: #8b949e;
+      font-size: 13px;
+    }
+
+    /* Usage Stats Panel */
+    .usage-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    .usage-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .usage-label {
+      font-size: 12px;
+      color: #8b949e;
+      margin-bottom: 8px;
+    }
+    .usage-value {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .usage-value.cost { color: #d29922; }
 
     /* Buttons */
     .btn {
@@ -545,6 +872,7 @@
       cursor: pointer;
       font-size: 13px;
       font-weight: 500;
+      transition: all 0.15s;
     }
     .btn-primary {
       background: #238636;
@@ -557,234 +885,635 @@
       border: 1px solid #30363d;
     }
     .btn-secondary:hover { background: #30363d; }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #6e7681;
+    }
+    .empty-state .icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+    .empty-state p {
+      font-size: 14px;
+    }
+
+    /* Split View for Router */
+    .split-view {
+      display: flex;
+      gap: 24px;
+    }
+    .split-view > div {
+      flex: 1;
+    }
   </style>
 </head>
 <body>
-  <div class="header">
-    <h1>
-      <span class="logo">TLC</span>
-      Dev Server
-    </h1>
-    <div class="status">
-      <span class="phase-badge" id="phase-badge">Phase 1</span>
-      <span class="dot" id="status-dot"></span>
-      <span id="status-text">Connecting...</span>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <span class="logo">TLC</span>
+        <span class="header-title">Dashboard</span>
+        <span class="header-subtitle" id="current-view-title">Projects</span>
+      </div>
+      <div class="header-right">
+        <div class="connection-status">
+          <span class="status-dot" id="status-dot"></span>
+          <span id="status-text">Connecting...</span>
+        </div>
+        <span style="color: #30363d">|</span>
+        <span class="version">v1.4.2</span>
+      </div>
+    </header>
+
+    <div class="container">
+      <!-- Sidebar -->
+      <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <span class="sidebar-title">TLC</span>
+        </div>
+        <div class="nav-items">
+          <div class="nav-item active" data-view="projects" onclick="switchView('projects')">
+            <span class="icon">📁</span>
+            <span class="label">Projects</span>
+            <span class="shortcut">1</span>
+          </div>
+          <div class="nav-item" data-view="tasks" onclick="switchView('tasks')">
+            <span class="icon">📋</span>
+            <span class="label">Tasks</span>
+            <span class="shortcut">2</span>
+          </div>
+          <div class="nav-item" data-view="chat" onclick="switchView('chat')">
+            <span class="icon">💬</span>
+            <span class="label">Chat</span>
+            <span class="shortcut">3</span>
+          </div>
+          <div class="nav-item" data-view="agents" onclick="switchView('agents')">
+            <span class="icon">🤖</span>
+            <span class="label">Agents</span>
+            <span class="shortcut">4</span>
+          </div>
+          <div class="nav-item" data-view="preview" onclick="switchView('preview')">
+            <span class="icon">👁</span>
+            <span class="label">Preview</span>
+            <span class="shortcut">5</span>
+          </div>
+          <div class="nav-item" data-view="logs" onclick="switchView('logs')">
+            <span class="icon">📜</span>
+            <span class="label">Logs</span>
+            <span class="shortcut">6</span>
+          </div>
+          <div class="nav-item" data-view="github" onclick="switchView('github')">
+            <span class="icon">🐙</span>
+            <span class="label">GitHub</span>
+            <span class="shortcut">7</span>
+          </div>
+          <div class="nav-item" data-view="health" onclick="switchView('health')">
+            <span class="icon">💚</span>
+            <span class="label">Health</span>
+            <span class="shortcut">8</span>
+          </div>
+          <div class="nav-item" data-view="router" onclick="switchView('router')">
+            <span class="icon">🔀</span>
+            <span class="label">Router</span>
+            <span class="shortcut">9</span>
+          </div>
+          <div class="nav-item" data-view="settings" onclick="switchView('settings')">
+            <span class="icon">⚙️</span>
+            <span class="label">Settings</span>
+            <span class="shortcut">0</span>
+          </div>
+        </div>
+        <div class="sidebar-footer">
+          <span>Ctrl+K: Commands | ?: Help</span>
+        </div>
+      </nav>
+
+      <!-- Main Content -->
+      <main class="main">
+        <div class="view-header">
+          <span class="view-title" id="view-title">📁 Projects</span>
+        </div>
+        <div class="view-content">
+
+          <!-- Projects Panel -->
+          <div class="panel active" id="panel-projects">
+            <div class="project-card" id="project-card">
+              <div class="project-name" id="project-name">TLC</div>
+              <div class="project-desc" id="project-desc">Test-Led Coding framework</div>
+              <span class="phase-badge" id="phase-badge">Phase 33: Multi-Model Router</span>
+              <div class="project-stats">
+                <div class="project-stat">
+                  <div class="project-stat-value green" id="stat-passing">0</div>
+                  <div class="project-stat-label">Passing</div>
+                </div>
+                <div class="project-stat">
+                  <div class="project-stat-value red" id="stat-failing">0</div>
+                  <div class="project-stat-label">Failing</div>
+                </div>
+                <div class="project-stat">
+                  <div class="project-stat-value blue" id="stat-coverage">0%</div>
+                  <div class="project-stat-label">Coverage</div>
+                </div>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 82%"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tasks Panel -->
+          <div class="panel" id="panel-tasks">
+            <div class="task-board">
+              <div class="task-column">
+                <div class="task-column-header pending">Pending</div>
+                <div id="tasks-pending"></div>
+              </div>
+              <div class="task-column">
+                <div class="task-column-header in-progress">In Progress</div>
+                <div id="tasks-in-progress"></div>
+              </div>
+              <div class="task-column">
+                <div class="task-column-header completed">Completed</div>
+                <div id="tasks-completed"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat Panel -->
+          <div class="panel" id="panel-chat">
+            <div class="chat-container">
+              <div class="chat-messages" id="chat-messages">
+                <div class="empty-state">
+                  <div class="icon">💬</div>
+                  <p>Chat with Claude about your project</p>
+                </div>
+              </div>
+              <div class="chat-input-container">
+                <textarea class="chat-input" placeholder="Type a message... (Enter to send)" rows="3" id="chat-input"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Agents Panel -->
+          <div class="panel" id="panel-agents">
+            <div class="agent-grid" id="agents-grid">
+              <div class="empty-state">
+                <div class="icon">🤖</div>
+                <p>No active agents</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Preview Panel -->
+          <div class="panel" id="panel-preview">
+            <div class="preview-container">
+              <div class="preview-toolbar">
+                <button class="btn btn-secondary" onclick="reloadPreview()">🔄 Reload</button>
+                <button class="btn btn-secondary" onclick="openInNewTab()">↗️ Open in New Tab</button>
+                <button class="btn btn-primary" onclick="captureScreenshot()">📸 Screenshot</button>
+                <span class="preview-url" id="preview-url">localhost:5001</span>
+              </div>
+              <iframe class="preview-iframe" id="preview-iframe" src="/app"></iframe>
+            </div>
+          </div>
+
+          <!-- Logs Panel -->
+          <div class="panel" id="panel-logs">
+            <div class="logs-container">
+              <div class="logs-filter">
+                <button class="active" data-logtype="app" onclick="showLogs('app')">App</button>
+                <button data-logtype="test" onclick="showLogs('test')">Tests</button>
+                <button data-logtype="git" onclick="showLogs('git')">Git</button>
+                <button data-logtype="system" onclick="showLogs('system')">System</button>
+              </div>
+              <div class="logs-output" id="logs-output"></div>
+            </div>
+          </div>
+
+          <!-- GitHub Panel -->
+          <div class="panel" id="panel-github">
+            <div class="github-section">
+              <div class="github-section-title">Recent Commits</div>
+              <div id="commits-list"></div>
+            </div>
+            <div class="github-section">
+              <div class="github-section-title">Pull Requests</div>
+              <div id="prs-list">
+                <div class="empty-state">
+                  <div class="icon">🔀</div>
+                  <p>No open pull requests</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Health Panel -->
+          <div class="panel" id="panel-health">
+            <div class="health-grid">
+              <div class="health-card">
+                <div class="health-icon">💚</div>
+                <div class="health-metric good" id="health-status">Healthy</div>
+                <div class="health-label">System Status</div>
+              </div>
+              <div class="health-card">
+                <div class="health-icon">🧠</div>
+                <div class="health-metric" id="health-memory">0 MB</div>
+                <div class="health-label">Memory</div>
+              </div>
+              <div class="health-card">
+                <div class="health-icon">⚡</div>
+                <div class="health-metric" id="health-cpu">0%</div>
+                <div class="health-label">CPU</div>
+              </div>
+              <div class="health-card">
+                <div class="health-icon">💾</div>
+                <div class="health-metric" id="health-disk">0%</div>
+                <div class="health-label">Disk</div>
+              </div>
+            </div>
+            <div class="services-list">
+              <h3 style="margin-bottom: 16px; color: #58a6ff;">Services</h3>
+              <div id="services-list"></div>
+            </div>
+          </div>
+
+          <!-- Router Panel -->
+          <div class="panel" id="panel-router">
+            <div class="split-view">
+              <div>
+                <div class="router-section">
+                  <div class="router-section-title">Providers</div>
+                  <div id="providers-list"></div>
+                </div>
+                <div class="router-section">
+                  <div class="router-section-title">Devserver</div>
+                  <div id="devserver-status">
+                    <div class="provider-row">
+                      <span class="provider-indicator unhealthy"></span>
+                      <span>Not configured - run </span>
+                      <code style="color: #58a6ff;">tlc router setup</code>
+                    </div>
+                  </div>
+                </div>
+                <div class="router-section">
+                  <div class="router-section-title">Routing Table</div>
+                  <div class="routing-table" id="routing-table"></div>
+                </div>
+              </div>
+              <div>
+                <div class="router-section">
+                  <div class="router-section-title">Usage Statistics</div>
+                  <div class="usage-grid">
+                    <div class="usage-card">
+                      <div class="usage-label">Requests Today</div>
+                      <div class="usage-value" id="usage-requests">0</div>
+                    </div>
+                    <div class="usage-card">
+                      <div class="usage-label">Tokens Used</div>
+                      <div class="usage-value" id="usage-tokens">0</div>
+                    </div>
+                    <div class="usage-card">
+                      <div class="usage-label">Local Requests</div>
+                      <div class="usage-value" style="color: #3fb950" id="usage-local">0</div>
+                    </div>
+                    <div class="usage-card">
+                      <div class="usage-label">Est. Cost Saved</div>
+                      <div class="usage-value cost" id="usage-saved">$0.00</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Settings Panel -->
+          <div class="panel" id="panel-settings">
+            <div class="settings-section">
+              <div class="settings-section-title">Project Configuration</div>
+              <div class="settings-item">
+                <div>
+                  <div class="settings-label">Project Name</div>
+                  <div class="settings-desc">Name from .tlc.json or package.json</div>
+                </div>
+                <span class="settings-value" id="settings-project">TLC</span>
+              </div>
+              <div class="settings-item">
+                <div>
+                  <div class="settings-label">Test Framework</div>
+                  <div class="settings-desc">Primary test runner</div>
+                </div>
+                <span class="settings-value" id="settings-test-framework">vitest</span>
+              </div>
+            </div>
+            <div class="settings-section">
+              <div class="settings-section-title">Router Configuration</div>
+              <div class="settings-item">
+                <div>
+                  <div class="settings-label">Default Provider</div>
+                  <div class="settings-desc">Primary model provider</div>
+                </div>
+                <span class="settings-value" id="settings-provider">claude</span>
+              </div>
+            </div>
+            <div class="settings-section">
+              <div class="settings-section-title">Quick Links</div>
+              <div class="quick-links">
+                <a class="quick-link" onclick="switchView('health')"><kbd>U</kbd> Usage</a>
+                <a class="quick-link" onclick="switchView('router')"><kbd>Q</kbd> Quality</a>
+                <a class="quick-link" href="#" target="_blank"><kbd>D</kbd> Docs</a>
+                <a class="quick-link" onclick="switchView('projects')"><kbd>W</kbd> Workspace</a>
+                <a class="quick-link" onclick="switchView('logs')"><kbd>A</kbd> Audit</a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+          <span>Tab: cycle | 1-0: jump | Ctrl+B: sidebar | Ctrl+K: commands | ?: help | Ctrl+Q: quit</span>
+          <span id="footer-status">Ready</span>
+        </footer>
+      </main>
     </div>
   </div>
 
-  <div class="container">
-    <div class="main-content">
-      <div class="tabs">
-        <button class="tab active" data-tab="app">🖥️ App</button>
-        <button class="tab" data-tab="plan">Plan</button>
-        <button class="tab" data-tab="tests">Tests</button>
-        <button class="tab" data-tab="bugs">Bugs <span class="badge" id="bugs-badge" style="display:none">0</span></button>
-        <button class="tab" data-tab="logs">Logs</button>
-        <button class="tab" data-tab="changelog">Changelog</button>
-      </div>
-
-      <div class="tab-content">
-        <!-- App Preview Panel -->
-        <div class="tab-panel active" id="panel-app">
-          <div class="app-preview-container">
-            <div class="app-preview-toolbar">
-              <button class="btn btn-secondary" onclick="reloadApp()">🔄 Reload</button>
-              <button class="btn btn-secondary" onclick="openAppNewTab()">↗️ Open in New Tab</button>
-              <button class="btn btn-primary" onclick="captureScreenshot()">📸 Screenshot for Bug</button>
-              <span class="app-url" id="app-url">Loading...</span>
-            </div>
-            <iframe id="app-iframe" src="/app" class="app-iframe"></iframe>
-          </div>
-        </div>
-
-        <!-- Plan Panel -->
-        <div class="tab-panel" id="panel-plan">
-          <div class="plan-content" id="plan-content">
-            <div class="empty-state">
-              <div class="icon">📋</div>
-              <p>Loading plan...</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tests Panel -->
-        <div class="tab-panel" id="panel-tests">
-          <div class="test-actions">
-            <button class="btn btn-primary" onclick="runTests()">▶ Run Unit Tests</button>
-            <button class="btn btn-secondary" onclick="runPlaywright()">🎭 Run Playwright</button>
-          </div>
-          <div class="test-section">
-            <h3>QA Test Checklist</h3>
-            <div id="test-checklist">
-              <div class="empty-state">
-                <div class="icon">✓</div>
-                <p>No test plan found. Create .planning/phases/{N}-TESTS.md</p>
-              </div>
-            </div>
-          </div>
-          <div class="test-section">
-            <h3>Test Results</h3>
-            <div id="test-results" class="logs-content" style="height: 300px;">
-              <div class="log-line info">Run tests to see results...</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Bugs Panel -->
-        <div class="tab-panel" id="panel-bugs">
-          <div class="bug-form">
-            <h3>Report New Bug</h3>
-            <textarea id="bug-desc" placeholder="Describe the bug..."></textarea>
-            <div class="image-drop-zone" id="image-drop-zone" onclick="document.getElementById('image-input').click()">
-              <input type="file" id="image-input" accept="image/*" multiple style="display:none" onchange="handleImageSelect(event)">
-              <div class="drop-hint" id="drop-hint">
-                📷 Paste (Ctrl+V) or drop images here
-              </div>
-              <div class="image-previews" id="image-previews"></div>
-            </div>
-            <div>
-              <select id="bug-severity">
-                <option value="low">Low</option>
-                <option value="medium" selected>Medium</option>
-                <option value="high">High</option>
-                <option value="critical">Critical</option>
-              </select>
-              <button class="btn btn-primary" onclick="submitBug()">Submit Bug</button>
-              <button class="btn" onclick="clearImages()" id="clear-images-btn" style="display:none">Clear Images</button>
-            </div>
-          </div>
-          <div id="bugs-list">
-            <div class="empty-state">
-              <div class="icon">🐛</div>
-              <p>No bugs reported</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Logs Panel -->
-        <div class="tab-panel" id="panel-logs">
-          <div class="logs-tabs">
-            <button class="active" data-logtype="app" onclick="showLogs('app')">App</button>
-            <button data-logtype="test" onclick="showLogs('test')">Tests</button>
-            <button data-logtype="git" onclick="showLogs('git')">Git</button>
-          </div>
-          <div class="logs-content" id="logs-output"></div>
-        </div>
-
-        <!-- Changelog Panel -->
-        <div class="tab-panel" id="panel-changelog">
-          <div id="changelog-content">
-            <div class="empty-state">
-              <div class="icon">📝</div>
-              <p>Loading changelog...</p>
-            </div>
-          </div>
-        </div>
-      </div>
+  <!-- Command Palette -->
+  <div class="command-palette-overlay" id="command-palette-overlay" onclick="closeCommandPalette(event)">
+    <div class="command-palette" onclick="event.stopPropagation()">
+      <input type="text" class="command-palette-input" id="command-input" placeholder="Type a command..." oninput="filterCommands()" onkeydown="handleCommandKey(event)">
+      <div class="command-palette-results" id="command-results"></div>
     </div>
+  </div>
 
-    <div class="sidebar">
-      <div class="sidebar-section">
-        <h3>Progress</h3>
-        <div class="progress-container">
-          <div class="progress-header">
-            <span class="phase-name" id="progress-phase">Phase 1</span>
-            <span class="progress-pct" id="progress-pct">0%</span>
+  <!-- Help Modal -->
+  <div class="help-overlay" id="help-overlay" onclick="closeHelp(event)">
+    <div class="help-modal" onclick="event.stopPropagation()">
+      <div class="help-header">
+        <span class="help-title">⌨️ Keyboard Shortcuts</span>
+        <button class="help-close" onclick="toggleHelp()">&times;</button>
+      </div>
+      <div class="help-content">
+        <div class="help-section">
+          <div class="help-section-title">Global</div>
+          <div class="shortcut-row">
+            <span class="shortcut-keys">1-0</span>
+            <span class="shortcut-desc">Jump to view</span>
           </div>
-          <div class="progress-bar">
-            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+          <div class="shortcut-row">
+            <span class="shortcut-keys">Tab</span>
+            <span class="shortcut-desc">Cycle views</span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-keys">Ctrl+K</span>
+            <span class="shortcut-desc">Command palette</span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-keys">Ctrl+B</span>
+            <span class="shortcut-desc">Toggle sidebar</span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-keys">?</span>
+            <span class="shortcut-desc">Show help</span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-keys">Esc</span>
+            <span class="shortcut-desc">Go back / Close</span>
           </div>
         </div>
-      </div>
-
-      <div class="sidebar-section">
-        <h3>Stats</h3>
-        <div class="stats-grid">
-          <div class="stat">
-            <div class="stat-value green" id="stat-pass">-</div>
-            <div class="stat-label">Passing</div>
+        <div class="help-section">
+          <div class="help-section-title">Lists</div>
+          <div class="shortcut-row">
+            <span class="shortcut-keys">j/k</span>
+            <span class="shortcut-desc">Navigate list</span>
           </div>
-          <div class="stat">
-            <div class="stat-value red" id="stat-fail">-</div>
-            <div class="stat-label">Failing</div>
+          <div class="shortcut-row">
+            <span class="shortcut-keys">Enter</span>
+            <span class="shortcut-desc">Select item</span>
           </div>
-          <div class="stat">
-            <div class="stat-value blue" id="stat-tasks">-</div>
-            <div class="stat-label">Tasks</div>
-          </div>
-          <div class="stat">
-            <div class="stat-value yellow" id="stat-bugs">-</div>
-            <div class="stat-label">Open Bugs</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="sidebar-section">
-        <h3>Quick Actions</h3>
-        <div class="quick-actions">
-          <button class="action-btn primary" onclick="runTests()">
-            <span class="icon">▶</span> Run Tests
-          </button>
-          <button class="action-btn secondary" onclick="runPlaywright()">
-            <span class="icon">🎭</span> Run Playwright
-          </button>
-          <button class="action-btn secondary" onclick="refreshAll()">
-            <span class="icon">🔄</span> Refresh All
-          </button>
-        </div>
-      </div>
-
-      <div class="sidebar-section">
-        <h3>Links</h3>
-        <div class="links">
-          <a class="link" id="link-app" href="#" target="_blank">
-            <span>App (Direct)</span>
-            <span class="url" id="link-app-port">:3000</span>
-          </a>
-          <a class="link" href="http://localhost:8080" target="_blank">
-            <span>Database Admin</span>
-            <span class="url">:8080</span>
-          </a>
-          <a class="link" href="#" onclick="event.preventDefault(); alert('Connect with: postgres://postgres:postgres@localhost:5433/app')">
-            <span>PostgreSQL</span>
-            <span class="url">:5433</span>
-          </a>
         </div>
       </div>
     </div>
   </div>
 
   <script>
+    // State
     let ws;
-    const logs = { app: [], test: [], git: [] };
-    let currentLogType = 'app';
+    let currentView = 'projects';
+    let sidebarCollapsed = false;
     let reconnectAttempts = 0;
-    let appPort = 3000;
-    let screenshotData = null;
+    const logs = { app: [], test: [], git: [], system: [] };
+    let currentLogType = 'app';
+    let appPort = 5001;
 
-    // Tab switching
-    document.querySelectorAll('.tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-        tab.classList.add('active');
-        document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+    const views = ['projects', 'tasks', 'chat', 'agents', 'preview', 'logs', 'github', 'health', 'router', 'settings'];
+    const viewTitles = {
+      projects: '📁 Projects',
+      tasks: '📋 Tasks',
+      chat: '💬 Chat',
+      agents: '🤖 Agents',
+      preview: '👁 Preview',
+      logs: '📜 Logs',
+      github: '🐙 GitHub',
+      health: '💚 Health',
+      router: '🔀 Router',
+      settings: '⚙️ Settings'
+    };
+
+    const commands = [
+      { id: 'view:projects', name: 'Go to Projects', desc: 'View all projects', shortcut: '1' },
+      { id: 'view:tasks', name: 'Go to Tasks', desc: 'View task board', shortcut: '2' },
+      { id: 'view:chat', name: 'Go to Chat', desc: 'Open chat', shortcut: '3' },
+      { id: 'view:agents', name: 'Go to Agents', desc: 'View agents', shortcut: '4' },
+      { id: 'view:preview', name: 'Go to Preview', desc: 'App preview', shortcut: '5' },
+      { id: 'view:logs', name: 'Go to Logs', desc: 'View logs', shortcut: '6' },
+      { id: 'view:github', name: 'Go to GitHub', desc: 'View GitHub', shortcut: '7' },
+      { id: 'view:health', name: 'Go to Health', desc: 'System health', shortcut: '8' },
+      { id: 'view:router', name: 'Go to Router', desc: 'Model router', shortcut: '9' },
+      { id: 'view:settings', name: 'Go to Settings', desc: 'Settings', shortcut: '0' },
+      { id: 'cmd:run-tests', name: 'Run Tests', desc: 'Run test suite' },
+      { id: 'cmd:build', name: 'Build Project', desc: 'Build current project' },
+      { id: 'cmd:refresh', name: 'Refresh All', desc: 'Refresh all data' },
+    ];
+
+    // View Switching
+    function switchView(view) {
+      currentView = view;
+
+      // Update nav items
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.view === view);
       });
+
+      // Update panels
+      document.querySelectorAll('.panel').forEach(panel => {
+        panel.classList.toggle('active', panel.id === `panel-${view}`);
+      });
+
+      // Update titles
+      document.getElementById('view-title').textContent = viewTitles[view];
+      document.getElementById('current-view-title').textContent = viewTitles[view].split(' ').slice(1).join(' ');
+    }
+
+    // Keyboard Shortcuts
+    document.addEventListener('keydown', (e) => {
+      // Check if typing in input
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        if (e.key === 'Escape') {
+          e.target.blur();
+        }
+        return;
+      }
+
+      // Ctrl+K - Command Palette
+      if (e.ctrlKey && e.key === 'k') {
+        e.preventDefault();
+        toggleCommandPalette();
+        return;
+      }
+
+      // Ctrl+B - Toggle Sidebar
+      if (e.ctrlKey && e.key === 'b') {
+        e.preventDefault();
+        toggleSidebar();
+        return;
+      }
+
+      // ? - Help
+      if (e.key === '?') {
+        e.preventDefault();
+        toggleHelp();
+        return;
+      }
+
+      // Escape - Close overlays
+      if (e.key === 'Escape') {
+        closeAllOverlays();
+        return;
+      }
+
+      // Number keys 1-0 for views
+      const num = parseInt(e.key);
+      if (!isNaN(num)) {
+        const viewIndex = num === 0 ? 9 : num - 1;
+        if (viewIndex < views.length) {
+          switchView(views[viewIndex]);
+        }
+        return;
+      }
+
+      // Tab - Cycle views
+      if (e.key === 'Tab' && !e.ctrlKey && !e.shiftKey) {
+        e.preventDefault();
+        const currentIndex = views.indexOf(currentView);
+        const nextIndex = (currentIndex + 1) % views.length;
+        switchView(views[nextIndex]);
+      }
     });
 
+    // Command Palette
+    function toggleCommandPalette() {
+      const overlay = document.getElementById('command-palette-overlay');
+      const isActive = overlay.classList.toggle('active');
+      if (isActive) {
+        document.getElementById('command-input').focus();
+        renderCommands();
+      }
+    }
+
+    function closeCommandPalette(e) {
+      if (e.target === e.currentTarget) {
+        document.getElementById('command-palette-overlay').classList.remove('active');
+      }
+    }
+
+    function filterCommands() {
+      renderCommands();
+    }
+
+    function renderCommands() {
+      const query = document.getElementById('command-input').value.toLowerCase();
+      const filtered = commands.filter(cmd =>
+        cmd.name.toLowerCase().includes(query) ||
+        cmd.desc.toLowerCase().includes(query)
+      );
+
+      document.getElementById('command-results').innerHTML = filtered.map((cmd, i) => `
+        <div class="command-item ${i === 0 ? 'selected' : ''}" onclick="executeCommand('${cmd.id}')">
+          <div>
+            <div class="command-name">${cmd.name}</div>
+            <div class="command-desc">${cmd.desc}</div>
+          </div>
+          ${cmd.shortcut ? `<span class="command-shortcut">${cmd.shortcut}</span>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function handleCommandKey(e) {
+      if (e.key === 'Enter') {
+        const selected = document.querySelector('.command-item.selected');
+        if (selected) {
+          selected.click();
+        }
+      } else if (e.key === 'Escape') {
+        document.getElementById('command-palette-overlay').classList.remove('active');
+      }
+    }
+
+    function executeCommand(id) {
+      document.getElementById('command-palette-overlay').classList.remove('active');
+      document.getElementById('command-input').value = '';
+
+      if (id.startsWith('view:')) {
+        switchView(id.replace('view:', ''));
+      } else if (id === 'cmd:run-tests') {
+        runTests();
+      } else if (id === 'cmd:refresh') {
+        refreshAll();
+      }
+    }
+
+    // Sidebar Toggle
+    function toggleSidebar() {
+      sidebarCollapsed = !sidebarCollapsed;
+      document.getElementById('sidebar').classList.toggle('collapsed', sidebarCollapsed);
+    }
+
+    // Help Modal
+    function toggleHelp() {
+      document.getElementById('help-overlay').classList.toggle('active');
+    }
+
+    function closeHelp(e) {
+      if (e.target === e.currentTarget) {
+        document.getElementById('help-overlay').classList.remove('active');
+      }
+    }
+
+    function closeAllOverlays() {
+      document.getElementById('command-palette-overlay').classList.remove('active');
+      document.getElementById('help-overlay').classList.remove('active');
+    }
+
+    // WebSocket Connection
     function connect() {
       ws = new WebSocket(`ws://${location.host}`);
 
       ws.onopen = () => {
         console.log('Connected to TLC server');
         reconnectAttempts = 0;
-        updateStatus(true);
-        addLog('app', 'Connected to TLC Dev Server', 'success');
+        updateConnectionStatus(true);
+        addLog('system', 'Connected to TLC Dashboard', 'success');
       };
 
       ws.onclose = () => {
         console.log('Disconnected');
-        updateStatus(false);
+        updateConnectionStatus(false);
         if (reconnectAttempts < 10) {
           setTimeout(connect, Math.min(1000 * Math.pow(2, reconnectAttempts), 30000));
           reconnectAttempts++;
@@ -801,15 +1530,13 @@
       switch(msg.type) {
         case 'init':
           Object.assign(logs, msg.data.logs || {});
-          if (msg.data.appPort) {
-            updateAppPort(msg.data.appPort);
-          }
+          if (msg.data.appPort) updateAppPort(msg.data.appPort);
           renderLogs();
           break;
         case 'app-start':
           if (msg.data.port) {
             updateAppPort(msg.data.port);
-            reloadApp();
+            reloadPreview();
           }
           break;
         case 'app-log':
@@ -817,8 +1544,6 @@
           break;
         case 'test-output':
           addLog('test', msg.data.data, msg.data.stream === 'stderr' ? 'error' : '');
-          document.getElementById('test-results').innerHTML +=
-            `<div class="log-line ${msg.data.stream === 'stderr' ? 'error' : ''}">${escapeHtml(msg.data.data)}</div>`;
           break;
         case 'test-complete':
           const result = msg.data.exitCode === 0 ? 'passed' : 'failed';
@@ -827,23 +1552,19 @@
           break;
         case 'git-activity':
           addLog('git', msg.data.entry, 'info');
-          refreshChangelog();
-          break;
-        case 'bug-created':
-          addLog('app', `Bug ${msg.data.bugId} created`, 'warn');
-          refreshBugs();
-          refreshStats();
+          refreshGitHub();
           break;
       }
     }
 
-    function updateStatus(connected) {
+    function updateConnectionStatus(connected) {
       const dot = document.getElementById('status-dot');
       const text = document.getElementById('status-text');
-      dot.className = 'dot ' + (connected ? 'running' : 'stopped');
-      text.textContent = connected ? 'Running' : 'Disconnected';
+      dot.className = 'status-dot ' + (connected ? 'connected' : 'disconnected');
+      text.textContent = connected ? 'Connected' : 'Disconnected';
     }
 
+    // Logs
     function detectLogLevel(text) {
       if (/error|fail|exception/i.test(text)) return 'error';
       if (/warn/i.test(text)) return 'warn';
@@ -873,7 +1594,7 @@
 
     function showLogs(type) {
       currentLogType = type;
-      document.querySelectorAll('.logs-tabs button').forEach(b => {
+      document.querySelectorAll('.logs-filter button').forEach(b => {
         b.classList.toggle('active', b.dataset.logtype === type);
       });
       renderLogs();
@@ -885,8 +1606,8 @@
       return div.innerHTML;
     }
 
+    // API Functions
     async function runTests() {
-      document.getElementById('test-results').innerHTML = '<div class="log-line info">Running tests...</div>';
       addLog('test', '--- Running tests ---', 'info');
       try {
         await fetch('/api/test', { method: 'POST' });
@@ -895,328 +1616,164 @@
       }
     }
 
-    async function runPlaywright() {
-      document.getElementById('test-results').innerHTML = '<div class="log-line info">Running Playwright tests...</div>';
-      addLog('test', '--- Running Playwright ---', 'info');
-      try {
-        await fetch('/api/playwright', { method: 'POST' });
-      } catch (e) {
-        addLog('test', 'Playwright not configured. Add playwright container to docker-compose.', 'warn');
-      }
-    }
-
-    // Bug image handling
-    let bugImages = [];
-
-    function setupImageHandlers() {
-      const dropZone = document.getElementById('image-drop-zone');
-
-      // Paste handler (global)
-      document.addEventListener('paste', (e) => {
-        const items = e.clipboardData?.items;
-        if (!items) return;
-
-        for (const item of items) {
-          if (item.type.startsWith('image/')) {
-            e.preventDefault();
-            const file = item.getAsFile();
-            if (file) addImage(file);
-          }
-        }
-      });
-
-      // Drag & drop
-      dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZone.classList.add('dragover');
-      });
-      dropZone.addEventListener('dragleave', () => {
-        dropZone.classList.remove('dragover');
-      });
-      dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.classList.remove('dragover');
-        const files = e.dataTransfer.files;
-        for (const file of files) {
-          if (file.type.startsWith('image/')) addImage(file);
-        }
-      });
-    }
-
-    function handleImageSelect(e) {
-      const files = e.target.files;
-      for (const file of files) {
-        if (file.type.startsWith('image/')) addImage(file);
-      }
-      e.target.value = ''; // Reset for re-selection
-    }
-
-    function addImage(file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        bugImages.push({ name: file.name, data: e.target.result });
-        renderImagePreviews();
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function removeImage(index) {
-      bugImages.splice(index, 1);
-      renderImagePreviews();
-    }
-
-    function clearImages() {
-      bugImages = [];
-      renderImagePreviews();
-    }
-
-    function renderImagePreviews() {
-      const container = document.getElementById('image-previews');
-      const hint = document.getElementById('drop-hint');
-      const clearBtn = document.getElementById('clear-images-btn');
-
-      if (bugImages.length === 0) {
-        container.innerHTML = '';
-        hint.style.display = 'block';
-        clearBtn.style.display = 'none';
-        return;
-      }
-
-      hint.style.display = 'none';
-      clearBtn.style.display = 'inline-block';
-      container.innerHTML = bugImages.map((img, i) => `
-        <div class="image-preview">
-          <img src="${img.data}" alt="${img.name}" title="${img.name}">
-          <button class="remove-btn" onclick="event.stopPropagation(); removeImage(${i})">×</button>
-        </div>
-      `).join('');
-    }
-
-    async function submitBug() {
-      const desc = document.getElementById('bug-desc').value.trim();
-      const severity = document.getElementById('bug-severity').value;
-      if (!desc) { alert('Please describe the bug'); return; }
-
-      try {
-        const res = await fetch('/api/bug', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            description: desc,
-            severity,
-            images: bugImages.map(img => img.data)
-          })
-        });
-        const data = await res.json();
-        if (data.success) {
-          alert(`Bug ${data.bugId} created!` + (bugImages.length ? ` (${bugImages.length} image${bugImages.length > 1 ? 's' : ''} attached)` : ''));
-          document.getElementById('bug-desc').value = '';
-          clearImages();
-          refreshBugs();
-        }
-      } catch (e) {
-        alert('Failed to submit bug');
-      }
-    }
-
-    async function refreshPlan() {
-      try {
-        const res = await fetch('/api/plan');
-        const data = await res.json();
-
-        document.getElementById('phase-badge').textContent = `Phase ${data.phase || '?'}`;
-
-        if (data.content) {
-          // Simple markdown-ish rendering
-          let html = escapeHtml(data.content)
-            .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-            .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-            .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-            .replace(/\[x@(\w+)\]/g, '<span class="task-done">[✓ @$1]</span>')
-            .replace(/\[>@(\w+)\]/g, '<span class="task-working">[→ @$1]</span>')
-            .replace(/\[ \]/g, '<span class="task-todo">[ ]</span>');
-          document.getElementById('plan-content').innerHTML = html;
-        } else {
-          document.getElementById('plan-content').innerHTML = `
-            <div class="empty-state">
-              <div class="icon">📋</div>
-              <p>No plan found. Run /tlc:plan to create one.</p>
-            </div>`;
-        }
-      } catch (e) {
-        console.error('Failed to load plan:', e);
-      }
-    }
-
-    async function refreshTests() {
-      try {
-        const res = await fetch('/api/tests');
-        const data = await res.json();
-
-        if (data.items?.length) {
-          document.getElementById('test-checklist').innerHTML = data.items.map((t, i) => `
-            <div class="test-item">
-              <div class="checkbox ${t.checked ? 'checked' : ''}" onclick="toggleTest(${i})"></div>
-              <span class="text">${escapeHtml(t.text)}</span>
-            </div>
-          `).join('');
-        }
-      } catch (e) {
-        console.error('Failed to load tests:', e);
-      }
-    }
-
-    async function refreshBugs() {
-      try {
-        const res = await fetch('/api/bugs');
-        const data = await res.json();
-
-        const openBugs = data.filter(b => b.status === 'open').length;
-        const badge = document.getElementById('bugs-badge');
-        if (openBugs > 0) {
-          badge.textContent = openBugs;
-          badge.style.display = 'inline';
-        } else {
-          badge.style.display = 'none';
-        }
-
-        if (data.length) {
-          document.getElementById('bugs-list').innerHTML = data.map(b => `
-            <div class="bug-item ${b.status}">
-              <div class="bug-header">
-                <span class="bug-id">${b.id}</span>
-                <span class="bug-date">${b.date || ''}</span>
-              </div>
-              <div class="bug-desc">${escapeHtml(b.description)}</div>
-            </div>
-          `).join('');
-        }
-      } catch (e) {
-        console.error('Failed to load bugs:', e);
-      }
-    }
-
-    async function refreshChangelog() {
-      try {
-        const res = await fetch('/api/changelog');
-        const data = await res.json();
-
-        if (data.commits?.length) {
-          document.getElementById('changelog-content').innerHTML = data.commits.map(c => `
-            <div class="commit">
-              <span class="hash">${c.hash?.slice(0, 7) || '---'}</span>
-              <div class="message">
-                <div class="title">${escapeHtml(c.message || '')}</div>
-                <div class="meta">${c.author || ''} • ${c.date || ''}</div>
-              </div>
-            </div>
-          `).join('');
-        }
-      } catch (e) {
-        console.error('Failed to load changelog:', e);
-      }
-    }
-
     async function refreshStats() {
       try {
         const res = await fetch('/api/status');
         const data = await res.json();
-
-        document.getElementById('stat-pass').textContent = data.testsPass || 0;
-        document.getElementById('stat-fail').textContent = data.testsFail || 0;
-        document.getElementById('stat-tasks').textContent = data.tasks || 0;
-        document.getElementById('stat-bugs').textContent = data.bugsOpen || 0;
+        document.getElementById('stat-passing').textContent = data.testsPass || 0;
+        document.getElementById('stat-failing').textContent = data.testsFail || 0;
+        if (data.coverage) {
+          document.getElementById('stat-coverage').textContent = data.coverage + '%';
+        }
       } catch (e) {
         console.error('Failed to load stats:', e);
       }
     }
 
-    function refreshAll() {
-      refreshPlan();
-      refreshTests();
-      refreshBugs();
-      refreshChangelog();
-      refreshStats();
-      refreshProgress();
+    async function refreshTasks() {
+      try {
+        const res = await fetch('/api/tasks');
+        const data = await res.json();
+
+        const pending = data.filter(t => t.status === 'pending');
+        const inProgress = data.filter(t => t.status === 'in_progress');
+        const completed = data.filter(t => t.status === 'completed');
+
+        document.getElementById('tasks-pending').innerHTML = pending.map(t => `
+          <div class="task-item">
+            <div class="task-title">${escapeHtml(t.title)}</div>
+            <div class="task-meta">${t.owner || 'Unassigned'}</div>
+          </div>
+        `).join('') || '<div class="empty-state"><p>No pending tasks</p></div>';
+
+        document.getElementById('tasks-in-progress').innerHTML = inProgress.map(t => `
+          <div class="task-item">
+            <div class="task-title">${escapeHtml(t.title)}</div>
+            <div class="task-meta">@${t.owner || 'unknown'}</div>
+          </div>
+        `).join('') || '<div class="empty-state"><p>No tasks in progress</p></div>';
+
+        document.getElementById('tasks-completed').innerHTML = completed.map(t => `
+          <div class="task-item">
+            <div class="task-title">${escapeHtml(t.title)}</div>
+            <div class="task-meta">@${t.owner || 'unknown'}</div>
+          </div>
+        `).join('') || '<div class="empty-state"><p>No completed tasks</p></div>';
+      } catch (e) {
+        console.error('Failed to load tasks:', e);
+      }
     }
 
-    // App Preview functions
-    function reloadApp() {
-      const iframe = document.getElementById('app-iframe');
+    async function refreshGitHub() {
+      try {
+        const res = await fetch('/api/changelog');
+        const data = await res.json();
+
+        if (data.commits?.length) {
+          document.getElementById('commits-list').innerHTML = data.commits.slice(0, 10).map(c => `
+            <div class="commit-item">
+              <span class="commit-hash">${c.hash?.slice(0, 7) || '---'}</span>
+              <div class="commit-message">${escapeHtml(c.message || '')}</div>
+              <div class="commit-meta">${c.author || ''} • ${c.date || ''}</div>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        console.error('Failed to load GitHub data:', e);
+      }
+    }
+
+    async function refreshRouter() {
+      try {
+        const res = await fetch('/api/router/status');
+        const data = await res.json();
+
+        if (data.providers) {
+          document.getElementById('providers-list').innerHTML = Object.entries(data.providers).map(([name, p]) => {
+            const isLocal = p.type === 'cli' && p.detected;
+            return `
+              <div class="provider-row">
+                <span class="provider-indicator ${p.healthy !== false ? 'healthy' : 'unhealthy'}"></span>
+                <span class="provider-name">${name}</span>
+                <span class="provider-version">${p.version || ''}</span>
+                <span class="provider-badge ${isLocal ? 'local' : 'devserver'}">${isLocal ? 'local' : 'devserver'}</span>
+              </div>
+            `;
+          }).join('');
+        }
+
+        if (data.capabilities) {
+          document.getElementById('routing-table').innerHTML = Object.entries(data.capabilities).map(([cap, info]) => `
+            <div class="routing-row">
+              <span class="routing-capability">${cap}</span>
+              <span class="routing-providers">→ ${info.providers.map(p => {
+                const provider = data.providers[p];
+                const isLocal = provider?.type === 'cli' && provider?.detected;
+                return `<span class="${isLocal ? 'local' : 'devserver'}">${p}</span>`;
+              }).join(', ')}</span>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        console.error('Failed to load router status:', e);
+      }
+    }
+
+    async function refreshHealth() {
+      try {
+        const res = await fetch('/api/health');
+        const data = await res.json();
+
+        if (data.memory) document.getElementById('health-memory').textContent = Math.round(data.memory / 1024 / 1024) + ' MB';
+        if (data.cpu) document.getElementById('health-cpu').textContent = data.cpu + '%';
+        if (data.disk) document.getElementById('health-disk').textContent = data.disk + '%';
+
+        if (data.services) {
+          document.getElementById('services-list').innerHTML = data.services.map(s => `
+            <div class="service-item">
+              <span class="service-name">${s.name}</span>
+              <span class="service-status ${s.state}">${s.state === 'running' ? '● Running' : '○ Stopped'} ${s.port ? ':' + s.port : ''}</span>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        console.error('Failed to load health:', e);
+      }
+    }
+
+    // Preview Functions
+    function updateAppPort(port) {
+      appPort = port;
+      document.getElementById('preview-url').textContent = `localhost:${port}`;
+    }
+
+    function reloadPreview() {
+      const iframe = document.getElementById('preview-iframe');
       iframe.src = iframe.src;
     }
 
-    function openAppNewTab() {
+    function openInNewTab() {
       window.open(`http://localhost:${appPort}`, '_blank');
     }
 
-    async function captureScreenshot() {
-      try {
-        // Use html2canvas-like approach via the iframe
-        const iframe = document.getElementById('app-iframe');
-
-        // For cross-origin iframes, we can't capture directly
-        // Instead, prompt user to use browser screenshot or provide manual upload
-        const desc = prompt('Describe the bug (screenshot will be from current app view):');
-        if (!desc) return;
-
-        // Create bug with current URL
-        const res = await fetch('/api/bug', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            description: desc,
-            severity: 'medium',
-            url: iframe.src
-          })
-        });
-        const data = await res.json();
-        if (data.success) {
-          alert(`Bug ${data.bugId} created!\n\nTip: Use browser's screenshot tool (Cmd+Shift+4 on Mac, Win+Shift+S on Windows) to capture and attach manually.`);
-          refreshBugs();
-        }
-      } catch (e) {
-        alert('Failed to create bug: ' + e.message);
-      }
+    function captureScreenshot() {
+      alert('Use your browser\'s screenshot tool (Cmd+Shift+4 on Mac, Win+Shift+S on Windows)');
     }
 
-    async function refreshProgress() {
-      try {
-        const res = await fetch('/api/progress');
-        const data = await res.json();
-
-        const phaseName = `Phase ${data.phase || '?'}: ${data.phaseName || 'Unknown'}`;
-        const pct = data.progress || 0;
-
-        document.getElementById('progress-phase').textContent = phaseName;
-        document.getElementById('progress-pct').textContent = `${pct}%`;
-        document.getElementById('progress-fill').style.width = `${pct}%`;
-      } catch (e) {
-        // Fallback to stats-based progress
-        try {
-          const res = await fetch('/api/status');
-          const data = await res.json();
-          const phaseName = `Phase ${data.phase || '?'}`;
-          document.getElementById('progress-phase').textContent = phaseName;
-        } catch (e2) {
-          console.error('Failed to load progress:', e2);
-        }
-      }
-    }
-
-    function updateAppPort(port) {
-      appPort = port;
-      document.getElementById('app-url').textContent = `localhost:${port}`;
-      document.getElementById('link-app').href = `http://localhost:${port}`;
-      document.getElementById('link-app-port').textContent = `:${port}`;
+    // Refresh All
+    function refreshAll() {
+      refreshStats();
+      refreshTasks();
+      refreshGitHub();
+      refreshRouter();
+      refreshHealth();
     }
 
     // Initialize
     connect();
     refreshAll();
-    setupImageHandlers();
     setInterval(refreshStats, 30000);
-    setInterval(refreshProgress, 30000);
+    setInterval(refreshHealth, 60000);
   </script>
 </body>
 </html>
