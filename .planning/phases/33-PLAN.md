@@ -91,7 +91,7 @@ DEVSERVER ROUTER (one machine, API keys, headless — pay per token)
 
 ---
 
-### Task 3: CLI Provider [ ]
+### Task 3: CLI Provider [x]
 
 **Goal:** Provider implementation for CLI tools
 
@@ -121,7 +121,7 @@ DEVSERVER ROUTER (one machine, API keys, headless — pay per token)
 
 ---
 
-### Task 4: API Provider [ ]
+### Task 4: API Provider [x]
 
 **Goal:** Provider implementation for REST API endpoints
 
@@ -151,7 +151,7 @@ DEVSERVER ROUTER (one machine, API keys, headless — pay per token)
 
 ---
 
-### Task 5: Router Core [ ]
+### Task 5: Router Core [x]
 
 **Goal:** Route requests to appropriate provider
 
@@ -180,7 +180,7 @@ DEVSERVER ROUTER (one machine, API keys, headless — pay per token)
 
 ---
 
-### Task 6: Structured Output Schemas [ ]
+### Task 6: Structured Output Schemas [x]
 
 **Goal:** Standard JSON schemas for provider outputs
 
@@ -271,7 +271,7 @@ DEVSERVER ROUTER (one machine, API keys, headless — pay per token)
 
 ---
 
-### Task 9: Router Config Schema [ ]
+### Task 9: Router Config Schema [x]
 
 **Goal:** Configuration schema for .tlc.json router section
 

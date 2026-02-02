@@ -973,22 +973,40 @@ Intelligent agent orchestration with model selection, cost optimization, and qua
 
 ---
 
-### Phase 33: Model Router [ ]
+### Phase 33: Model Router [x]
 
 **Goal:** Intelligent routing of tasks to appropriate models based on complexity and cost.
 
 **Deliverables:**
-- [ ] Task complexity analyzer (tokens, code vs prose, domain)
-- [ ] Model capability profiles (speed, quality, cost per token)
-- [ ] Routing rules engine (match task to model)
-- [ ] Fallback chain (primary → secondary → tertiary)
-- [ ] Model health monitoring (latency, error rates)
-- [ ] `/tlc:models` command (list, configure, test)
+- [x] Provider interface (unified CLI/API adapter)
+- [x] CLI detector (claude, codex, gemini detection)
+- [x] CLI provider (execute CLI tools)
+- [x] API provider (REST API backends)
+- [x] Provider queue (task queuing with priorities)
+- [x] Output schemas (JSON validation)
+- [x] Model router (route to appropriate provider)
+- [x] Router config (schema for .tlc.json)
+- [x] Devserver router API (HTTP endpoints)
+- [x] Router setup command (interactive config)
+
+**Test Progress:**
+- provider-interface: 16 tests
+- cli-detector: 13 tests
+- cli-provider: 10 tests
+- api-provider: 10 tests
+- provider-queue: 14 tests
+- output-schemas: 10 tests
+- model-router: 10 tests
+- router-config: 9 tests
+- devserver-router-api: 10 tests
+- router-setup-command: 10 tests
+- Total: 112 tests
 
 **Success Criteria:**
-- [ ] Simple tasks route to fast/cheap models
-- [ ] Complex tasks route to capable models
-- [ ] Automatic fallback on model failure
+- [x] Providers unified under single interface
+- [x] CLI tools detected and executable
+- [x] Tasks queued with priority handling
+- [x] Router config in .tlc.json
 
 ---
 
@@ -1103,6 +1121,43 @@ Intelligent agent orchestration with model selection, cost optimization, and qua
 - [x] Real-time updates feel instant (<500ms perceived)
 - [x] Loads in <2s on 3G connection
 - [x] Accessibility: keyboard nav, proper contrast, screen reader friendly
+
+---
+
+### Phase 39: Functional Web Dashboard [>]
+
+**Goal:** Transform web dashboard from UI shell into working application for PMs, QA, and clients.
+
+**Problem:** Dashboard UI exists but doesn't work:
+- APIs missing or return wrong format
+- No way to CREATE tasks/bugs (only view)
+- No client-facing mode for external users
+
+**Deliverables:**
+- [ ] Fix /api/tasks format (flat array vs nested)
+- [ ] Add /api/health endpoint
+- [ ] Add /api/router/status endpoint
+- [ ] POST /api/tasks for creating tasks
+- [ ] Task creation form in dashboard
+- [ ] Enhanced bug form with screenshots
+- [ ] Project notes panel (view/edit PROJECT.md)
+- [ ] Client mode dashboard (/dashboard/client)
+- [ ] Fix all data binding issues
+- [ ] E2E integration tests
+
+**Success Criteria:**
+- [ ] PM can create tasks via web GUI
+- [ ] QA can submit bugs with screenshots
+- [ ] Clients can report bugs without seeing code
+- [ ] All panels show real data from APIs
+
+**Test Progress:**
+- [ ] tasks-api: ~20 tests
+- [ ] health-api: ~15 tests
+- [ ] router-status-api: ~15 tests
+- [ ] notes-api: ~15 tests
+- [ ] dashboard-functional E2E: ~20 tests
+- Total: ~120 tests
 
 ---
 

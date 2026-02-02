@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   findOrphanedAgents,
   resetCleanup,
-} from './server/lib/agent-cleanup.js';
+} from './agent-cleanup.js';
 import { getAgentRegistry, resetRegistry } from './server/lib/agent-registry.js';
 import { STATES } from './server/lib/agent-state.js';
 

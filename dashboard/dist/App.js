@@ -20,6 +20,7 @@ import RouterPane from './components/RouterPane.js';
 import { UsagePane } from './components/UsagePane.js';
 import { SettingsPanel } from './components/SettingsPanel.js';
 import { AgentRegistryPane } from './components/AgentRegistryPane.js';
+import { BugsPane } from './components/BugsPane.js';
 // Utility components
 import { CommandPalette } from './components/CommandPalette.js';
 import { KeyboardHelp } from './components/KeyboardHelp.js';
@@ -36,6 +37,7 @@ const navItems = [
     { key: 'github', label: 'GitHub', icon: '🐙', shortcut: '7' },
     { key: 'health', label: 'Health', icon: '💚', shortcut: '8' },
     { key: 'router', label: 'Router', icon: '🔀', shortcut: '9' },
+    { key: 'bugs', label: 'Bugs', icon: '🐛', shortcut: 'b' },
     { key: 'settings', label: 'Settings', icon: '⚙️', shortcut: '0' },
 ];
 // Sample data for development
@@ -107,6 +109,7 @@ const commands = [
     { id: 'view:agents', name: 'Go to Agents', description: 'View agents', shortcut: '4', category: 'Navigation' },
     { id: 'view:logs', name: 'Go to Logs', description: 'View logs', shortcut: '6', category: 'Navigation' },
     { id: 'view:router', name: 'Go to Router', description: 'View model router', shortcut: '9', category: 'Navigation' },
+    { id: 'view:bugs', name: 'Go to Bugs', description: 'View and submit bugs', shortcut: 'b', category: 'Navigation' },
     { id: 'cmd:run-tests', name: 'Run Tests', description: 'Run test suite', category: 'Commands' },
     { id: 'cmd:build', name: 'Build Phase', description: 'Build current phase', category: 'Commands' },
 ];
@@ -180,6 +183,8 @@ export function App({ isTTY = true }) {
                 setActiveView('health');
             if (input === '9')
                 setActiveView('router');
+            if (input === 'b')
+                setActiveView('bugs');
             if (input === '0')
                 setActiveView('settings');
             // Tab cycles through views
@@ -229,6 +234,8 @@ export function App({ isTTY = true }) {
                 return (_jsxs(Box, { flexDirection: "row", flexGrow: 1, children: [_jsx(Box, { width: "50%", flexDirection: "column", children: _jsx(HealthPane, {}) }), _jsx(Box, { width: "50%", flexDirection: "column", marginLeft: 1, children: _jsx(ServicesPane, { services: sampleServices, isActive: true }) })] }));
             case 'router':
                 return (_jsxs(Box, { flexDirection: "row", flexGrow: 1, children: [_jsx(Box, { width: "60%", flexDirection: "column", children: _jsx(RouterPane, {}) }), _jsx(Box, { width: "40%", flexDirection: "column", marginLeft: 1, children: _jsx(UsagePane, {}) })] }));
+            case 'bugs':
+                return _jsx(BugsPane, { isActive: true, isTTY: isTTY });
             case 'settings':
                 return (_jsxs(Box, { flexDirection: "column", flexGrow: 1, children: [_jsx(SettingsPanel, { config: sampleConfig }), _jsx(Box, { marginTop: 1, borderStyle: "single", borderColor: "gray", padding: 1, children: _jsxs(Box, { flexDirection: "column", children: [_jsx(Text, { bold: true, color: "cyan", children: "Quick Links" }), _jsx(Text, { color: "gray", children: "[U] Usage   [Q] Quality   [D] Docs   [W] Workspace   [A] Audit" })] }) })] }));
             default:
