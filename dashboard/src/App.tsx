@@ -21,6 +21,7 @@ import RouterPane from './components/RouterPane.js';
 import { UsagePane } from './components/UsagePane.js';
 import { SettingsPanel } from './components/SettingsPanel.js';
 import { AgentRegistryPane } from './components/AgentRegistryPane.js';
+import { BugsPane } from './components/BugsPane.js';
 
 // Utility components
 import { CommandPalette, Command } from './components/CommandPalette.js';
@@ -39,6 +40,7 @@ type MainView =
   | 'github'
   | 'health'
   | 'router'
+  | 'bugs'
   | 'settings';
 
 interface AppProps {
@@ -56,6 +58,7 @@ const navItems: { key: MainView; label: string; icon: string; shortcut: string }
   { key: 'github', label: 'GitHub', icon: '🐙', shortcut: '7' },
   { key: 'health', label: 'Health', icon: '💚', shortcut: '8' },
   { key: 'router', label: 'Router', icon: '🔀', shortcut: '9' },
+  { key: 'bugs', label: 'Bugs', icon: '🐛', shortcut: 'b' },
   { key: 'settings', label: 'Settings', icon: '⚙️', shortcut: '0' },
 ];
 
@@ -134,6 +137,7 @@ const commands: Command[] = [
   { id: 'view:agents', name: 'Go to Agents', description: 'View agents', shortcut: '4', category: 'Navigation' },
   { id: 'view:logs', name: 'Go to Logs', description: 'View logs', shortcut: '6', category: 'Navigation' },
   { id: 'view:router', name: 'Go to Router', description: 'View model router', shortcut: '9', category: 'Navigation' },
+  { id: 'view:bugs', name: 'Go to Bugs', description: 'View and submit bugs', shortcut: 'b', category: 'Navigation' },
   { id: 'cmd:run-tests', name: 'Run Tests', description: 'Run test suite', category: 'Commands' },
   { id: 'cmd:build', name: 'Build Phase', description: 'Build current phase', category: 'Commands' },
 ];
@@ -205,6 +209,7 @@ export function App({ isTTY = true }: AppProps) {
       if (input === '7') setActiveView('github');
       if (input === '8') setActiveView('health');
       if (input === '9') setActiveView('router');
+      if (input === 'b') setActiveView('bugs');
       if (input === '0') setActiveView('settings');
 
       // Tab cycles through views
@@ -304,6 +309,9 @@ export function App({ isTTY = true }: AppProps) {
             </Box>
           </Box>
         );
+
+      case 'bugs':
+        return <BugsPane isActive={true} isTTY={isTTY} />;
 
       case 'settings':
         return (
