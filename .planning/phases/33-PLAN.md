@@ -32,7 +32,7 @@ DEVSERVER ROUTER (one machine, API keys, headless — pay per token)
 
 ## Tasks
 
-### Task 1: Provider Interface [ ]
+### Task 1: Provider Interface [x]
 
 **Goal:** Unified interface for CLI and API providers
 
@@ -61,7 +61,7 @@ DEVSERVER ROUTER (one machine, API keys, headless — pay per token)
 
 ---
 
-### Task 2: CLI Detection [ ]
+### Task 2: CLI Detection [x]
 
 **Goal:** Detect locally installed CLI tools
 
@@ -242,7 +242,7 @@ DEVSERVER ROUTER (one machine, API keys, headless — pay per token)
 
 ---
 
-### Task 8: Task Queue [ ]
+### Task 8: Task Queue [x]
 
 **Goal:** Queue concurrent provider tasks
 

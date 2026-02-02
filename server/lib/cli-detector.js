@@ -1,166 +1,90 @@
 /**
- * CLI Detector - Detects locally installed AI CLI tools
- *
- * Supports detection of:
- * - claude (Claude Code)
- * - codex (Codex CLI)
- * - gemini (Gemini CLI)
+ * CLI Detector - Detect locally installed CLI tools
+ * Phase 33, Task 2
  */
 
-import { execSync } from 'child_process';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 
-/**
- * CLI tool configurations
- */
-export const CLI_TOOLS = {
-  claude: {
-    command: 'claude',
-    headlessArgs: ['-p', '--output-format', 'json'],
-    capabilities: ['review', 'code-gen', 'refactor', 'explain', 'test-gen'],
-    versionFlag: '--version',
-    versionParser: (output) => {
-      const match = output.match(/v?(\d+\.\d+\.\d+)/);
-      return match ? match[0] : output.trim();
-    },
-  },
-  codex: {
-    command: 'codex',
-    headlessArgs: ['exec', '--json', '--sandbox', 'read-only'],
-    capabilities: ['review', 'code-gen', 'refactor', 'explain'],
-    versionFlag: '--version',
-    versionParser: (output) => {
-      const match = output.match(/(\d+\.\d+\.\d+)/);
-      return match ? match[0] : output.trim();
-    },
-  },
-  gemini: {
-    command: 'gemini',
-    headlessArgs: ['-p', '--output-format', 'json'],
-    capabilities: ['design', 'image-gen', 'vision', 'review', 'explain'],
-    versionFlag: '--version',
-    versionParser: (output) => {
-      const match = output.match(/(\d+\.\d+\.\d+)/);
-      return match ? match[0] : output.trim();
-    },
-  },
+const execAsync = promisify(exec);
+
+// Cache for detection results
+let cache = null;
+
+// CLI capabilities by name
+const CLI_CAPABILITIES = {
+  claude: ['review', 'code-gen', 'refactor', 'explain', 'test'],
+  codex: ['review', 'code-gen', 'refactor', 'explain'],
+  gemini: ['design', 'vision', 'review', 'image-gen'],
 };
 
-// Detection cache
-let detectionCache = null;
-let cacheTimestamp = 0;
-const CACHE_TTL = 60000; // 1 minute
-
 /**
- * Get the 'which' command based on platform
- * @returns {string} Command to find executables
- */
-function getWhichCommand() {
-  return process.platform === 'win32' ? 'where' : 'which';
-}
-
-/**
- * Execute a command with timeout
- * @param {string} command - Command to execute
- * @param {number} timeout - Timeout in ms
- * @returns {string|null} Output or null on failure
- */
-function execWithTimeout(command, timeout = 5000) {
-  try {
-    const result = execSync(command, {
-      timeout,
-      encoding: 'utf8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-    });
-    return result.toString().trim();
-  } catch (err) {
-    return null;
-  }
-}
-
-/**
- * Detect a single CLI tool
- * @param {string} name - CLI tool name (claude, codex, gemini)
- * @returns {Promise<Object|null>} Detection result or null if not found
+ * Detect a specific CLI tool
  */
 export async function detectCLI(name) {
-  const tool = CLI_TOOLS[name];
-  if (!tool) {
-    return null;
-  }
-
-  const whichCmd = getWhichCommand();
-
-  // Check if command exists
-  const path = execWithTimeout(`${whichCmd} ${tool.command}`);
-  if (!path) {
-    return null;
-  }
-
-  // Get version
-  let version = 'unknown';
   try {
-    const versionOutput = execWithTimeout(`${tool.command} ${tool.versionFlag}`);
-    if (versionOutput) {
-      version = tool.versionParser(versionOutput);
-    }
-  } catch (err) {
-    // Version detection failed, but CLI exists
-  }
+    const isWindows = process.platform === 'win32';
+    const whichCmd = isWindows ? 'where' : 'which';
+    
+    const { stdout: path } = await execAsync(`${whichCmd} ${name}`, { timeout: 3000 });
+    const cleanPath = path.trim().split('\n')[0];
 
-  return {
-    name,
-    command: tool.command,
-    path: path.split('\n')[0].trim(),
-    version,
-    capabilities: tool.capabilities,
-    headlessArgs: tool.headlessArgs,
-  };
+    // Try to get version
+    let version = null;
+    try {
+      const { stdout: ver } = await execAsync(`${name} --version`, { timeout: 3000 });
+      version = ver.trim().split('\n')[0];
+    } catch {
+      // Version command may not exist
+    }
+
+    return {
+      found: true,
+      path: cleanPath,
+      version,
+    };
+  } catch {
+    return {
+      found: false,
+      path: null,
+      version: null,
+    };
+  }
 }
 
 /**
- * Detect all CLI tools
- * @param {boolean} [useCache=true] - Whether to use cached results
- * @returns {Promise<Map<string, Object>>} Map of detected CLIs
+ * Detect all known CLI tools
  */
-export async function detectAllCLIs(useCache = true) {
-  const now = Date.now();
-
-  // Return cached results if valid
-  if (useCache && detectionCache && (now - cacheTimestamp) < CACHE_TTL) {
-    return detectionCache;
+export async function detectAllCLIs() {
+  if (cache) {
+    return cache;
   }
 
-  const detected = new Map();
+  const clis = ['claude', 'codex', 'gemini'];
+  const results = {};
 
-  // Detect each CLI tool
-  for (const name of Object.keys(CLI_TOOLS)) {
-    const result = await detectCLI(name);
-    if (result) {
-      detected.set(name, result);
-    }
-  }
+  await Promise.all(
+    clis.map(async (cli) => {
+      results[cli] = await detectCLI(cli);
+    })
+  );
 
-  // Update cache
-  detectionCache = detected;
-  cacheTimestamp = now;
-
-  return detected;
+  cache = results;
+  return results;
 }
 
 /**
  * Clear the detection cache
  */
 export function clearCache() {
-  detectionCache = null;
-  cacheTimestamp = 0;
+  cache = null;
 }
 
 /**
- * Get capabilities for a CLI tool
- * @param {string} name - CLI tool name
- * @returns {string[]} List of capabilities
+ * Get capabilities for a CLI
  */
 export function getCapabilities(name) {
-  const tool = CLI_TOOLS[name];
-  return tool ? [...tool.capabilities] : [];
+  return CLI_CAPABILITIES[name] || [];
 }
+
+export default { detectCLI, detectAllCLIs, clearCache, getCapabilities };

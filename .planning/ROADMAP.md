@@ -952,22 +952,24 @@ Enterprise-grade capabilities for large teams and compliance requirements.
 
 Intelligent agent orchestration with model selection, cost optimization, and quality control.
 
-### Phase 32: Agent Registry & Lifecycle [ ]
+### Phase 32: Agent Registry & Lifecycle [x]
 
 **Goal:** Central registry for managing agent instances, their state, and lifecycle.
 
 **Deliverables:**
-- [ ] Agent registry (register, list, get, remove agents)
-- [ ] Agent state machine (pending → running → completed/failed/cancelled)
-- [ ] Agent metadata (model, tokens, cost, duration)
-- [ ] Lifecycle hooks (onStart, onComplete, onError)
-- [ ] Agent persistence (resume after restart)
-- [ ] Agent cleanup (timeout, orphan detection)
+- [x] Agent registry (register, list, get, remove agents)
+- [x] Agent state machine (pending → running → completed/failed/cancelled)
+- [x] Agent metadata (model, tokens, cost, duration)
+- [x] Lifecycle hooks (onStart, onComplete, onError)
+- [x] Agent persistence (resume after restart)
+- [x] Agent cleanup (timeout, orphan detection)
 
 **Success Criteria:**
-- [ ] All running agents tracked in registry
-- [ ] Agents can be cancelled mid-execution
-- [ ] State persisted across session restarts
+- [x] All running agents tracked in registry
+- [x] Agents can be cancelled mid-execution
+- [x] State persisted across session restarts
+
+**Tests:** 209 unit + 22 E2E = 231 total
 
 ---
 

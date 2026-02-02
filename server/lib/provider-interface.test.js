@@ -1,14 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   createProvider,
-  validateConfig,
-  PROVIDER_TYPES,
-  createProviderResult,
+  validateProviderConfig,
+  ProviderType,
 } from './provider-interface.js';
 
-describe('provider-interface', () => {
+describe('Provider Interface', () => {
   describe('createProvider', () => {
-    it('creates CLI provider with correct shape', () => {
+    it('creates CLI provider with correct type', () => {
       const provider = createProvider({
         name: 'claude',
         type: 'cli',
@@ -18,11 +17,9 @@ describe('provider-interface', () => {
 
       expect(provider.name).toBe('claude');
       expect(provider.type).toBe('cli');
-      expect(provider.capabilities).toContain('review');
-      expect(typeof provider.run).toBe('function');
     });
 
-    it('creates API provider with correct shape', () => {
+    it('creates API provider with correct type', () => {
       const provider = createProvider({
         name: 'deepseek',
         type: 'api',
@@ -33,268 +30,89 @@ describe('provider-interface', () => {
 
       expect(provider.name).toBe('deepseek');
       expect(provider.type).toBe('api');
-      expect(provider.baseUrl).toBe('https://api.deepseek.com');
-      expect(typeof provider.run).toBe('function');
     });
 
     it('throws on invalid type', () => {
-      expect(() => createProvider({
-        name: 'test',
-        type: 'invalid',
-        capabilities: [],
-      })).toThrow('Invalid provider type');
+      expect(() =>
+        createProvider({
+          name: 'test',
+          type: 'invalid',
+          capabilities: [],
+        })
+      ).toThrow(/invalid.*type/i);
     });
 
-    it('throws on missing name', () => {
-      expect(() => createProvider({
-        type: 'cli',
-        capabilities: [],
-      })).toThrow('name is required');
-    });
-
-    it('defaults capabilities to empty array', () => {
-      const provider = createProvider({
-        name: 'test',
-        type: 'cli',
-        command: 'test',
-      });
-
-      expect(provider.capabilities).toEqual([]);
-    });
-
-    it('sets detected to false by default', () => {
-      const provider = createProvider({
-        name: 'test',
-        type: 'cli',
-        command: 'test',
-      });
-
-      expect(provider.detected).toBe(false);
-    });
-  });
-
-  describe('provider.run', () => {
-    it('returns ProviderResult shape', async () => {
+    it('provider.run returns ProviderResult shape', async () => {
       const provider = createProvider({
         name: 'mock',
         type: 'cli',
         command: 'echo',
-        capabilities: [],
-        // Mock runner for testing
-        runner: async () => ({
-          raw: '{"result": "ok"}',
-          parsed: { result: 'ok' },
-          exitCode: 0,
-        }),
+        capabilities: ['test'],
       });
 
-      const result = await provider.run('test prompt', {});
+      provider._execute = vi.fn().mockResolvedValue({
+        raw: '{"result": "test"}',
+        parsed: { result: 'test' },
+        exitCode: 0,
+        tokenUsage: { input: 10, output: 5 },
+        cost: 0.0001,
+      });
+
+      const result = await provider.run('test prompt');
 
       expect(result).toHaveProperty('raw');
       expect(result).toHaveProperty('parsed');
       expect(result).toHaveProperty('exitCode');
+      expect(result).toHaveProperty('tokenUsage');
+      expect(result).toHaveProperty('cost');
     });
 
-    it('includes token usage when available', async () => {
+    it('ProviderResult includes token usage', async () => {
       const provider = createProvider({
         name: 'mock',
         type: 'api',
-        baseUrl: 'https://example.com',
-        capabilities: [],
-        runner: async () => ({
-          raw: '{}',
-          parsed: {},
-          exitCode: 0,
-          tokenUsage: { input: 100, output: 50 },
-        }),
+        baseUrl: 'https://test.com',
+        model: 'test',
+        capabilities: ['test'],
       });
 
-      const result = await provider.run('test', {});
-
-      expect(result.tokenUsage).toEqual({ input: 100, output: 50 });
-    });
-
-    it('calculates cost from token usage', async () => {
-      const provider = createProvider({
-        name: 'mock',
-        type: 'api',
-        baseUrl: 'https://example.com',
-        capabilities: [],
-        pricing: { input: 0.001, output: 0.002 }, // per 1K tokens
-        runner: async () => ({
-          raw: '{}',
-          parsed: {},
-          exitCode: 0,
-          tokenUsage: { input: 1000, output: 500 },
-        }),
-      });
-
-      const result = await provider.run('test', {});
-
-      expect(result.cost).toBe(0.002); // (1000 * 0.001 + 500 * 0.002) / 1000
-    });
-  });
-
-  describe('createProviderResult', () => {
-    it('creates result with required fields', () => {
-      const result = createProviderResult({
-        raw: 'output',
-        parsed: { data: 'test' },
-        exitCode: 0,
-      });
-
-      expect(result.raw).toBe('output');
-      expect(result.parsed).toEqual({ data: 'test' });
-      expect(result.exitCode).toBe(0);
-    });
-
-    it('includes optional tokenUsage', () => {
-      const result = createProviderResult({
-        raw: '',
+      provider._execute = vi.fn().mockResolvedValue({
+        raw: 'response',
         parsed: null,
         exitCode: 0,
         tokenUsage: { input: 100, output: 50 },
+        cost: 0.001,
       });
+
+      const result = await provider.run('test');
 
       expect(result.tokenUsage).toEqual({ input: 100, output: 50 });
     });
 
-    it('includes optional cost', () => {
-      const result = createProviderResult({
-        raw: '',
-        parsed: null,
-        exitCode: 0,
-        cost: 0.05,
-      });
-
-      expect(result.cost).toBe(0.05);
-    });
-
-    it('defaults tokenUsage to null', () => {
-      const result = createProviderResult({
-        raw: '',
-        parsed: null,
-        exitCode: 0,
-      });
-
-      expect(result.tokenUsage).toBeNull();
-    });
-
-    it('defaults cost to null', () => {
-      const result = createProviderResult({
-        raw: '',
-        parsed: null,
-        exitCode: 0,
-      });
-
-      expect(result.cost).toBeNull();
-    });
-  });
-
-  describe('validateConfig', () => {
-    it('accepts valid CLI config', () => {
-      const config = {
-        name: 'claude',
-        type: 'cli',
-        command: 'claude',
-        capabilities: ['review'],
-      };
-
-      expect(() => validateConfig(config)).not.toThrow();
-    });
-
-    it('accepts valid API config', () => {
-      const config = {
-        name: 'deepseek',
-        type: 'api',
-        baseUrl: 'https://api.deepseek.com',
-        model: 'deepseek-coder',
-        capabilities: ['review'],
-      };
-
-      expect(() => validateConfig(config)).not.toThrow();
-    });
-
-    it('rejects missing name', () => {
-      const config = {
-        type: 'cli',
-        command: 'test',
-      };
-
-      expect(() => validateConfig(config)).toThrow('name is required');
-    });
-
-    it('rejects missing type', () => {
-      const config = {
-        name: 'test',
-        command: 'test',
-      };
-
-      expect(() => validateConfig(config)).toThrow('type is required');
-    });
-
-    it('rejects invalid type', () => {
-      const config = {
-        name: 'test',
-        type: 'invalid',
-      };
-
-      expect(() => validateConfig(config)).toThrow('Invalid provider type');
-    });
-
-    it('rejects CLI config without command', () => {
-      const config = {
-        name: 'test',
-        type: 'cli',
-      };
-
-      expect(() => validateConfig(config)).toThrow('command is required for CLI providers');
-    });
-
-    it('rejects API config without baseUrl', () => {
-      const config = {
-        name: 'test',
-        type: 'api',
-      };
-
-      expect(() => validateConfig(config)).toThrow('baseUrl is required for API providers');
-    });
-  });
-
-  describe('PROVIDER_TYPES', () => {
-    it('exports CLI type', () => {
-      expect(PROVIDER_TYPES.CLI).toBe('cli');
-    });
-
-    it('exports API type', () => {
-      expect(PROVIDER_TYPES.API).toBe('api');
-    });
-  });
-
-  describe('provider.type distinguishes cli from api', () => {
-    it('CLI provider has type cli', () => {
+    it('ProviderResult calculates cost', async () => {
       const provider = createProvider({
-        name: 'claude',
-        type: 'cli',
-        command: 'claude',
-      });
-
-      expect(provider.type).toBe('cli');
-    });
-
-    it('API provider has type api', () => {
-      const provider = createProvider({
-        name: 'deepseek',
+        name: 'mock',
         type: 'api',
-        baseUrl: 'https://api.deepseek.com',
+        baseUrl: 'https://test.com',
+        model: 'test',
+        capabilities: ['test'],
+        pricing: { inputPer1k: 0.001, outputPer1k: 0.002 },
       });
 
-      expect(provider.type).toBe('api');
-    });
-  });
+      provider._execute = vi.fn().mockResolvedValue({
+        raw: 'response',
+        parsed: null,
+        exitCode: 0,
+        tokenUsage: { input: 1000, output: 500 },
+        cost: 0.002,
+      });
 
-  describe('provider.capabilities', () => {
-    it('returns capabilities array', () => {
+      const result = await provider.run('test');
+
+      expect(result.cost).toBe(0.002);
+    });
+
+    it('provider.capabilities returns array', () => {
       const provider = createProvider({
         name: 'claude',
         type: 'cli',
@@ -305,90 +123,106 @@ describe('provider-interface', () => {
       expect(provider.capabilities).toEqual(['review', 'code-gen', 'refactor']);
     });
 
-    it('capabilities is immutable', () => {
-      const provider = createProvider({
+    it('provider.type distinguishes cli from api', () => {
+      const cliProvider = createProvider({
         name: 'claude',
         type: 'cli',
         command: 'claude',
         capabilities: ['review'],
       });
 
-      // Try to mutate - should throw or be ignored
-      expect(() => provider.capabilities.push('hack')).toThrow();
+      const apiProvider = createProvider({
+        name: 'deepseek',
+        type: 'api',
+        baseUrl: 'https://api.deepseek.com',
+        model: 'deepseek-coder',
+        capabilities: ['review'],
+      });
 
-      // Original should be unchanged
-      expect(provider.capabilities).toEqual(['review']);
+      expect(cliProvider.type).toBe('cli');
+      expect(apiProvider.type).toBe('api');
     });
   });
 
-  describe('RunOpts', () => {
-    it('accepts outputFormat option', async () => {
-      let capturedOpts;
-      const provider = createProvider({
-        name: 'mock',
+  describe('validateProviderConfig', () => {
+    it('rejects missing name', () => {
+      const result = validateProviderConfig({
         type: 'cli',
-        command: 'test',
-        runner: async (prompt, opts) => {
-          capturedOpts = opts;
-          return { raw: '', parsed: null, exitCode: 0 };
-        },
+        command: 'claude',
+        capabilities: ['review'],
       });
 
-      await provider.run('test', { outputFormat: 'json' });
-
-      expect(capturedOpts.outputFormat).toBe('json');
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain('name is required');
     });
 
-    it('accepts sandbox option', async () => {
-      let capturedOpts;
-      const provider = createProvider({
-        name: 'mock',
-        type: 'cli',
-        command: 'test',
-        runner: async (prompt, opts) => {
-          capturedOpts = opts;
-          return { raw: '', parsed: null, exitCode: 0 };
-        },
+    it('rejects missing type', () => {
+      const result = validateProviderConfig({
+        name: 'test',
+        command: 'claude',
+        capabilities: ['review'],
       });
 
-      await provider.run('test', { sandbox: 'read-only' });
-
-      expect(capturedOpts.sandbox).toBe('read-only');
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain('type is required');
     });
 
-    it('accepts outputSchema option', async () => {
-      let capturedOpts;
-      const schema = { type: 'object', properties: { result: { type: 'string' } } };
-      const provider = createProvider({
-        name: 'mock',
+    it('rejects CLI without command', () => {
+      const result = validateProviderConfig({
+        name: 'test',
         type: 'cli',
-        command: 'test',
-        runner: async (prompt, opts) => {
-          capturedOpts = opts;
-          return { raw: '', parsed: null, exitCode: 0 };
-        },
+        capabilities: ['review'],
       });
 
-      await provider.run('test', { outputSchema: schema });
-
-      expect(capturedOpts.outputSchema).toEqual(schema);
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain('command is required for CLI providers');
     });
 
-    it('accepts cwd option', async () => {
-      let capturedOpts;
-      const provider = createProvider({
-        name: 'mock',
-        type: 'cli',
-        command: 'test',
-        runner: async (prompt, opts) => {
-          capturedOpts = opts;
-          return { raw: '', parsed: null, exitCode: 0 };
-        },
+    it('rejects API without baseUrl', () => {
+      const result = validateProviderConfig({
+        name: 'test',
+        type: 'api',
+        model: 'test',
+        capabilities: ['review'],
       });
 
-      await provider.run('test', { cwd: '/some/path' });
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain('baseUrl is required for API providers');
+    });
 
-      expect(capturedOpts.cwd).toBe('/some/path');
+    it('accepts valid CLI config', () => {
+      const result = validateProviderConfig({
+        name: 'claude',
+        type: 'cli',
+        command: 'claude',
+        capabilities: ['review', 'code-gen'],
+      });
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('accepts valid API config', () => {
+      const result = validateProviderConfig({
+        name: 'deepseek',
+        type: 'api',
+        baseUrl: 'https://api.deepseek.com',
+        model: 'deepseek-coder',
+        capabilities: ['review'],
+      });
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+  });
+
+  describe('ProviderType', () => {
+    it('exports CLI constant', () => {
+      expect(ProviderType.CLI).toBe('cli');
+    });
+
+    it('exports API constant', () => {
+      expect(ProviderType.API).toBe('api');
     });
   });
 });

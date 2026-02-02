@@ -1,158 +1,164 @@
 /**
  * Provider Queue - Queue concurrent provider tasks
- *
- * Features:
- * - Configurable max concurrent executions
- * - FIFO ordering with priority support
- * - Task timeout handling
- * - Queue status reporting
+ * Phase 33, Task 8
  */
 
-/**
- * Priority levels
- */
-export const PRIORITY = {
-  URGENT: 10,
-  NORMAL: 5,
-  LOW: 1,
+export const Priority = {
+  URGENT: 'urgent',
+  NORMAL: 'normal',
+  LOW: 'low',
 };
 
-/**
- * Create a new task queue
- * @param {Object} [options] - Queue options
- * @param {number} [options.maxConcurrent=3] - Maximum concurrent tasks
- * @param {number} [options.timeout=120000] - Task timeout in ms
- * @returns {Object} Queue instance
- */
-export function createQueue(options = {}) {
-  const maxConcurrent = options.maxConcurrent ?? 3;
-  const timeout = options.timeout ?? 120000;
+const PRIORITY_ORDER = {
+  [Priority.URGENT]: 0,
+  [Priority.NORMAL]: 1,
+  [Priority.LOW]: 2,
+};
 
-  return {
-    maxConcurrent,
-    timeout,
-    pending: [],
-    running: new Set(),
-    completed: 0,
-    failed: 0,
-    _processing: false,
-  };
-}
+let taskIdCounter = 0;
 
-/**
- * Process the next tasks in the queue
- * @param {Object} queue - Queue instance
- */
-function processQueue(queue) {
-  if (queue._processing) return;
-  queue._processing = true;
-
-  while (queue.running.size < queue.maxConcurrent && queue.pending.length > 0) {
-    // Sort by priority (highest first)
-    queue.pending.sort((a, b) => (b.priority || PRIORITY.NORMAL) - (a.priority || PRIORITY.NORMAL));
-
-    const task = queue.pending.shift();
-    if (!task) continue;
-
-    queue.running.add(task.id);
-
-    // Execute with timeout
-    const timeoutPromise = new Promise((_, reject) => {
-      task.timeoutId = setTimeout(() => {
-        reject(new Error(`Task ${task.id} timeout after ${queue.timeout}ms`));
-      }, queue.timeout);
-    });
-
-    Promise.race([task.execute(), timeoutPromise])
-      .then((result) => {
-        clearTimeout(task.timeoutId);
-        queue.running.delete(task.id);
-        queue.completed++;
-        task.resolve(result);
-        processQueue(queue);
-      })
-      .catch((error) => {
-        clearTimeout(task.timeoutId);
-        queue.running.delete(task.id);
-        queue.failed++;
-        task.reject(error);
-        processQueue(queue);
-      });
+export class ProviderQueue {
+  constructor(options = {}) {
+    this.maxConcurrent = options.maxConcurrent || 3;
+    this.timeout = options.timeout || 30000;
+    this.pending = [];
+    this.running = new Map();
+    this.completed = new Map();
+    this.processing = false;
   }
 
-  queue._processing = false;
-}
-
-/**
- * Add a task to the queue
- * @param {Object} queue - Queue instance
- * @param {Object} task - Task to add
- * @param {string} task.id - Unique task ID
- * @param {Function} task.execute - Async function to execute
- * @param {number} [task.priority] - Task priority (default: PRIORITY.NORMAL)
- * @returns {Promise<any>} Promise that resolves with task result
- */
-export function enqueue(queue, task) {
-  return new Promise((resolve, reject) => {
+  enqueue(task) {
+    const id = task.id || `task-${++taskIdCounter}`;
     const queuedTask = {
-      ...task,
-      priority: task.priority ?? PRIORITY.NORMAL,
-      resolve,
-      reject,
+      id,
+      priority: task.priority || Priority.NORMAL,
+      execute: task.execute || (() => Promise.resolve()),
+      prompt: task.prompt,
+      status: 'pending',
       enqueuedAt: Date.now(),
     };
 
-    queue.pending.push(queuedTask);
-    processQueue(queue);
-  });
-}
+    this.pending.push(queuedTask);
+    this._sortPending();
 
-/**
- * Get queue status
- * @param {Object} queue - Queue instance
- * @returns {Object} Queue status
- */
-export function getStatus(queue) {
-  return {
-    pending: queue.pending.length,
-    running: queue.running.size,
-    completed: queue.completed,
-    failed: queue.failed,
-    maxConcurrent: queue.maxConcurrent,
-  };
-}
+    if (this.processing) {
+      this._processNext();
+    }
 
-/**
- * Clear all pending tasks from the queue
- * @param {Object} queue - Queue instance
- */
-export function clearQueue(queue) {
-  // Reject all pending tasks
-  for (const task of queue.pending) {
-    task.reject(new Error('Queue cleared'));
-    if (task.timeoutId) {
-      clearTimeout(task.timeoutId);
+    return id;
+  }
+
+  _sortPending() {
+    this.pending.sort((a, b) => {
+      const priorityDiff = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
+      if (priorityDiff !== 0) return priorityDiff;
+      return a.enqueuedAt - b.enqueuedAt;
+    });
+  }
+
+  process() {
+    this.processing = true;
+    this._processNext();
+  }
+
+  async _processNext() {
+    while (
+      this.processing &&
+      this.pending.length > 0 &&
+      this.running.size < this.maxConcurrent
+    ) {
+      const task = this.pending.shift();
+      if (!task) break;
+
+      task.status = 'running';
+      task.startedAt = Date.now();
+      this.running.set(task.id, task);
+
+      this._executeTask(task);
     }
   }
 
-  queue.pending = [];
-}
-
-/**
- * Wait for all tasks to complete
- * @param {Object} queue - Queue instance
- * @returns {Promise<void>} Resolves when queue is drained
- */
-export function drainQueue(queue) {
-  return new Promise((resolve) => {
-    const checkDrained = () => {
-      if (queue.pending.length === 0 && queue.running.size === 0) {
-        resolve();
-      } else {
-        setTimeout(checkDrained, 10);
+  async _executeTask(task) {
+    const timeoutId = setTimeout(() => {
+      if (this.running.has(task.id)) {
+        task.status = 'cancelled';
+        task.error = 'Timeout';
+        this.running.delete(task.id);
+        this.completed.set(task.id, task);
+        this._processNext();
       }
-    };
+    }, this.timeout);
 
-    checkDrained();
-  });
+    try {
+      const result = await task.execute();
+      clearTimeout(timeoutId);
+
+      if (this.running.has(task.id)) {
+        task.status = 'completed';
+        task.result = result;
+        task.completedAt = Date.now();
+        this.running.delete(task.id);
+        this.completed.set(task.id, task);
+      }
+    } catch (error) {
+      clearTimeout(timeoutId);
+
+      if (this.running.has(task.id)) {
+        task.status = 'failed';
+        task.error = error.message;
+        task.completedAt = Date.now();
+        this.running.delete(task.id);
+        this.completed.set(task.id, task);
+      }
+    }
+
+    this._processNext();
+  }
+
+  getStatus() {
+    return {
+      pending: this.pending.length,
+      running: this.running.size,
+      completed: this.completed.size,
+    };
+  }
+
+  getTaskStatus(taskId) {
+    if (this.running.has(taskId)) {
+      return this.running.get(taskId).status;
+    }
+    if (this.completed.has(taskId)) {
+      return this.completed.get(taskId).status;
+    }
+    const pending = this.pending.find(t => t.id === taskId);
+    if (pending) {
+      return pending.status;
+    }
+    return null;
+  }
+
+  clearQueue() {
+    this.pending = [];
+  }
+
+  async drainQueue() {
+    this.process();
+
+    return new Promise((resolve) => {
+      const check = () => {
+        if (this.pending.length === 0 && this.running.size === 0) {
+          resolve();
+        } else {
+          setTimeout(check, 10);
+        }
+      };
+      check();
+    });
+  }
+
+  stop() {
+    this.processing = false;
+  }
 }
+
+export default { ProviderQueue, Priority };
