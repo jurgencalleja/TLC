@@ -1,10 +1,10 @@
 {
-  "name": "tdd-dashboard",
+  "name": "tlc-dashboard",
   "version": "0.1.0",
-  "description": "TUI dashboard for TDD workflow",
+  "description": "TUI dashboard for TLC (Test-Led Coding) workflow",
   "type": "module",
   "bin": {
-    "tdd-dashboard": "./dist/index.js"
+    "tlc-dashboard": "./dist/index.js"
   },
   "scripts": {
     "dev": "tsx src/index.tsx",
