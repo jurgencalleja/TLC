@@ -158,6 +158,7 @@ async function startApp() {
 
 // Run tests
 function runTests() {
+  broadcast('test-start', { timestamp: Date.now() });
   addLog('test', '--- Running tests ---', 'info');
 
   // Try to detect test command
@@ -372,6 +373,32 @@ app.post('/api/playwright', (req, res) => {
   res.json({ success: true });
 });
 
+// POST /api/tasks - Create a new task
+app.post('/api/tasks', (req, res) => {
+  const { title, phase, owner } = req.body;
+
+  if (!title) {
+    return res.status(400).json({ error: 'Title required' });
+  }
+
+  const plan = parsePlan(PROJECT_DIR);
+  const taskId = `task-${Date.now()}`;
+  const task = {
+    id: taskId,
+    title,
+    status: 'pending',
+    phase: phase || plan.currentPhase || 1,
+    owner: owner || null,
+    createdAt: new Date().toISOString()
+  };
+
+  // Broadcast to all connected clients
+  broadcast('task-created', task);
+  addLog('app', `Task created: ${title}`, 'info');
+
+  res.status(201).json(task);
+});
+
 app.post('/api/bug', (req, res) => {
   const { description, url, screenshot, severity, images } = req.body;
 
@@ -570,6 +597,11 @@ app.post('/api/agents', (req, res) => {
     });
 
     const agent = registry.getAgent(agentId);
+
+    // Broadcast agent creation
+    broadcast('agent-created', formatAgent(agent));
+    addLog('app', `Agent registered: ${name}`, 'info');
+
     res.status(201).json({ success: true, agent: formatAgent(agent) });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -603,6 +635,9 @@ app.patch('/api/agents/:id', (req, res) => {
         output: req.body.tokens.output || 0,
       });
     }
+
+    // Broadcast agent update
+    broadcast('agent-updated', formatAgent(agent));
 
     res.json({ success: true, agent: formatAgent(agent) });
   } catch (err) {
@@ -758,6 +793,34 @@ async function shutdown() {
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
 
+// Get health data for broadcasting
+function getHealthData() {
+  const os = require('os');
+  const memUsed = process.memoryUsage().heapUsed;
+  const memTotal = os.totalmem();
+  const loadAvg = os.loadavg()[0];
+  const cpuCount = os.cpus().length;
+  const cpuPercent = Math.round((loadAvg / cpuCount) * 100);
+
+  return {
+    status: appProcess ? 'healthy' : 'degraded',
+    memory: memUsed,
+    cpu: Math.min(cpuPercent, 100),
+    uptime: process.uptime(),
+    appRunning: appProcess !== null,
+    appPort: appPort
+  };
+}
+
+// Periodic health broadcast
+let healthInterval = null;
+function startHealthBroadcast() {
+  if (healthInterval) clearInterval(healthInterval);
+  healthInterval = setInterval(() => {
+    broadcast('health-update', getHealthData());
+  }, 30000); // Every 30 seconds
+}
+
 // Start server
 async function main() {
   console.log(`
@@ -778,6 +841,7 @@ async function main() {
   });
 
   setupWatchers();
+  startHealthBroadcast();
 
   if (PROXY_ONLY) {
     // In proxy-only mode, just set the app port for proxying
