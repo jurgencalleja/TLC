@@ -1,212 +1,142 @@
 /**
  * CLI Provider - Provider implementation for CLI tools
- *
- * Supports running AI CLI tools locally or via devserver:
- * - claude (Claude Code)
- * - codex (Codex CLI)
- * - gemini (Gemini CLI)
+ * Phase 33, Task 3
  */
 
 import { spawn } from 'child_process';
-import { createProvider, PROVIDER_TYPES } from './provider-interface.js';
 
-/**
- * Parse output, trying to extract JSON
- * @param {string} output - Raw output string
- * @returns {Object|null} Parsed JSON or null
- */
-export function parseOutput(output) {
-  if (!output || output.trim() === '') {
-    return null;
+export function buildArgs(cliName, prompt, options = {}) {
+  const args = [];
+
+  if (options.outputFormat) {
+    args.push('--output-format', options.outputFormat);
   }
 
-  // Try parsing the whole thing as JSON
-  try {
-    return JSON.parse(output);
-  } catch (e) {
-    // Try to find JSON in the output
-    const jsonMatch = output.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      try {
-        return JSON.parse(jsonMatch[0]);
-      } catch (e2) {
-        return null;
-      }
-    }
-    return null;
+  if (cliName === 'codex' && options.sandbox) {
+    args.push('--sandbox', options.sandbox);
   }
-}
 
-/**
- * Build command-line arguments for a CLI tool
- * @param {string} command - CLI command name
- * @param {string} prompt - The prompt
- * @param {Object} opts - Options
- * @returns {string[]} Array of arguments
- */
-export function buildArgs(command, prompt, opts = {}) {
-  const args = [...(opts.headlessArgs || [])];
-
-  // Add the prompt
   args.push(prompt);
-
   return args;
 }
 
-/**
- * Run a CLI tool locally
- * @param {string} command - CLI command
- * @param {string} prompt - The prompt
- * @param {Object} opts - Options
- * @returns {Promise<Object>} ProviderResult
- */
-export function runLocal(command, prompt, opts = {}) {
-  return new Promise((resolve, reject) => {
-    const args = buildArgs(command, prompt, opts);
-    const timeout = opts.timeout || 120000;
+export class CLIProvider {
+  constructor(config) {
+    this.name = config.name;
+    this.command = config.command;
+    this.headlessArgs = config.headlessArgs || [];
+    this.devserverUrl = config.devserverUrl;
+    this.timeout = config.timeout || 120000;
+    this._spawn = null;
+    this._fetch = null;
+  }
 
-    let stdout = '';
-    let stderr = '';
-    let timedOut = false;
+  async runLocal(prompt, options = {}) {
+    const args = [...this.headlessArgs, prompt];
 
-    const proc = spawn(command, args, {
-      cwd: opts.cwd,
-      env: process.env,
-      shell: false,
-    });
+    return new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        reject(new Error('CLI timeout'));
+      }, this.timeout);
 
-    const timeoutId = setTimeout(() => {
-      timedOut = true;
-      proc.kill('SIGTERM');
-      reject(new Error(`CLI timeout after ${timeout}ms`));
-    }, timeout);
-
-    proc.stdout.on('data', (data) => {
-      stdout += data.toString();
-    });
-
-    proc.stderr.on('data', (data) => {
-      stderr += data.toString();
-    });
-
-    proc.on('close', (code) => {
-      clearTimeout(timeoutId);
-
-      if (timedOut) return;
-
-      const parsed = parseOutput(stdout);
-
-      resolve({
-        raw: stdout,
-        parsed,
-        exitCode: code || 0,
-        stderr,
-      });
-    });
-
-    proc.on('error', (err) => {
-      clearTimeout(timeoutId);
-      if (!timedOut) {
-        reject(err);
+      if (this._spawn) {
+        this._spawn(this.command, args)
+          .then((result) => {
+            clearTimeout(timeoutId);
+            resolve(this._parseResult(result));
+          })
+          .catch((err) => {
+            clearTimeout(timeoutId);
+            reject(err);
+          });
+        return;
       }
+
+      let stdout = '';
+      let stderr = '';
+
+      const proc = spawn(this.command, args, {
+        shell: true,
+        timeout: this.timeout,
+      });
+
+      proc.stdout.on('data', (data) => {
+        stdout += data.toString();
+      });
+
+      proc.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+
+      proc.on('close', (code) => {
+        clearTimeout(timeoutId);
+        resolve(this._parseResult({ stdout, stderr, exitCode: code }));
+      });
+
+      proc.on('error', (err) => {
+        clearTimeout(timeoutId);
+        reject(err);
+      });
     });
-  });
-}
-
-/**
- * Run a CLI tool via devserver
- * @param {Object} params - Parameters
- * @param {string} params.devserverUrl - Devserver URL
- * @param {string} params.provider - Provider name
- * @param {string} params.prompt - The prompt
- * @param {Object} params.opts - Run options
- * @param {number} [params.pollInterval=1000] - Poll interval in ms
- * @param {number} [params.maxPollTime=300000] - Max poll time in ms
- * @returns {Promise<Object>} ProviderResult
- */
-export async function runViaDevserver({
-  devserverUrl,
-  provider,
-  prompt,
-  opts = {},
-  pollInterval = 1000,
-  maxPollTime = 300000,
-}) {
-  // Submit task
-  const submitResponse = await fetch(`${devserverUrl}/api/run`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      provider,
-      prompt,
-      opts,
-    }),
-  });
-
-  if (!submitResponse.ok) {
-    throw new Error(`Failed to submit task: ${submitResponse.statusText}`);
   }
 
-  const { taskId } = await submitResponse.json();
+  _parseResult(result) {
+    const { stdout, exitCode } = result;
+    let parsed = null;
 
-  // Poll for result
-  const startTime = Date.now();
-
-  while (Date.now() - startTime < maxPollTime) {
-    const statusResponse = await fetch(`${devserverUrl}/api/task/${taskId}`);
-
-    if (!statusResponse.ok) {
-      throw new Error(`Failed to get task status: ${statusResponse.statusText}`);
+    try {
+      parsed = JSON.parse(stdout);
+    } catch {
+      // Not JSON output
     }
 
-    const status = await statusResponse.json();
-
-    if (status.status === 'completed') {
-      return status.result;
-    }
-
-    if (status.status === 'failed') {
-      throw new Error(status.error || 'Task failed');
-    }
-
-    // Wait before polling again
-    await new Promise(r => setTimeout(r, pollInterval));
+    return {
+      raw: stdout,
+      parsed,
+      exitCode: exitCode || 0,
+      tokenUsage: { input: 0, output: 0 },
+      cost: 0,
+    };
   }
 
-  throw new Error('Task timed out waiting for devserver response');
-}
+  async runViaDevserver(prompt, options = {}) {
+    const fetch = this._fetch || globalThis.fetch;
 
-/**
- * Create a CLI provider instance
- * @param {Object} config - Provider configuration
- * @returns {Object} Provider instance
- */
-export function createCLIProvider(config) {
-  const runner = async (prompt, opts) => {
-    if (config.detected) {
-      return runLocal(config.command, prompt, {
-        ...opts,
-        headlessArgs: config.headlessArgs,
-      });
-    }
-
-    if (config.devserverUrl) {
-      return runViaDevserver({
-        devserverUrl: config.devserverUrl,
-        provider: config.name,
+    // Submit task
+    const submitRes = await fetch(this.devserverUrl + '/api/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        provider: this.name,
         prompt,
-        opts,
-      });
+        options,
+      }),
+    });
+
+    const { taskId } = await submitRes.json();
+
+    // Poll for result
+    while (true) {
+      const pollRes = await fetch(this.devserverUrl + '/api/task/' + taskId);
+      const task = await pollRes.json();
+
+      if (task.status === 'completed') {
+        return {
+          raw: JSON.stringify(task.result),
+          parsed: task.result,
+          exitCode: 0,
+          tokenUsage: task.tokenUsage || { input: 0, output: 0 },
+          cost: task.cost || 0,
+        };
+      }
+
+      if (task.status === 'failed') {
+        throw new Error(task.error || 'Task failed');
+      }
+
+      await new Promise(r => setTimeout(r, 500));
     }
-
-    throw new Error(`CLI ${config.name} not detected and no devserver configured`);
-  };
-
-  return createProvider({
-    ...config,
-    type: PROVIDER_TYPES.CLI,
-    runner,
-  });
+  }
 }
+
+export default { CLIProvider, buildArgs };

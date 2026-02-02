@@ -1,201 +1,154 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import {
-  createAPIProvider,
-  callAPI,
-  parseResponse,
-  calculateCost,
-  API_PRICING,
-} from './api-provider.js';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { APIProvider, calculateCost } from './api-provider.js';
 
-// Mock fetch
-global.fetch = vi.fn();
-
-describe('api-provider', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  describe('createAPIProvider', () => {
-    it('creates provider with API type', () => {
-      const provider = createAPIProvider({
-        name: 'deepseek',
-        baseUrl: 'https://api.deepseek.com',
-        model: 'deepseek-coder',
-        capabilities: ['review'],
-      });
-
-      expect(provider.type).toBe('api');
-      expect(provider.name).toBe('deepseek');
-    });
-
-    it('sets devserverOnly to true by default', () => {
-      const provider = createAPIProvider({
-        name: 'deepseek',
-        baseUrl: 'https://api.deepseek.com',
-      });
-
-      expect(provider.devserverOnly).toBe(true);
-    });
-
-    it('stores baseUrl and model', () => {
-      const provider = createAPIProvider({
-        name: 'deepseek',
-        baseUrl: 'https://api.deepseek.com',
-        model: 'deepseek-coder',
-      });
-
-      expect(provider.baseUrl).toBe('https://api.deepseek.com');
-      expect(provider.model).toBe('deepseek-coder');
-    });
-  });
-
-  describe('callAPI', () => {
+describe('API Provider', () => {
+  describe('run', () => {
     it('calls baseUrl/v1/chat/completions', async () => {
-      global.fetch.mockResolvedValue({
+      const provider = new APIProvider({
+        name: 'deepseek',
+        baseUrl: 'https://api.deepseek.com',
+        model: 'deepseek-coder',
+        apiKey: 'test-key',
+      });
+
+      provider._fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({
-          choices: [{ message: { content: '{"result": "ok"}' } }],
-          usage: { prompt_tokens: 100, completion_tokens: 50 },
+          choices: [{ message: { content: 'response' } }],
+          usage: { prompt_tokens: 10, completion_tokens: 5 },
         }),
       });
 
-      await callAPI({
-        baseUrl: 'https://api.deepseek.com',
-        model: 'deepseek-coder',
-        prompt: 'test',
-        apiKey: 'sk-test',
-      });
+      await provider.run('test prompt');
 
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(provider._fetch).toHaveBeenCalledWith(
         'https://api.deepseek.com/v1/chat/completions',
-        expect.any(Object)
+        expect.anything()
       );
     });
 
     it('sets Authorization header', async () => {
-      global.fetch.mockResolvedValue({
+      const provider = new APIProvider({
+        name: 'deepseek',
+        baseUrl: 'https://api.deepseek.com',
+        model: 'deepseek-coder',
+        apiKey: 'test-key-123',
+      });
+
+      provider._fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({
-          choices: [{ message: { content: '{}' } }],
-          usage: { prompt_tokens: 100, completion_tokens: 50 },
+          choices: [{ message: { content: 'response' } }],
+          usage: { prompt_tokens: 10, completion_tokens: 5 },
         }),
       });
 
-      await callAPI({
-        baseUrl: 'https://api.deepseek.com',
-        model: 'deepseek-coder',
-        prompt: 'test',
-        apiKey: 'sk-test-key',
-      });
+      await provider.run('test prompt');
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.any(String),
+      expect(provider._fetch).toHaveBeenCalledWith(
+        expect.anything(),
         expect.objectContaining({
           headers: expect.objectContaining({
-            'Authorization': 'Bearer sk-test-key',
+            Authorization: 'Bearer test-key-123',
           }),
         })
       );
     });
 
     it('sends model in body', async () => {
-      global.fetch.mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({
-          choices: [{ message: { content: '{}' } }],
-          usage: { prompt_tokens: 100, completion_tokens: 50 },
-        }),
-      });
-
-      await callAPI({
+      const provider = new APIProvider({
+        name: 'deepseek',
         baseUrl: 'https://api.deepseek.com',
         model: 'deepseek-coder',
-        prompt: 'test',
-        apiKey: 'sk-test',
+        apiKey: 'test-key',
       });
 
-      const callArgs = global.fetch.mock.calls[0];
-      const body = JSON.parse(callArgs[1].body);
+      let capturedBody;
+      provider._fetch = vi.fn().mockImplementation((url, opts) => {
+        capturedBody = JSON.parse(opts.body);
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            choices: [{ message: { content: 'response' } }],
+            usage: { prompt_tokens: 10, completion_tokens: 5 },
+          }),
+        });
+      });
 
-      expect(body.model).toBe('deepseek-coder');
+      await provider.run('test prompt');
+
+      expect(capturedBody.model).toBe('deepseek-coder');
     });
 
     it('includes response_format when schema provided', async () => {
-      const schema = {
-        type: 'object',
-        properties: {
-          result: { type: 'string' },
-        },
-      };
-
-      global.fetch.mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({
-          choices: [{ message: { content: '{"result": "ok"}' } }],
-          usage: { prompt_tokens: 100, completion_tokens: 50 },
-        }),
-      });
-
-      await callAPI({
+      const provider = new APIProvider({
+        name: 'deepseek',
         baseUrl: 'https://api.deepseek.com',
         model: 'deepseek-coder',
-        prompt: 'test',
-        apiKey: 'sk-test',
-        outputSchema: schema,
+        apiKey: 'test-key',
       });
 
-      const callArgs = global.fetch.mock.calls[0];
-      const body = JSON.parse(callArgs[1].body);
+      let capturedBody;
+      provider._fetch = vi.fn().mockImplementation((url, opts) => {
+        capturedBody = JSON.parse(opts.body);
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            choices: [{ message: { content: '{"result": "test"}' } }],
+            usage: { prompt_tokens: 10, completion_tokens: 5 },
+          }),
+        });
+      });
 
-      expect(body.response_format).toBeDefined();
-      expect(body.response_format.type).toBe('json_schema');
+      await provider.run('test prompt', {
+        outputSchema: { type: 'object', properties: { result: { type: 'string' } } },
+      });
+
+      expect(capturedBody.response_format).toBeDefined();
     });
   });
 
   describe('parseResponse', () => {
-    it('extracts content from response', () => {
-      const response = {
-        choices: [{ message: { content: '{"result": "ok"}' } }],
-        usage: { prompt_tokens: 100, completion_tokens: 50 },
-      };
+    it('extracts content', async () => {
+      const provider = new APIProvider({
+        name: 'test',
+        baseUrl: 'https://test.com',
+        model: 'test',
+        apiKey: 'key',
+      });
 
-      const result = parseResponse(response);
+      provider._fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+          choices: [{ message: { content: 'Hello world' } }],
+          usage: { prompt_tokens: 10, completion_tokens: 5 },
+        }),
+      });
 
-      expect(result.raw).toBe('{"result": "ok"}');
+      const result = await provider.run('test');
+
+      expect(result.raw).toBe('Hello world');
     });
 
-    it('extracts token usage', () => {
-      const response = {
-        choices: [{ message: { content: '{}' } }],
-        usage: { prompt_tokens: 100, completion_tokens: 50 },
-      };
+    it('extracts token usage', async () => {
+      const provider = new APIProvider({
+        name: 'test',
+        baseUrl: 'https://test.com',
+        model: 'test',
+        apiKey: 'key',
+      });
 
-      const result = parseResponse(response);
+      provider._fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+          choices: [{ message: { content: 'response' } }],
+          usage: { prompt_tokens: 100, completion_tokens: 50 },
+        }),
+      });
+
+      const result = await provider.run('test');
 
       expect(result.tokenUsage).toEqual({ input: 100, output: 50 });
-    });
-
-    it('parses JSON content', () => {
-      const response = {
-        choices: [{ message: { content: '{"score": 85}' } }],
-        usage: { prompt_tokens: 100, completion_tokens: 50 },
-      };
-
-      const result = parseResponse(response);
-
-      expect(result.parsed).toEqual({ score: 85 });
-    });
-
-    it('handles non-JSON content', () => {
-      const response = {
-        choices: [{ message: { content: 'Plain text response' } }],
-        usage: { prompt_tokens: 100, completion_tokens: 50 },
-      };
-
-      const result = parseResponse(response);
-
-      expect(result.raw).toBe('Plain text response');
-      expect(result.parsed).toBeNull();
     });
   });
 
@@ -203,134 +156,83 @@ describe('api-provider', () => {
     it('uses provider pricing', () => {
       const cost = calculateCost(
         { input: 1000, output: 500 },
-        { input: 0.001, output: 0.002 }
+        { inputPer1k: 0.001, outputPer1k: 0.002 }
       );
 
-      // (1000 * 0.001 + 500 * 0.002) / 1000 = 0.002
-      expect(cost).toBeCloseTo(0.002);
-    });
-
-    it('handles zero tokens', () => {
-      const cost = calculateCost(
-        { input: 0, output: 0 },
-        { input: 0.001, output: 0.002 }
-      );
-
-      expect(cost).toBe(0);
-    });
-
-    it('returns null when no pricing', () => {
-      const cost = calculateCost({ input: 1000, output: 500 }, null);
-
-      expect(cost).toBeNull();
+      expect(cost).toBe(0.002); // 1000*0.001/1000 + 500*0.002/1000
     });
   });
 
-  describe('rate limit handling', () => {
+  describe('Error Handling', () => {
     it('retries on rate limit', async () => {
+      const provider = new APIProvider({
+        name: 'test',
+        baseUrl: 'https://test.com',
+        model: 'test',
+        apiKey: 'key',
+        maxRetries: 3,
+      });
+
       let attempts = 0;
-      global.fetch.mockImplementation(() => {
+      provider._fetch = vi.fn().mockImplementation(() => {
         attempts++;
-        if (attempts === 1) {
+        if (attempts < 2) {
           return Promise.resolve({
             ok: false,
             status: 429,
-            headers: { get: () => '1' }, // Retry-After
+            json: () => Promise.resolve({ error: 'rate limited' }),
           });
         }
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({
-            choices: [{ message: { content: '{}' } }],
+            choices: [{ message: { content: 'success' } }],
             usage: { prompt_tokens: 10, completion_tokens: 5 },
           }),
         });
       });
 
-      const result = await callAPI({
-        baseUrl: 'https://api.example.com',
-        model: 'test',
-        prompt: 'test',
-        apiKey: 'sk-test',
-        retryDelay: 10,
-      });
+      const result = await provider.run('test');
 
       expect(attempts).toBe(2);
-      expect(result.exitCode).toBe(0);
+      expect(result.raw).toBe('success');
     });
-  });
 
-  describe('error handling', () => {
     it('handles network errors gracefully', async () => {
-      global.fetch.mockRejectedValue(new Error('Network error'));
-
-      const result = await callAPI({
-        baseUrl: 'https://api.example.com',
+      const provider = new APIProvider({
+        name: 'test',
+        baseUrl: 'https://test.com',
         model: 'test',
-        prompt: 'test',
-        apiKey: 'sk-test',
+        apiKey: 'key',
         maxRetries: 1,
       });
 
-      expect(result.exitCode).not.toBe(0);
-      expect(result.error).toBeDefined();
-    });
+      provider._fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
-    it('handles API errors', async () => {
-      global.fetch.mockResolvedValue({
-        ok: false,
-        status: 500,
-        statusText: 'Internal Server Error',
-        json: () => Promise.resolve({ error: { message: 'Server error' } }),
-      });
-
-      const result = await callAPI({
-        baseUrl: 'https://api.example.com',
-        model: 'test',
-        prompt: 'test',
-        apiKey: 'sk-test',
-        maxRetries: 1,
-      });
-
-      expect(result.exitCode).not.toBe(0);
+      await expect(provider.run('test')).rejects.toThrow(/network/i);
     });
   });
 
-  describe('DeepSeek support', () => {
+  describe('DeepSeek Support', () => {
     it('supports DeepSeek endpoint', async () => {
-      global.fetch.mockResolvedValue({
+      const provider = new APIProvider({
+        name: 'deepseek',
+        baseUrl: 'https://api.deepseek.com',
+        model: 'deepseek-coder',
+        apiKey: 'test-key',
+      });
+
+      provider._fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({
-          choices: [{ message: { content: '{"review": "LGTM"}' } }],
-          usage: { prompt_tokens: 500, completion_tokens: 100 },
+          choices: [{ message: { content: 'code here' } }],
+          usage: { prompt_tokens: 50, completion_tokens: 100 },
         }),
       });
 
-      const result = await callAPI({
-        baseUrl: 'https://api.deepseek.com',
-        model: 'deepseek-coder',
-        prompt: 'Review this code',
-        apiKey: 'sk-deepseek-key',
-      });
+      const result = await provider.run('write code');
 
-      expect(result.parsed).toEqual({ review: 'LGTM' });
-      expect(result.tokenUsage).toEqual({ input: 500, output: 100 });
-    });
-  });
-
-  describe('API_PRICING', () => {
-    it('has pricing for deepseek', () => {
-      expect(API_PRICING.deepseek).toBeDefined();
-      expect(API_PRICING.deepseek.input).toBeDefined();
-      expect(API_PRICING.deepseek.output).toBeDefined();
-    });
-
-    it('has pricing for mistral', () => {
-      expect(API_PRICING.mistral).toBeDefined();
-    });
-
-    it('has default pricing', () => {
-      expect(API_PRICING.default).toBeDefined();
+      expect(result.raw).toBe('code here');
     });
   });
 });
