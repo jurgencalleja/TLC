@@ -99,7 +99,12 @@ services:
     image: node:20-alpine
     container_name: tlc-${COMPOSE_PROJECT_NAME:-dev}-dashboard
     working_dir: /project
-    command: sh -c "cd /tlc/server && npm install && cd /project && node /tlc/server/index.js --proxy-only"
+    command: >
+      sh -c "
+        cd /tlc/dashboard && npm install && npm run build &&
+        cd /tlc/server && npm install &&
+        cd /project && node /tlc/server/index.js --proxy-only
+      "
     environment:
       - TLC_PORT=3147
       - TLC_PROXY_ONLY=true
