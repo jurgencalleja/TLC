@@ -11,7 +11,7 @@ Central registry for managing agent instances, their state, and lifecycle. Found
 
 ## Tasks
 
-### Task 1: Agent Registry [ ]
+### Task 1: Agent Registry [x]
 
 **Goal:** Central store for tracking all agent instances
 
@@ -41,7 +41,7 @@ Central registry for managing agent instances, their state, and lifecycle. Found
 
 ---
 
-### Task 2: Agent State Machine [ ]
+### Task 2: Agent State Machine [x]
 
 **Goal:** Manage agent lifecycle states with transitions
 
@@ -70,7 +70,7 @@ Central registry for managing agent instances, their state, and lifecycle. Found
 
 ---
 
-### Task 3: Agent Metadata [ ]
+### Task 3: Agent Metadata [x]
 
 **Goal:** Track agent execution details
 
@@ -100,7 +100,7 @@ Central registry for managing agent instances, their state, and lifecycle. Found
 
 ---
 
-### Task 4: Lifecycle Hooks [ ]
+### Task 4: Lifecycle Hooks [x]
 
 **Goal:** Extension points for agent lifecycle events
 
@@ -130,7 +130,7 @@ Central registry for managing agent instances, their state, and lifecycle. Found
 
 ---
 
-### Task 5: Agent Persistence [ ]
+### Task 5: Agent Persistence [x]
 
 **Goal:** Save/restore agent state across sessions
 
@@ -159,7 +159,7 @@ Central registry for managing agent instances, their state, and lifecycle. Found
 
 ---
 
-### Task 6: Agent Cleanup [ ]
+### Task 6: Agent Cleanup [x]
 
 **Goal:** Handle timeouts and orphaned agents
 
@@ -189,7 +189,7 @@ Central registry for managing agent instances, their state, and lifecycle. Found
 
 ---
 
-### Task 7: Registry Command [ ]
+### Task 7: Registry Command [x]
 
 **Goal:** CLI for agent registry operations
 
@@ -219,7 +219,7 @@ Central registry for managing agent instances, their state, and lifecycle. Found
 
 ---
 
-### Task 8: Dashboard AgentRegistryPane [ ]
+### Task 8: Dashboard AgentRegistryPane [x]
 
 **Goal:** Dashboard component for agent monitoring
 
