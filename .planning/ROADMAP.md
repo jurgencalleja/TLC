@@ -1960,6 +1960,39 @@ stable branch    → stable.example.com     (manual deploy, approval required)
 
 ---
 
+## Milestone: v2.2 - Developer Experience
+
+### Phase 57: Coding Standards Injection [x]
+
+**Goal:** Automatic coding standards enforcement for all TLC projects.
+
+**Deliverables:**
+- [x] CLAUDE.md template with code quality rules
+- [x] CODING-STANDARDS.md template (entity-based modules, no magic strings)
+- [x] Standards injector module (create/append on init)
+- [x] `/tlc:audit` command - check compliance, generate report
+- [x] `/tlc:cleanup` command - auto-fix all issues with commits
+- [x] `/tlc:refactor` command - step-by-step with previews/checkpoints
+
+**Standards Enforced:**
+- Entity-based module structure (`src/{entity}/` not flat `services/`)
+- No inline interfaces in services
+- No hardcoded URLs/ports (use environment)
+- No magic strings (use constants)
+- JSDoc on all public functions
+- Path alias imports (no deep `../../../`)
+
+**Test Progress:**
+- 77 tests (standards-injector, audit-checker, cleanup-executor, refactor-stepper)
+
+**Success Criteria:**
+- [x] Standards files created on `tlc init`
+- [x] Audit detects all architectural violations
+- [x] Cleanup fixes issues automatically
+- [x] Refactor allows step-by-step review
+
+---
+
 ## Future Milestones (v2.x)
 
 ### v2.2 - Design Studio + LiteLLM
