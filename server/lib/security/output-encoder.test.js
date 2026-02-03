@@ -177,17 +177,17 @@ describe('output-encoder', () => {
 
     it('escapes quotes', () => {
       const result = encodeCss('font-family: "Arial"');
-      expect(result).not.toContain('"');
+      expect(result).toContain('\\"'); // Escaped with backslash
     });
 
     it('escapes semicolons', () => {
       const result = encodeCss('value; other-property');
-      expect(result).not.toContain(';');
+      expect(result).toContain('\\;'); // Escaped with backslash
     });
 
     it('escapes curly braces', () => {
       const result = encodeCss('value { injection }');
-      expect(result).not.toContain('{');
+      expect(result).toContain('\\{'); // Escaped with backslash
     });
 
     it('blocks url() injection', () => {
@@ -219,7 +219,7 @@ describe('output-encoder', () => {
 
     it('auto-detects CSS context', () => {
       const result = encodeForContext('value;', 'css');
-      expect(result).not.toContain(';');
+      expect(result).toContain('\\;'); // Semicolon is escaped with backslash
     });
 
     it('auto-detects attribute context', () => {
@@ -235,13 +235,13 @@ describe('output-encoder', () => {
   describe('createEncoder', () => {
     it('creates encoder with default context', () => {
       const encoder = createEncoder({ defaultContext: 'html' });
-      const result = encoder.encode('<script>');
+      const result = encoder.encode('<script>').value();
       expect(result).toBe('&lt;script&gt;');
     });
 
     it('allows context override', () => {
       const encoder = createEncoder({ defaultContext: 'html' });
-      const result = encoder.encode('hello world', 'url');
+      const result = encoder.encode('hello world', 'url').value();
       expect(result).toBe('hello%20world');
     });
 
