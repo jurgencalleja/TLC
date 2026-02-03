@@ -1417,148 +1417,542 @@ Developer sees QA feedback
 
 ---
 
-## Milestone: v2.1 - Production Deployment
+## Milestone: v2.1 - Secure Production Deployment
 
-Zero-DevOps deployment for teams without dedicated operations staff, plus enterprise k8s for teams with DevOps.
+**Security-First Deployment** for teams without dedicated security/DevOps staff, plus enterprise k8s for teams with DevOps.
 
-### Phase 48: Branch Deployment Strategy [ ]
+**Why Security-First:** Research shows 45% of AI-generated code contains security flaws, with XSS vulnerabilities in 86% of samples. TLC must generate secure code by default and enforce security at every deployment stage.
 
-**Goal:** Differentiate deployment behavior between dev and stable branches.
-
-**Current State:**
-- All branches auto-deploy to `{branch}.example.com`
-- No distinction between dev/integration and stable/production
-
-**Target State:**
-```
-feature branches → feature-x.example.com  (auto-deploy on push)
-dev branch       → dev.example.com        (auto-deploy on push)
-stable branch    → stable.example.com     (manual deploy only)
-```
-
-**Deliverables:**
-- [ ] Branch classification (feature/dev/stable)
-- [ ] Deployment trigger configuration in .tlc.json
-- [ ] `/tlc:deploy stable` command for manual deployment
-- [ ] Deployment approval workflow (optional)
-- [ ] Rollback capability for stable
-- [ ] Deployment history/audit log
-
-**Success Criteria:**
-- [ ] Pushing to dev auto-deploys
-- [ ] Pushing to stable does NOT auto-deploy
-- [ ] `/tlc:deploy stable` triggers deployment
-- [ ] Rollback to previous stable version works
+**References:**
+- [OWASP Top 10 2025](https://owasp.org/Top10/2025/)
+- [AI Code Security Risks](https://www.veracode.com/blog/ai-generated-code-security-risks/)
+- [Docker Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Docker_Security_Cheat_Sheet.html)
 
 ---
 
-### Phase 49: Security Hardening [ ]
+### Phase 48: Secure Code Generation [ ]
 
-**Goal:** Production security without dedicated security team.
+**Goal:** Ensure TLC-generated code is secure by default, addressing OWASP Top 10 2025.
+
+**Problem:** AI code generators produce vulnerable code:
+- 45% contains security flaws
+- Missing input validation by default
+- XSS vulnerabilities in 86% of samples
+- Iterative degradation (more bugs each iteration)
 
 **Deliverables:**
-- [ ] TLS/SSL auto-configuration (Let's Encrypt)
-- [ ] Security headers (CSP, HSTS, X-Frame-Options)
-- [ ] Rate limiting per endpoint
-- [ ] DDoS basic protection
-- [ ] Secrets management (.env encryption)
-- [ ] Container security scanning
-- [ ] Dependency vulnerability alerts
-- [ ] `/tlc:security --harden` command
+
+**Input Validation (OWASP A03: Injection)**
+- [ ] Input sanitization templates for all user inputs
+- [ ] Parameterized query enforcement (no string concatenation)
+- [ ] Path traversal prevention (whitelist allowed paths)
+- [ ] Command injection prevention (no shell exec with user input)
+
+**Output Encoding (OWASP A03: XSS)**
+- [ ] Context-aware output encoding (HTML, JS, URL, CSS)
+- [ ] Content Security Policy headers in all templates
+- [ ] Subresource Integrity (SRI) for external scripts
+
+**Authentication (OWASP A07: Auth Failures)**
+- [ ] Secure password hashing (Argon2id, not bcrypt)
+- [ ] Rate limiting on auth endpoints (5 attempts/minute)
+- [ ] Account lockout after failed attempts
+- [ ] Secure session management (httpOnly, secure, sameSite)
+
+**Access Control (OWASP A01: Broken Access Control)**
+- [ ] Default-deny access patterns
+- [ ] Object-level authorization checks
+- [ ] Function-level authorization checks
+- [ ] CORS whitelist (no wildcard origins)
+
+**Cryptography (OWASP A02: Crypto Failures)**
+- [ ] No hardcoded secrets (detect and fail)
+- [ ] Secure random generation (crypto.randomBytes)
+- [ ] TLS 1.3 minimum for all connections
+- [ ] Key rotation support
+
+**Error Handling**
+- [ ] No stack traces in production responses
+- [ ] Structured error logging (no sensitive data)
+- [ ] Graceful degradation patterns
+
+**Test Coverage:**
+- [ ] Security-focused test templates (~40 tests)
+- [ ] SAST rules for common vulnerabilities (~30 tests)
+- [ ] Input validation test generators (~20 tests)
+- Total: ~90 tests
 
 **Success Criteria:**
-- [ ] A+ rating on SSL Labs
-- [ ] Pass OWASP ZAP baseline scan
-- [ ] No critical vulnerabilities in containers
+- [ ] Generated code passes OWASP ZAP baseline scan
+- [ ] No hardcoded secrets in any generated file
+- [ ] All user inputs validated before use
+- [ ] All outputs encoded for context
 
 ---
 
-### Phase 50: Health Monitoring [ ]
+### Phase 49: Container Security Hardening [ ]
 
-**Goal:** Know when things break before users report it.
+**Goal:** Production-grade container security following CIS Docker Benchmark.
+
+**Reference:** [OWASP Docker Security](https://cheatsheetseries.owasp.org/cheatsheets/Docker_Security_Cheat_Sheet.html)
 
 **Deliverables:**
-- [ ] Health check endpoints per service
-- [ ] Uptime monitoring with alerts
-- [ ] Error rate tracking
-- [ ] Response time metrics
-- [ ] Disk/memory/CPU alerts
-- [ ] Log aggregation and search
-- [ ] Incident timeline
-- [ ] Status page generation
-- [ ] Dashboard HealthPane integration
+
+**Image Hardening**
+- [ ] Minimal base images (Alpine/Distroless, not Ubuntu)
+- [ ] Multi-stage builds (build deps not in final image)
+- [ ] Non-root user in all containers (USER directive)
+- [ ] No SUID/SGID binaries
+- [ ] Image signing with Docker Content Trust (DCT)
+- [ ] SBOM generation for each image
+
+**Runtime Security**
+- [ ] Drop all capabilities (`--cap-drop ALL`)
+- [ ] Add only required caps (`--cap-add` whitelist)
+- [ ] Read-only root filesystem (`--read-only`)
+- [ ] No privileged containers (block `--privileged`)
+- [ ] User namespace remapping enabled
+- [ ] Seccomp profiles (default or custom)
+- [ ] AppArmor/SELinux profiles
+
+**Network Security**
+- [ ] Custom bridge networks (no default bridge)
+- [ ] Network segmentation per service
+- [ ] No `--net=host` in production
+- [ ] Internal DNS only for service discovery
+
+**Secrets Management**
+- [ ] Docker secrets (not env vars for sensitive data)
+- [ ] No secrets in Dockerfiles or images
+- [ ] Secret rotation support
+- [ ] Vault/SOPS integration option
+
+**Scanning & Compliance**
+- [ ] Trivy vulnerability scanning in CI
+- [ ] Block builds with critical/high CVEs
+- [ ] CIS Docker Benchmark audit script
+- [ ] Container drift detection
+
+**Test Coverage:**
+- [ ] Dockerfile linting rules (~25 tests)
+- [ ] Runtime security checks (~30 tests)
+- [ ] Network policy tests (~20 tests)
+- [ ] Secrets handling tests (~15 tests)
+- Total: ~90 tests
 
 **Success Criteria:**
-- [ ] Alert within 1 minute of service down
-- [ ] 30-day uptime history visible
+- [ ] All containers run as non-root
+- [ ] No critical CVEs in production images
+- [ ] Pass CIS Docker Benchmark Level 1
+- [ ] Secrets never visible in logs/env
+
+---
+
+### Phase 50: Branch Deployment Strategy [ ]
+
+**Goal:** Differentiate deployment behavior with security gates at each tier.
+
+**Branch Tiers:**
+```
+feature branches → feature-x.example.com  (auto-deploy, security scan)
+dev branch       → dev.example.com        (auto-deploy, full scan)
+stable branch    → stable.example.com     (manual deploy, approval required)
+```
+
+**Deliverables:**
+
+**Branch Classification**
+- [ ] Branch tier detection (feature/dev/stable)
+- [ ] Tier-specific deployment rules in .tlc.json
+- [ ] Protected branch enforcement
+
+**Security Gates per Tier**
+- [ ] Feature: SAST scan, dependency check
+- [ ] Dev: SAST + DAST scan, container scan
+- [ ] Stable: Full security suite + manual approval
+
+**Deployment Controls**
+- [ ] `/tlc:deploy stable` with 2FA confirmation
+- [ ] Deployment approval workflow (GitHub/GitLab)
+- [ ] Rollback to any previous version
+- [ ] Blue-green deployment for stable
+- [ ] Deployment audit log (who, when, what)
+
+**Rollback & Recovery**
+- [ ] Automatic rollback on health check failure
+- [ ] Database migration rollback support
+- [ ] State snapshot before deployment
+- [ ] Recovery playbook generation
+
+**Test Coverage:**
+- [ ] Branch classification tests (~15 tests)
+- [ ] Security gate tests (~25 tests)
+- [ ] Deployment control tests (~20 tests)
+- [ ] Rollback tests (~20 tests)
+- Total: ~80 tests
+
+**Success Criteria:**
+- [ ] Stable deployments require explicit approval
+- [ ] Failed security gates block deployment
+- [ ] Rollback completes in <2 minutes
+- [ ] Full audit trail for compliance
+
+---
+
+### Phase 51: Network Security & TLS [ ]
+
+**Goal:** A+ SSL Labs rating with defense-in-depth network security.
+
+**Deliverables:**
+
+**TLS Configuration**
+- [ ] Let's Encrypt auto-renewal
+- [ ] TLS 1.3 only (disable 1.2 for new deployments)
+- [ ] Strong cipher suites (ECDHE, AES-GCM)
+- [ ] OCSP stapling enabled
+- [ ] CAA DNS records
+
+**Security Headers**
+- [ ] Content-Security-Policy (strict, no unsafe-inline)
+- [ ] Strict-Transport-Security (max-age=31536000, includeSubDomains)
+- [ ] X-Content-Type-Options: nosniff
+- [ ] X-Frame-Options: DENY
+- [ ] Referrer-Policy: strict-origin-when-cross-origin
+- [ ] Permissions-Policy (disable unused APIs)
+- [ ] Cross-Origin-Opener-Policy
+- [ ] Cross-Origin-Embedder-Policy
+
+**Rate Limiting & DDoS**
+- [ ] Per-endpoint rate limits (configurable)
+- [ ] IP-based throttling
+- [ ] Fail2ban integration for VPS
+- [ ] Cloudflare/CDN integration option
+- [ ] Request size limits
+
+**Firewall & Access**
+- [ ] UFW auto-configuration (VPS)
+- [ ] Network policies (k8s)
+- [ ] IP allowlist for admin endpoints
+- [ ] GeoIP blocking option
+
+**Test Coverage:**
+- [ ] TLS configuration tests (~20 tests)
+- [ ] Header validation tests (~25 tests)
+- [ ] Rate limiting tests (~20 tests)
+- [ ] Firewall tests (~15 tests)
+- Total: ~80 tests
+
+**Success Criteria:**
+- [ ] A+ on SSL Labs
+- [ ] A+ on securityheaders.com
+- [ ] Rate limiting prevents brute force
+- [ ] No open ports except 80/443
+
+---
+
+### Phase 52: Health Monitoring & Incident Response [ ]
+
+**Goal:** Detect issues before users, respond systematically.
+
+**Deliverables:**
+
+**Health Checks**
+- [ ] Liveness probes (is process running?)
+- [ ] Readiness probes (can accept traffic?)
+- [ ] Deep health checks (DB, cache, deps)
+- [ ] Health endpoints don't leak info
+
+**Monitoring**
+- [ ] Uptime monitoring (1-minute intervals)
+- [ ] Error rate tracking (4xx, 5xx)
+- [ ] Response time percentiles (p50, p95, p99)
+- [ ] Resource usage (CPU, memory, disk)
+- [ ] Log aggregation with structured logging
+
+**Alerting**
+- [ ] PagerDuty/Opsgenie/Slack integration
+- [ ] Alert severity levels (critical, warning, info)
+- [ ] Alert deduplication
+- [ ] On-call rotation support
+
+**Incident Response**
+- [ ] Incident timeline auto-generation
+- [ ] Runbook templates
+- [ ] Post-mortem template
+- [ ] Status page (Statuspage.io or self-hosted)
+
+**Security Monitoring**
+- [ ] Failed auth attempt alerts
+- [ ] Unusual traffic pattern detection
+- [ ] Log-based anomaly detection
+- [ ] SIEM export (JSON, CEF formats)
+
+**Test Coverage:**
+- [ ] Health check tests (~20 tests)
+- [ ] Monitoring tests (~25 tests)
+- [ ] Alerting tests (~20 tests)
+- [ ] Incident response tests (~15 tests)
+- Total: ~80 tests
+
+**Success Criteria:**
+- [ ] Alert within 60 seconds of outage
+- [ ] 30-day metrics retention
 - [ ] Public status page option
+- [ ] Security events logged and alertable
 
 ---
 
-### Phase 51: Monolith VPS Deployment [ ]
+### Phase 53: Monolith VPS Deployment [ ]
 
-**Goal:** One-command deploy to single VPS (no DevOps required).
+**Goal:** Secure one-command deploy to single VPS.
 
 **Target Users:** Solo devs, small teams, startups
 
 **Deliverables:**
+
+**Server Hardening**
+- [ ] Ubuntu 22.04 LTS only (security updates)
+- [ ] Automatic security updates enabled
+- [ ] SSH key-only auth (disable password)
+- [ ] SSH on non-standard port (optional)
+- [ ] Fail2ban configured
+- [ ] UFW firewall (only 80/443/SSH)
+
+**Deployment**
 - [ ] `/tlc:deploy vps` command
-- [ ] Auto-provisioning script (Ubuntu 22.04+)
-- [ ] Caddy reverse proxy auto-config
-- [ ] PostgreSQL/Redis setup
-- [ ] Backup automation (daily)
-- [ ] SSH key management
-- [ ] Domain/DNS verification
-- [ ] Zero-downtime deployment
+- [ ] Zero-downtime deployment (blue-green)
+- [ ] Caddy reverse proxy (auto-TLS)
+- [ ] Docker Compose orchestration
+
+**Data & Backups**
+- [ ] PostgreSQL with encrypted connections
+- [ ] Redis with auth enabled
+- [ ] Daily encrypted backups to S3/B2
+- [ ] Backup verification tests
+- [ ] Point-in-time recovery option
+
+**Secrets**
+- [ ] Secrets stored in `/etc/tlc/secrets`
+- [ ] 600 permissions, root-owned
+- [ ] Encrypted at rest option (LUKS)
+- [ ] No secrets in git or env vars
+
+**Test Coverage:**
+- [ ] Server hardening tests (~20 tests)
+- [ ] Deployment tests (~25 tests)
+- [ ] Backup/restore tests (~20 tests)
+- [ ] Secrets management tests (~15 tests)
+- Total: ~80 tests
 
 **Success Criteria:**
 - [ ] New VPS → production in <15 minutes
-- [ ] No SSH required after initial setup
-- [ ] Automated daily backups
+- [ ] Pass Lynis security audit (score >80)
+- [ ] Automated daily backups verified
+- [ ] SSH key rotation supported
 
 ---
 
-### Phase 52: Kubernetes Deployment [ ]
+### Phase 54: Kubernetes Deployment [ ]
 
-**Goal:** Enterprise-grade deployment for teams with DevOps.
+**Goal:** Enterprise-grade k8s with Pod Security Standards.
 
 **Target Users:** Companies with k8s clusters, DevOps teams
 
 **Deliverables:**
-- [ ] Helm chart generation
-- [ ] Kubernetes manifests (Deployment, Service, Ingress)
-- [ ] Horizontal Pod Autoscaler config
-- [ ] ConfigMaps and Secrets
-- [ ] Persistent Volume Claims
-- [ ] Network Policies
+
+**Pod Security**
+- [ ] Pod Security Standards: restricted
+- [ ] No privileged pods
+- [ ] No host namespaces
+- [ ] Read-only root filesystem
+- [ ] Non-root containers
+- [ ] Seccomp: RuntimeDefault
+
+**Network Policies**
+- [ ] Default deny all ingress/egress
+- [ ] Explicit allow rules per service
+- [ ] Namespace isolation
+- [ ] Egress filtering (no arbitrary internet)
+
+**RBAC & Secrets**
+- [ ] Minimal service accounts
+- [ ] No cluster-admin for apps
+- [ ] Secrets encryption at rest (KMS)
+- [ ] External Secrets Operator support
+- [ ] Vault integration option
+
+**Resource Management**
+- [ ] Resource requests and limits
+- [ ] Horizontal Pod Autoscaler
 - [ ] Pod Disruption Budgets
+- [ ] Priority classes
+
+**Deployment Artifacts**
+- [ ] Helm chart with security defaults
+- [ ] Kustomize overlays (dev/staging/prod)
+- [ ] GitOps ready (ArgoCD/Flux)
 - [ ] `/tlc:deploy k8s` command
 
+**Test Coverage:**
+- [ ] Pod security tests (~25 tests)
+- [ ] Network policy tests (~20 tests)
+- [ ] RBAC tests (~20 tests)
+- [ ] Deployment tests (~25 tests)
+- Total: ~90 tests
+
 **Success Criteria:**
+- [ ] Pass kube-bench CIS benchmark
 - [ ] Works with GKE, EKS, AKS
-- [ ] Scales based on load
-- [ ] Rolling updates with zero downtime
+- [ ] Zero-downtime rolling updates
+- [ ] Pod Security Standards: restricted enforced
 
 ---
 
-### Phase 53: Pen Testing Integration [ ]
+### Phase 55: Continuous Security Testing [ ]
 
-**Goal:** Automated security testing in CI/CD.
+**Goal:** Security testing integrated into every PR and deployment.
 
 **Deliverables:**
-- [ ] OWASP ZAP integration
+
+**Static Analysis (SAST)**
+- [ ] Semgrep rules for OWASP Top 10
+- [ ] Custom rules for TLC patterns
+- [ ] Pre-commit hooks option
+- [ ] PR comments with findings
+
+**Dynamic Analysis (DAST)**
+- [ ] OWASP ZAP baseline scan
+- [ ] OWASP ZAP full scan (nightly)
+- [ ] API security testing
+- [ ] Authenticated scanning
+
+**Dependency Scanning (SCA)**
+- [ ] npm audit / pip-audit integration
+- [ ] Snyk or Trivy for dependencies
+- [ ] License compliance checking
+- [ ] SBOM generation
+
+**Secret Scanning**
+- [ ] GitLeaks integration
+- [ ] Pre-commit secret detection
+- [ ] Historical scan option
+- [ ] Custom pattern support
+
+**Penetration Testing**
 - [ ] Nuclei scanner integration
+- [ ] Custom nuclei templates
 - [ ] SQL injection testing
 - [ ] XSS testing
-- [ ] Authentication bypass testing
-- [ ] Security report generation
-- [ ] `/tlc:pentest` command
-- [ ] Block deploy on critical findings
+- [ ] Auth bypass testing
+- [ ] IDOR testing
+
+**Reporting & Gates**
+- [ ] Security report generation (HTML, JSON)
+- [ ] Block merge on critical findings
+- [ ] Block deploy on high+ findings
+- [ ] `/tlc:security scan` command
+- [ ] Dashboard SecurityPane
+
+**Test Coverage:**
+- [ ] SAST integration tests (~20 tests)
+- [ ] DAST integration tests (~20 tests)
+- [ ] SCA integration tests (~15 tests)
+- [ ] Secret scanning tests (~15 tests)
+- [ ] Pentest integration tests (~20 tests)
+- Total: ~90 tests
 
 **Success Criteria:**
-- [ ] Security scan on every PR
-- [ ] Critical findings block merge
+- [ ] Every PR scanned before merge
+- [ ] Critical findings block CI
 - [ ] Monthly full pentest automation
+- [ ] Security dashboard in TLC
+
+---
+
+### Phase 56: Trust Centre & Multi-Framework Compliance [ ]
+
+**Goal:** Public-facing security transparency and enterprise compliance frameworks.
+
+**Integration:** Builds on Phase 31 (SOC 2 tooling) - extends evidence collector and compliance reporter.
+
+**Deliverables:**
+
+**Trust Centre (Public Page)**
+- [ ] Security overview page (practices, architecture)
+- [ ] Certifications display (SOC 2, ISO 27001 badges)
+- [ ] Compliance status dashboard
+- [ ] Subprocessor list with DPA links
+- [ ] Data residency information
+- [ ] Incident history (public summary, not details)
+- [ ] Security contact and responsible disclosure
+- [ ] `/tlc:trust-centre generate` command
+
+**Multi-Framework Checklists**
+- [ ] PCI DSS v4.0 checklist (12 requirements)
+- [ ] HIPAA checklist (Administrative, Physical, Technical safeguards)
+- [ ] ISO 27001:2022 checklist (Annex A controls)
+- [ ] GDPR checklist (Articles 5, 6, 7, 12-22, 25, 32-34)
+- [ ] Framework selection in .tlc.json
+
+**Evidence Integration**
+- [ ] Security scan results → Evidence collector
+- [ ] Deployment audit logs → Evidence collector
+- [ ] Access reviews → Evidence collector
+- [ ] Penetration test reports → Evidence collector
+- [ ] Auto-link evidence to controls across frameworks
+
+**Reporting**
+- [ ] Multi-framework readiness report
+- [ ] Gap analysis across frameworks
+- [ ] Control mapping (SOC 2 ↔ ISO 27001 ↔ PCI)
+- [ ] Auditor export packages
+
+**Dashboard**
+- [ ] TrustCentrePane component
+- [ ] Framework selector
+- [ ] Cross-framework coverage view
+
+**Test Coverage:**
+- [ ] Trust Centre generation (~25 tests)
+- [ ] PCI DSS checklist (~30 tests)
+- [ ] HIPAA checklist (~25 tests)
+- [ ] ISO 27001 checklist (~30 tests)
+- [ ] GDPR checklist (~20 tests)
+- [ ] Evidence integration (~20 tests)
+- [ ] Multi-framework reporting (~25 tests)
+- Total: ~175 tests
+
+**Success Criteria:**
+- [ ] Trust Centre page deployable as static site
+- [ ] All 4 frameworks have complete checklists
+- [ ] Evidence auto-links to relevant controls
+- [ ] Single audit package covers multiple frameworks
+
+---
+
+**v2.1 Summary:**
+
+| Phase | Focus | Tests |
+|-------|-------|-------|
+| 48 | Secure Code Generation | ~90 |
+| 49 | Container Security | ~90 |
+| 50 | Branch Deployment | ~80 |
+| 51 | Network Security & TLS | ~80 |
+| 52 | Health Monitoring | ~80 |
+| 53 | Monolith VPS | ~80 |
+| 54 | Kubernetes | ~90 |
+| 55 | Continuous Security Testing | ~90 |
+| 56 | Trust Centre & Multi-Framework | ~175 |
+| **Total** | | **~855** |
+
+**Key Security Guarantees:**
+- A+ SSL Labs rating
+- Pass CIS Docker Benchmark Level 1
+- Pass kube-bench CIS Kubernetes Benchmark
+- OWASP ZAP baseline scan pass
+- No critical CVEs in production
+- All secrets encrypted, never in code
+- Full audit trail for compliance
 
 ---
 
