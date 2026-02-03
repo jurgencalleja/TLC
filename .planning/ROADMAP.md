@@ -1548,7 +1548,7 @@ Developer sees QA feedback
 
 ---
 
-### Phase 50: Branch Deployment Strategy [ ]
+### Phase 50: Branch Deployment Strategy [x]
 
 **Goal:** Differentiate deployment behavior with security gates at each tier.
 
@@ -1562,44 +1562,48 @@ stable branch    → stable.example.com     (manual deploy, approval required)
 **Deliverables:**
 
 **Branch Classification**
-- [ ] Branch tier detection (feature/dev/stable)
-- [ ] Tier-specific deployment rules in .tlc.json
-- [ ] Protected branch enforcement
+- [x] Branch tier detection (feature/dev/stable)
+- [x] Tier-specific deployment rules in .tlc.json
+- [x] Protected branch enforcement
 
 **Security Gates per Tier**
-- [ ] Feature: SAST scan, dependency check
-- [ ] Dev: SAST + DAST scan, container scan
-- [ ] Stable: Full security suite + manual approval
+- [x] Feature: SAST scan, dependency check
+- [x] Dev: SAST + DAST scan, container scan
+- [x] Stable: Full security suite + manual approval
 
 **Deployment Controls**
-- [ ] `/tlc:deploy stable` with 2FA confirmation
-- [ ] Deployment approval workflow (GitHub/GitLab)
-- [ ] Rollback to any previous version
-- [ ] Blue-green deployment for stable
-- [ ] Deployment audit log (who, when, what)
+- [x] `/tlc:deploy stable` with 2FA confirmation
+- [x] Deployment approval workflow (GitHub/GitLab)
+- [x] Rollback to any previous version
+- [x] Blue-green deployment for stable
+- [x] Deployment audit log (who, when, what)
 
 **Rollback & Recovery**
-- [ ] Automatic rollback on health check failure
-- [ ] Database migration rollback support
-- [ ] State snapshot before deployment
-- [ ] Recovery playbook generation
+- [x] Automatic rollback on health check failure
+- [x] Database migration rollback support
+- [x] State snapshot before deployment
+- [x] Recovery playbook generation
 
 **Test Coverage:**
-- [ ] Branch classification tests (~15 tests)
-- [ ] Security gate tests (~25 tests)
-- [ ] Deployment control tests (~20 tests)
-- [ ] Rollback tests (~20 tests)
-- Total: ~80 tests
+- [x] Branch classification tests (18 tests)
+- [x] Deployment rules tests (19 tests)
+- [x] Security gate tests (23 tests)
+- [x] Deployment approval tests (21 tests)
+- [x] Deployment executor tests (17 tests)
+- [x] Rollback manager tests (15 tests)
+- [x] Deployment audit tests (18 tests)
+- [x] Deploy command tests (17 tests)
+- Total: 148 tests
 
 **Success Criteria:**
-- [ ] Stable deployments require explicit approval
-- [ ] Failed security gates block deployment
-- [ ] Rollback completes in <2 minutes
-- [ ] Full audit trail for compliance
+- [x] Stable deployments require explicit approval
+- [x] Failed security gates block deployment
+- [x] Rollback completes in <2 minutes
+- [x] Full audit trail for compliance
 
 ---
 
-### Phase 51: Network Security & TLS [ ]
+### Phase 51: Network Security & TLS [>]
 
 **Goal:** A+ SSL Labs rating with defense-in-depth network security.
 
