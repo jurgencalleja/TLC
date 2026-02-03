@@ -5,6 +5,8 @@
  * Addresses OWASP A01: Broken Access Control (info leakage)
  */
 
+import crypto from 'crypto';
+
 /**
  * Sensitive patterns to redact from error messages
  */
@@ -17,6 +19,8 @@ const SENSITIVE_PATTERNS = [
   /:\d+:\d+/g,
   // IP addresses
   /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g,
+  // Port numbers
+  /:\d{2,5}\b/g,
   // Connection strings
   /(?:postgresql|mysql|mongodb|redis):\/\/[^\s]+/gi,
   // Environment variables in messages
@@ -26,9 +30,48 @@ const SENSITIVE_PATTERNS = [
 ];
 
 /**
+ * Sensitive property names to remove
+ */
+const SENSITIVE_PROPERTIES = [
+  'password', 'passwd', 'pass', 'secret', 'apiKey', 'api_key',
+  'token', 'accessToken', 'access_token', 'refreshToken', 'refresh_token',
+  'privateKey', 'private_key', 'credential', 'credentials',
+];
+
+/**
+ * Patterns that indicate database errors
+ */
+const DATABASE_ERROR_PATTERNS = [
+  /ECONNREFUSED/i,
+  /postgresql/i,
+  /mysql/i,
+  /mongodb/i,
+  /database/i,
+  /sql/i,
+  /syntax error/i,
+  /query/i,
+];
+
+/**
+ * Status code to error code mapping
+ */
+const STATUS_CODE_MAP = {
+  400: 'BAD_REQUEST',
+  401: 'UNAUTHORIZED',
+  403: 'FORBIDDEN',
+  404: 'NOT_FOUND',
+  409: 'CONFLICT',
+  422: 'UNPROCESSABLE_ENTITY',
+  429: 'TOO_MANY_REQUESTS',
+  500: 'INTERNAL_ERROR',
+  502: 'BAD_GATEWAY',
+  503: 'SERVICE_UNAVAILABLE',
+};
+
+/**
  * Internal error codes for classification
  */
-const ERROR_CODES = {
+export const ERROR_CODES = {
   VALIDATION_ERROR: 'VALIDATION_ERROR',
   AUTHENTICATION_ERROR: 'AUTHENTICATION_ERROR',
   AUTHORIZATION_ERROR: 'AUTHORIZATION_ERROR',
@@ -40,61 +83,176 @@ const ERROR_CODES = {
 };
 
 /**
- * User-friendly error messages by code
+ * Generate a unique error ID
+ * @returns {string} Unique error ID
  */
-const USER_MESSAGES = {
-  [ERROR_CODES.VALIDATION_ERROR]: 'The provided data is invalid',
-  [ERROR_CODES.AUTHENTICATION_ERROR]: 'Authentication failed',
-  [ERROR_CODES.AUTHORIZATION_ERROR]: 'You do not have permission to perform this action',
-  [ERROR_CODES.NOT_FOUND]: 'The requested resource was not found',
-  [ERROR_CODES.RATE_LIMITED]: 'Too many requests. Please try again later',
-  [ERROR_CODES.INTERNAL_ERROR]: 'An unexpected error occurred',
-  [ERROR_CODES.DATABASE_ERROR]: 'A database error occurred',
-  [ERROR_CODES.NETWORK_ERROR]: 'A network error occurred',
-};
+function generateErrorId() {
+  return crypto.randomUUID();
+}
+
+/**
+ * Check if an error message indicates a database error
+ * @param {string} message - Error message
+ * @returns {boolean} True if database error
+ */
+function isDatabaseError(message) {
+  return DATABASE_ERROR_PATTERNS.some((pattern) => pattern.test(message));
+}
+
+/**
+ * Redact sensitive information from a string
+ * @param {string} text - Text to redact
+ * @param {RegExp[]} additionalPatterns - Additional patterns to redact
+ * @returns {string} Redacted text
+ */
+function redactSensitiveInfo(text, additionalPatterns = []) {
+  if (!text) return '';
+
+  let redacted = text;
+  const allPatterns = [...SENSITIVE_PATTERNS, ...additionalPatterns];
+
+  for (const pattern of allPatterns) {
+    redacted = redacted.replace(pattern, '[REDACTED]');
+  }
+
+  return redacted;
+}
 
 /**
  * Sanitize an error for safe client response
- * @param {Error} error - Error to sanitize
+ * @param {Error|null|undefined|string} error - Error to sanitize
  * @param {Object} options - Sanitization options
  * @returns {Object} Sanitized error object
  */
 export function sanitizeError(error, options = {}) {
   const {
     production = true,
-    includeCode = true,
-    includeRequestId = true,
-    requestId = null,
-    customMessages = {},
+    redactPatterns = [],
+    genericMessages = {},
   } = options;
 
-  // Classify the error
-  const code = classifyError(error);
-  const message = customMessages[code] || USER_MESSAGES[code] || USER_MESSAGES[ERROR_CODES.INTERNAL_ERROR];
-
-  const sanitized = {
-    error: true,
-    message,
-  };
-
-  if (includeCode) {
-    sanitized.code = code;
-  }
-
-  if (includeRequestId && requestId) {
-    sanitized.requestId = requestId;
-  }
-
-  // In development, include more details
-  if (!production) {
-    sanitized.debug = {
-      originalMessage: redactSensitiveInfo(error.message),
-      name: error.name,
-      stack: redactSensitiveInfo(error.stack || ''),
+  // Handle null/undefined
+  if (error === null || error === undefined) {
+    return {
+      message: 'An unexpected error occurred',
+      id: generateErrorId(),
     };
   }
 
-  return sanitized;
+  // Handle non-Error objects
+  if (typeof error === 'string') {
+    return {
+      message: 'An error occurred',
+      id: generateErrorId(),
+    };
+  }
+
+  // Handle Error objects
+  const originalMessage = error.message || '';
+  const id = generateErrorId();
+  const result = { id };
+
+  // Check if user-friendly message should be preserved
+  if (error.isUserFriendly) {
+    result.message = originalMessage;
+  } else if (production) {
+    // Check for database errors
+    if (isDatabaseError(originalMessage)) {
+      result.message = genericMessages.database || 'A database error occurred';
+    } else if (!originalMessage) {
+      result.message = 'An unexpected error occurred';
+    } else {
+      // Redact sensitive info
+      const sanitized = redactSensitiveInfo(originalMessage, redactPatterns);
+      // If heavily redacted, use generic message
+      if (sanitized.includes('[REDACTED]') || sanitized.split('[REDACTED]').length > 2) {
+        result.message = 'An unexpected error occurred';
+      } else {
+        result.message = sanitized;
+      }
+    }
+  } else {
+    // Development mode - include more details without redaction
+    result.message = originalMessage;
+    if (error.stack) {
+      result.stack = error.stack;
+    }
+    if (error.cause) {
+      result.cause = error.cause;
+    }
+  }
+
+  // Remove sensitive properties
+  for (const prop of SENSITIVE_PROPERTIES) {
+    if (result[prop]) {
+      delete result[prop];
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Determine if an error is operational (expected) vs programmer error
+ * @param {Error} error - Error to check
+ * @returns {boolean} True if operational
+ */
+export function isOperationalError(error) {
+  if (!error) return false;
+
+  // Explicitly marked as operational
+  if (error.isOperational === true) return true;
+
+  // Status codes 4xx are operational
+  if (error.statusCode >= 400 && error.statusCode < 500) return true;
+
+  // TypeError, ReferenceError, etc. are programmer errors
+  if (error instanceof TypeError || error instanceof ReferenceError ||
+      error instanceof SyntaxError || error instanceof RangeError) {
+    return false;
+  }
+
+  // 5xx errors are not operational
+  if (error.statusCode >= 500) return false;
+
+  return false;
+}
+
+/**
+ * Format error for HTTP response
+ * @param {Error} error - Error to format
+ * @param {Object} options - Formatting options
+ * @returns {Object} Formatted response
+ */
+export function formatErrorResponse(error, options = {}) {
+  const { production = true, includeStatus = false } = options;
+
+  const statusCode = error.statusCode || 500;
+  const code = STATUS_CODE_MAP[statusCode] || 'INTERNAL_ERROR';
+  const id = generateErrorId();
+
+  const errorObj = {
+    message: error.isUserFriendly ? error.message : (error.message || 'An error occurred'),
+    code,
+    id,
+  };
+
+  // Include status if requested
+  if (includeStatus) {
+    errorObj.status = statusCode;
+  }
+
+  // Include validation errors for 400
+  if (statusCode === 400 && error.validationErrors) {
+    errorObj.details = error.validationErrors;
+  }
+
+  // Include stack in development
+  if (!production && error.stack) {
+    errorObj.stack = error.stack;
+  }
+
+  return { error: errorObj };
 }
 
 /**
@@ -103,6 +261,8 @@ export function sanitizeError(error, options = {}) {
  * @returns {string} Error code
  */
 export function classifyError(error) {
+  if (!error) return ERROR_CODES.INTERNAL_ERROR;
+
   const message = (error.message || '').toLowerCase();
   const name = (error.name || '').toLowerCase();
 
@@ -144,7 +304,7 @@ export function classifyError(error) {
     return ERROR_CODES.RATE_LIMITED;
   }
 
-  if (message.includes('database') || message.includes('sql') || message.includes('query')) {
+  if (isDatabaseError(message)) {
     return ERROR_CODES.DATABASE_ERROR;
   }
 
@@ -152,7 +312,7 @@ export function classifyError(error) {
     return ERROR_CODES.NETWORK_ERROR;
   }
 
-  // Check for database-specific errors
+  // Check for database-specific error codes
   if (error.code) {
     const code = String(error.code);
     if (code.startsWith('23') || code.startsWith('42')) {
@@ -167,23 +327,6 @@ export function classifyError(error) {
 }
 
 /**
- * Redact sensitive information from a string
- * @param {string} text - Text to redact
- * @returns {string} Redacted text
- */
-export function redactSensitiveInfo(text) {
-  if (!text) return '';
-
-  let redacted = text;
-
-  for (const pattern of SENSITIVE_PATTERNS) {
-    redacted = redacted.replace(pattern, '[REDACTED]');
-  }
-
-  return redacted;
-}
-
-/**
  * Create an error sanitizer with preset configuration
  * @param {Object} config - Sanitizer configuration
  * @returns {Object} Error sanitizer instance
@@ -191,9 +334,9 @@ export function redactSensitiveInfo(text) {
 export function createErrorSanitizer(config = {}) {
   const {
     production = true,
-    customMessages = {},
+    redactPatterns = [],
+    genericMessages = {},
     logger = null,
-    includeRequestId = true,
   } = config;
 
   return {
@@ -204,23 +347,20 @@ export function createErrorSanitizer(config = {}) {
      * @returns {Object} Sanitized error
      */
     sanitize(error, context = {}) {
-      const { requestId } = context;
-
-      // Log the original error in production
-      if (production && logger) {
-        logger.error('Error occurred', {
-          error: error.message,
+      // Log original error if logger provided
+      if (logger) {
+        logger({
+          originalMessage: error.message,
           stack: error.stack,
           code: error.code,
-          requestId,
+          ...context,
         });
       }
 
       return sanitizeError(error, {
         production,
-        customMessages,
-        includeRequestId,
-        requestId,
+        redactPatterns,
+        genericMessages,
       });
     },
 
@@ -244,6 +384,8 @@ export function createErrorSanitizer(config = {}) {
      * @returns {number} HTTP status code
      */
     getStatusCode(error) {
+      if (error.statusCode) return error.statusCode;
+
       const code = classifyError(error);
 
       switch (code) {
@@ -282,5 +424,3 @@ export function createErrorSanitizer(config = {}) {
     },
   };
 }
-
-export { ERROR_CODES };

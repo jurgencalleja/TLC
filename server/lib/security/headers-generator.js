@@ -5,138 +5,164 @@
  * Addresses OWASP A05: Security Misconfiguration
  */
 
+import crypto from 'crypto';
+
 /**
- * Default Content Security Policy directives
+ * Valid CSP directives
+ */
+const VALID_CSP_DIRECTIVES = new Set([
+  'default-src', 'script-src', 'style-src', 'img-src', 'font-src',
+  'connect-src', 'media-src', 'object-src', 'frame-src', 'child-src',
+  'worker-src', 'frame-ancestors', 'form-action', 'base-uri', 'manifest-src',
+  'upgrade-insecure-requests', 'block-all-mixed-content', 'report-uri', 'report-to',
+  'require-trusted-types-for', 'trusted-types', 'sandbox',
+]);
+
+/**
+ * Valid Permissions-Policy features
+ */
+const VALID_PERMISSIONS_FEATURES = new Set([
+  'accelerometer', 'ambient-light-sensor', 'autoplay', 'battery', 'camera',
+  'display-capture', 'document-domain', 'encrypted-media', 'fullscreen',
+  'geolocation', 'gyroscope', 'layout-animations', 'legacy-image-formats',
+  'magnetometer', 'microphone', 'midi', 'oversized-images', 'payment',
+  'picture-in-picture', 'publickey-credentials-get', 'sync-xhr', 'usb',
+  'wake-lock', 'xr-spatial-tracking', 'interest-cohort',
+]);
+
+/**
+ * Default CSP directives (strict)
  */
 const DEFAULT_CSP = {
   'default-src': ["'self'"],
   'script-src': ["'self'"],
-  'style-src': ["'self'", "'unsafe-inline'"],
-  'img-src': ["'self'", 'data:', 'https:'],
+  'style-src': ["'self'"],
+  'img-src': ["'self'", 'data:'],
   'font-src': ["'self'"],
   'connect-src': ["'self'"],
   'frame-ancestors': ["'none'"],
   'base-uri': ["'self'"],
   'form-action': ["'self'"],
+  'upgrade-insecure-requests': [],
+  'block-all-mixed-content': [],
 };
 
 /**
  * Generate Content Security Policy header value
- * @param {Object} directives - CSP directives
  * @param {Object} options - CSP options
  * @returns {string} CSP header value
  */
-export function generateCsp(directives = {}, options = {}) {
+export function generateCsp(options = {}) {
   const {
-    reportOnly = false,
-    reportUri = null,
+    useNonce = false,
     nonce = null,
+    scriptSrc = null,
+    styleSrc = null,
+    imgSrc = null,
+    connectSrc = null,
+    frameAncestors = null,
+    reportUri = null,
+    reportTo = null,
+    mode = null,
+    reportOnly = false, // Consumed here, not passed to CSP string
+    ...customDirectives
   } = options;
 
-  const merged = { ...DEFAULT_CSP, ...directives };
+  // Validate custom directive names
+  for (const directive of Object.keys(customDirectives)) {
+    if (!VALID_CSP_DIRECTIVES.has(directive)) {
+      throw new Error(`Invalid CSP directive: ${directive}`);
+    }
+  }
 
-  // Add nonce to script-src if provided
-  if (nonce && merged['script-src']) {
-    merged['script-src'] = [...merged['script-src'], `'nonce-${nonce}'`];
+  // Start with defaults
+  const directives = { ...DEFAULT_CSP };
+
+  // Apply script-src
+  if (scriptSrc && scriptSrc.length > 0) {
+    directives['script-src'] = ["'self'", ...scriptSrc];
+  }
+
+  // Apply style-src
+  if (styleSrc && styleSrc.length > 0) {
+    directives['style-src'] = ["'self'", ...styleSrc];
+  }
+
+  // Apply img-src
+  if (imgSrc && imgSrc.length > 0) {
+    directives['img-src'] = ["'self'", ...imgSrc];
+  }
+
+  // Apply connect-src
+  if (connectSrc && connectSrc.length > 0) {
+    directives['connect-src'] = ["'self'", ...connectSrc];
+  }
+
+  // Apply frame-ancestors
+  if (frameAncestors) {
+    directives['frame-ancestors'] = frameAncestors;
+  }
+
+  // Add nonce if configured
+  if (useNonce && nonce) {
+    directives['script-src'] = [...(directives['script-src'] || ["'self'"]), `'nonce-${nonce}'`];
+
+    // SPA mode adds strict-dynamic
+    if (mode === 'spa') {
+      directives['script-src'].push("'strict-dynamic'");
+    }
   }
 
   // Build CSP string
-  const parts = Object.entries(merged)
-    .filter(([, values]) => values && values.length > 0)
-    .map(([directive, values]) => `${directive} ${values.join(' ')}`);
+  const parts = [];
 
+  for (const [directive, values] of Object.entries(directives)) {
+    if (values && values.length > 0) {
+      parts.push(`${directive} ${values.join(' ')}`);
+    } else if (directive === 'upgrade-insecure-requests' || directive === 'block-all-mixed-content') {
+      parts.push(directive);
+    }
+  }
+
+  // Add reporting
   if (reportUri) {
     parts.push(`report-uri ${reportUri}`);
+  }
+  if (reportTo) {
+    parts.push(`report-to ${reportTo}`);
   }
 
   return parts.join('; ');
 }
 
 /**
- * Generate all security headers
- * @param {Object} options - Header options
- * @returns {Object} Security headers
+ * Generate HSTS header value
+ * @param {Object} options - HSTS options
+ * @returns {string} HSTS header value
  */
-export function generateSecurityHeaders(options = {}) {
+export function generateHsts(options = {}) {
   const {
-    csp = {},
-    cspReportOnly = false,
-    cspReportUri = null,
-    cspNonce = null,
-    frameOptions = 'DENY',
-    xssProtection = true,
-    contentTypeOptions = true,
-    referrerPolicy = 'strict-origin-when-cross-origin',
-    strictTransportSecurity = true,
-    hstsDuration = 31536000,
-    hstsIncludeSubDomains = true,
-    hstsPreload = false,
-    permissionsPolicy = {},
+    maxAge = 31536000, // 1 year
+    includeSubDomains = true,
+    preload = false,
   } = options;
 
-  const headers = {};
-
-  // Content Security Policy
-  const cspValue = generateCsp(csp, {
-    reportOnly: cspReportOnly,
-    reportUri: cspReportUri,
-    nonce: cspNonce,
-  });
-
-  if (cspReportOnly) {
-    headers['Content-Security-Policy-Report-Only'] = cspValue;
-  } else {
-    headers['Content-Security-Policy'] = cspValue;
+  // Preload requires at least 1 year (31536000 seconds)
+  if (preload && maxAge < 31536000) {
+    throw new Error('HSTS preload requires max-age of at least 31536000 seconds (1 year)');
   }
 
-  // X-Frame-Options (clickjacking protection)
-  if (frameOptions) {
-    headers['X-Frame-Options'] = frameOptions;
+  let hsts = `max-age=${maxAge}`;
+
+  if (includeSubDomains) {
+    hsts += '; includeSubDomains';
   }
 
-  // X-XSS-Protection (legacy XSS filter)
-  if (xssProtection) {
-    headers['X-XSS-Protection'] = '1; mode=block';
+  if (preload) {
+    hsts += '; preload';
   }
 
-  // X-Content-Type-Options (MIME sniffing protection)
-  if (contentTypeOptions) {
-    headers['X-Content-Type-Options'] = 'nosniff';
-  }
-
-  // Referrer-Policy
-  if (referrerPolicy) {
-    headers['Referrer-Policy'] = referrerPolicy;
-  }
-
-  // Strict-Transport-Security (HTTPS enforcement)
-  if (strictTransportSecurity) {
-    let hsts = `max-age=${hstsDuration}`;
-    if (hstsIncludeSubDomains) {
-      hsts += '; includeSubDomains';
-    }
-    if (hstsPreload) {
-      hsts += '; preload';
-    }
-    headers['Strict-Transport-Security'] = hsts;
-  }
-
-  // Permissions-Policy (feature restrictions)
-  if (Object.keys(permissionsPolicy).length > 0) {
-    headers['Permissions-Policy'] = generatePermissionsPolicy(permissionsPolicy);
-  }
-
-  // Cross-Origin headers
-  headers['Cross-Origin-Opener-Policy'] = 'same-origin';
-  headers['Cross-Origin-Embedder-Policy'] = 'require-corp';
-  headers['Cross-Origin-Resource-Policy'] = 'same-origin';
-
-  // Cache control for sensitive resources
-  headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, proxy-revalidate';
-  headers['Pragma'] = 'no-cache';
-  headers['Expires'] = '0';
-
-  return headers;
+  return hsts;
 }
 
 /**
@@ -145,6 +171,13 @@ export function generateSecurityHeaders(options = {}) {
  * @returns {string} Permissions-Policy value
  */
 export function generatePermissionsPolicy(policies = {}) {
+  // Validate feature names
+  for (const feature of Object.keys(policies)) {
+    if (!VALID_PERMISSIONS_FEATURES.has(feature)) {
+      throw new Error(`Invalid Permissions-Policy feature: ${feature}`);
+    }
+  }
+
   const defaultPolicies = {
     accelerometer: [],
     'ambient-light-sensor': [],
@@ -152,24 +185,19 @@ export function generatePermissionsPolicy(policies = {}) {
     battery: [],
     camera: [],
     'display-capture': [],
-    'document-domain': [],
     'encrypted-media': [],
     fullscreen: ['self'],
     geolocation: [],
     gyroscope: [],
-    'layout-animations': ['self'],
-    'legacy-image-formats': ['self'],
     magnetometer: [],
     microphone: [],
     midi: [],
-    'oversized-images': ['self'],
     payment: [],
     'picture-in-picture': [],
     'publickey-credentials-get': [],
     'sync-xhr': [],
     usb: [],
-    'wake-lock': [],
-    'xr-spatial-tracking': [],
+    'interest-cohort': [],
   };
 
   const merged = { ...defaultPolicies, ...policies };
@@ -190,23 +218,51 @@ export function generatePermissionsPolicy(policies = {}) {
 }
 
 /**
- * Generate headers for API responses
- * @param {Object} options - API header options
- * @returns {Object} API security headers
+ * Generate all security headers
+ * @param {Object} options - Header options
+ * @returns {Object} Security headers
  */
-export function generateApiHeaders(options = {}) {
+export function generateSecurityHeaders(options = {}) {
   const {
-    cacheControl = 'no-store',
-    allowedMethods = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    csp = {},
+    frameOptions = 'DENY',
+    contentTypeOptions = true,
+    referrerPolicy = 'strict-origin-when-cross-origin',
+    hsts = {},
+    permissionsPolicy = {},
   } = options;
 
-  return {
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'Cache-Control': cacheControl,
-    'Content-Type': 'application/json; charset=utf-8',
-    'X-Permitted-Cross-Domain-Policies': 'none',
-  };
+  const headers = {};
+
+  // Content Security Policy
+  headers['Content-Security-Policy'] = generateCsp(csp);
+
+  // X-Frame-Options (clickjacking protection)
+  if (frameOptions) {
+    headers['X-Frame-Options'] = frameOptions;
+  }
+
+  // X-Content-Type-Options (MIME sniffing protection)
+  if (contentTypeOptions) {
+    headers['X-Content-Type-Options'] = 'nosniff';
+  }
+
+  // Referrer-Policy
+  if (referrerPolicy) {
+    headers['Referrer-Policy'] = referrerPolicy;
+  }
+
+  // Strict-Transport-Security
+  headers['Strict-Transport-Security'] = generateHsts(hsts);
+
+  // Permissions-Policy
+  headers['Permissions-Policy'] = generatePermissionsPolicy(permissionsPolicy);
+
+  // Cross-Origin headers
+  headers['Cross-Origin-Opener-Policy'] = 'same-origin';
+  headers['Cross-Origin-Embedder-Policy'] = 'require-corp';
+
+  return headers;
 }
 
 /**
@@ -217,33 +273,83 @@ export function generateApiHeaders(options = {}) {
 export function createHeadersGenerator(config = {}) {
   const {
     csp = {},
-    production = true,
+    cspReportOnly = null,
+    hsts = {},
+    permissionsPolicy = {},
   } = config;
 
   return {
     /**
-     * Get security headers
-     * @param {Object} requestOptions - Per-request options
+     * Generate headers
+     * @param {Object} options - Per-request options
      * @returns {Object} Security headers
      */
-    getHeaders(requestOptions = {}) {
-      const { nonce } = requestOptions;
+    generate(options = {}) {
+      const { overrides = {}, route } = options;
 
-      return generateSecurityHeaders({
-        ...config,
-        csp,
-        cspNonce: nonce,
-        strictTransportSecurity: production,
-      });
+      // Merge CSP options
+      let cspOptions = { ...csp };
+      if (overrides.csp) {
+        cspOptions = { ...cspOptions, ...overrides.csp };
+      }
+
+      // Auto-generate nonce if useNonce is configured
+      if (cspOptions.useNonce && !cspOptions.nonce) {
+        cspOptions.nonce = crypto.randomBytes(16).toString('base64');
+      }
+
+      const headers = {};
+
+      // Generate main CSP
+      if (csp.reportOnly) {
+        headers['Content-Security-Policy-Report-Only'] = generateCsp(cspOptions);
+      } else {
+        headers['Content-Security-Policy'] = generateCsp(cspOptions);
+      }
+
+      // Generate report-only CSP if configured separately
+      if (cspReportOnly) {
+        headers['Content-Security-Policy-Report-Only'] = generateCsp(cspReportOnly);
+      }
+
+      // HSTS
+      const hstsOptions = overrides.hsts ? { ...hsts, ...overrides.hsts } : hsts;
+      headers['Strict-Transport-Security'] = generateHsts(hstsOptions);
+
+      // Other headers
+      headers['X-Frame-Options'] = 'DENY';
+      headers['X-Content-Type-Options'] = 'nosniff';
+      headers['Referrer-Policy'] = 'strict-origin-when-cross-origin';
+      headers['Permissions-Policy'] = generatePermissionsPolicy(permissionsPolicy);
+      headers['Cross-Origin-Opener-Policy'] = 'same-origin';
+      headers['Cross-Origin-Embedder-Policy'] = 'require-corp';
+
+      return headers;
     },
 
     /**
-     * Get API headers
-     * @param {Object} options - API options
-     * @returns {Object} API headers
+     * Generate headers with nonce
+     * @returns {{headers: Object, nonce: string}} Headers and nonce
      */
-    getApiHeaders(options = {}) {
-      return generateApiHeaders(options);
+    generateWithNonce() {
+      const nonce = crypto.randomBytes(16).toString('base64');
+      const cspOptions = { ...csp, useNonce: true, nonce };
+
+      const headers = {};
+      headers['Content-Security-Policy'] = generateCsp(cspOptions);
+
+      // HSTS
+      headers['Strict-Transport-Security'] = generateHsts(hsts);
+
+      // Other headers
+      headers['X-Frame-Options'] = 'DENY';
+      headers['X-Content-Type-Options'] = 'nosniff';
+      headers['Referrer-Policy'] = 'strict-origin-when-cross-origin';
+      headers['Permissions-Policy'] = generatePermissionsPolicy(permissionsPolicy);
+      headers['Cross-Origin-Opener-Policy'] = 'same-origin';
+      headers['Cross-Origin-Embedder-Policy'] = 'require-corp';
+
+      return { headers, nonce };
     },
 
     /**
@@ -251,21 +357,12 @@ export function createHeadersGenerator(config = {}) {
      */
     middleware() {
       return (req, res, next) => {
-        const headers = this.getHeaders({ nonce: res.locals.cspNonce });
+        const headers = this.generate();
         Object.entries(headers).forEach(([key, value]) => {
           res.setHeader(key, value);
         });
         next();
       };
-    },
-
-    /**
-     * Generate a nonce for CSP
-     * @returns {string} Base64-encoded nonce
-     */
-    generateNonce() {
-      const crypto = require('crypto');
-      return crypto.randomBytes(16).toString('base64');
     },
   };
 }

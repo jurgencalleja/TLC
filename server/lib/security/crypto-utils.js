@@ -185,7 +185,8 @@ export function deriveKey(input, salt, options = {}) {
   }
 
   if (algorithm === 'hkdf') {
-    return crypto.hkdfSync('sha256', inputBuffer, salt, Buffer.from(info), keyLength);
+    const derived = crypto.hkdfSync('sha256', inputBuffer, salt, Buffer.from(info), keyLength);
+    return Buffer.from(derived);
   }
 
   throw new Error(`Unknown algorithm: ${algorithm}`);
