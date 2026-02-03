@@ -112,3 +112,26 @@ When working with teammates:
 - The USER is the author. Claude is a tool, not an author.
 
 **ALWAYS ask before `git push`.** Never push to remote without explicit user approval.
+
+---
+
+<!-- TLC-STANDARDS -->
+
+## Code Quality (TLC)
+
+This project follows TLC (Test-Led Coding) code quality standards. See [CODING-STANDARDS.md](./CODING-STANDARDS.md) for detailed guidelines.
+
+### Quick Reference
+
+**Module Structure:** Code lives in `server/lib/` - each module is a self-contained `.js` file with corresponding `.test.js` test file.
+
+### Key Rules
+
+1. **Test-first development** - Tests are written BEFORE implementation
+2. **No hardcoded URLs or config** - Use environment variables
+3. **JSDoc required** - Document all exported functions
+4. **Paired test files** - Every `module.js` has a `module.test.js`
+
+### Standards Reference
+
+For complete standards including file naming, import rules, error handling patterns, and service design guidelines, see [CODING-STANDARDS.md](./CODING-STANDARDS.md).
