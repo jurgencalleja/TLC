@@ -22,7 +22,7 @@ describe('query-builder', () => {
         .where('id', '=', 1)
         .build();
 
-      expect(result.sql).toBe('SELECT id, name, email FROM users WHERE id = ?');
+      expect(result.sql).toBe('SELECT id, name, email FROM users WHERE id = $1');
       expect(result.params).toEqual([1]);
     });
 
@@ -33,7 +33,7 @@ describe('query-builder', () => {
         .where('age', '>=', 18)
         .build();
 
-      expect(result.sql).toBe('SELECT * FROM users WHERE status = ? AND age >= ?');
+      expect(result.sql).toBe('SELECT * FROM users WHERE status = $1 AND age >= $2');
       expect(result.params).toEqual(['active', 18]);
     });
 
@@ -54,7 +54,7 @@ describe('query-builder', () => {
         .whereIn('id', [1, 2, 3])
         .build();
 
-      expect(result.sql).toBe('SELECT * FROM users WHERE id IN (?, ?, ?)');
+      expect(result.sql).toBe('SELECT * FROM users WHERE id IN ($1, $2, $3)');
       expect(result.params).toEqual([1, 2, 3]);
     });
 
@@ -74,8 +74,8 @@ describe('query-builder', () => {
         .offset(20)
         .build();
 
-      expect(result.sql).toContain('LIMIT ?');
-      expect(result.sql).toContain('OFFSET ?');
+      expect(result.sql).toContain('LIMIT $1');
+      expect(result.sql).toContain('OFFSET $2');
       expect(result.params).toContain(10);
       expect(result.params).toContain(20);
     });
@@ -116,7 +116,7 @@ describe('query-builder', () => {
         .values({ name: 'John', email: 'john@example.com' })
         .build();
 
-      expect(result.sql).toBe('INSERT INTO users (name, email) VALUES (?, ?)');
+      expect(result.sql).toBe('INSERT INTO users (name, email) VALUES ($1, $2)');
       expect(result.params).toEqual(['John', 'john@example.com']);
     });
 
@@ -128,7 +128,7 @@ describe('query-builder', () => {
         ])
         .build();
 
-      expect(result.sql).toContain('VALUES (?, ?), (?, ?)');
+      expect(result.sql).toContain('VALUES ($1, $2), ($3, $4)');
       expect(result.params).toHaveLength(4);
     });
 
@@ -165,7 +165,7 @@ describe('query-builder', () => {
         .where('id', '=', 1)
         .build();
 
-      expect(result.sql).toBe('UPDATE users SET name = ?, status = ? WHERE id = ?');
+      expect(result.sql).toBe('UPDATE users SET name = $1, status = $2 WHERE id = $3');
       expect(result.params).toEqual(['John', 'active', 1]);
     });
 
@@ -183,7 +183,7 @@ describe('query-builder', () => {
         .unsafe()
         .build();
 
-      expect(result.sql).toBe('UPDATE users SET status = ?');
+      expect(result.sql).toBe('UPDATE users SET status = $1');
     });
 
     it('builds UPDATE with RETURNING', () => {
@@ -203,7 +203,7 @@ describe('query-builder', () => {
         .where('id', '=', 1)
         .build();
 
-      expect(result.sql).toBe('DELETE FROM users WHERE id = ?');
+      expect(result.sql).toBe('DELETE FROM users WHERE id = $1');
       expect(result.params).toEqual([1]);
     });
 
