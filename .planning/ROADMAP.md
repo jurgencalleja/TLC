@@ -1124,7 +1124,7 @@ Intelligent agent orchestration with model selection, cost optimization, and qua
 
 ---
 
-### Phase 39: Functional Web Dashboard [>]
+### Phase 39: Functional Web Dashboard [x]
 
 **Goal:** Transform web dashboard from UI shell into working application for PMs, QA, and clients.
 
@@ -1134,22 +1134,22 @@ Intelligent agent orchestration with model selection, cost optimization, and qua
 - No client-facing mode for external users
 
 **Deliverables:**
-- [ ] Fix /api/tasks format (flat array vs nested)
-- [ ] Add /api/health endpoint
-- [ ] Add /api/router/status endpoint
-- [ ] POST /api/tasks for creating tasks
-- [ ] Task creation form in dashboard
-- [ ] Enhanced bug form with screenshots
-- [ ] Project notes panel (view/edit PROJECT.md)
-- [ ] Client mode dashboard (/dashboard/client)
-- [ ] Fix all data binding issues
-- [ ] E2E integration tests
+- [x] Fix /api/tasks format (flat array vs nested)
+- [x] Add /api/health endpoint
+- [x] Add /api/router/status endpoint
+- [x] POST /api/tasks for creating tasks
+- [x] Task creation form in dashboard
+- [x] Enhanced bug form with screenshots
+- [x] Project notes panel (view/edit PROJECT.md)
+- [x] Client mode dashboard (/dashboard/client)
+- [x] Fix all data binding issues
+- [x] E2E integration tests
 
 **Success Criteria:**
-- [ ] PM can create tasks via web GUI
-- [ ] QA can submit bugs with screenshots
-- [ ] Clients can report bugs without seeing code
-- [ ] All panels show real data from APIs
+- [x] PM can create tasks via web GUI
+- [x] QA can submit bugs with screenshots
+- [x] Clients can report bugs without seeing code
+- [x] All panels show real data from APIs
 
 **Test Progress:**
 - [ ] tasks-api: ~20 tests
