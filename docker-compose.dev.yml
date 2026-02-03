@@ -101,18 +101,21 @@ services:
     working_dir: /project
     command: >
       sh -c "
-        cd /tlc/dashboard && npm install && npm run build &&
-        cd /tlc/server && npm install &&
-        cd /project && node /tlc/server/index.js --proxy-only
+        echo 'Installing TLC...' &&
+        npm install -g tlc-claude-code@latest &&
+        TLC_DIR=/usr/local/lib/node_modules/tlc-claude-code &&
+        echo 'TLC installed at:' $$TLC_DIR &&
+        ls -la $$TLC_DIR/server/ &&
+        cd /project && node $$TLC_DIR/server/index.js --proxy-only --skip-db
       "
     environment:
       - TLC_PORT=3147
       - TLC_PROXY_ONLY=true
       - TLC_APP_PORT=5001
+      - TLC_AUTH=false
     ports:
       - "${DASHBOARD_PORT:-3147}:3147"
     volumes:
-      - ./server:/tlc/server
       - ..:/project
     depends_on:
       - app

@@ -1161,9 +1161,252 @@ Intelligent agent orchestration with model selection, cost optimization, and qua
 
 ---
 
-## Future Milestones (v1.x)
+## Milestone: v2.0 - Dashboard Rebuild
 
-### v1.6 - Ecosystem
+Complete ground-up rebuild of TLC Dashboard. The previous dashboard (v1.2 phases 14-19) was a prototype that proved the concept but had fundamental issues: broken Docker deployments, missing API endpoints, dummy data in production, and inconsistent architecture.
+
+**Key Requirement:** Docker images must be published to a registry to avoid npm global install issues.
+
+### Phase 40: Design System Foundation [x]
+
+**Goal:** Establish design tokens, core UI components, and layout system from scratch.
+
+**Architecture:**
+```
+dashboard-web/
+├── src/
+│   ├── components/ui/       # Design system primitives
+│   ├── components/layout/   # Shell, Sidebar, Header
+│   ├── styles/tokens.css    # Design tokens
+│   └── index.tsx            # Entry point
+├── package.json
+├── vite.config.ts
+├── tailwind.config.js
+└── Dockerfile               # For registry publishing
+```
+
+**Deliverables:**
+- [x] Design tokens (colors, spacing, typography, dark/light themes)
+- [x] Core UI components (Button, Card, Badge, Input, Modal, Toast, Skeleton, Dropdown)
+- [x] Layout components (Sidebar, Header, MobileNav, Shell)
+- [x] Dockerfile for dashboard
+- [ ] Publish to Docker registry (ghcr.io/jurgencalleja/tlc-dashboard)
+
+**Test Progress:**
+- Button: 16 tests
+- Card: 18 tests
+- Badge: 16 tests
+- Input: 16 tests
+- Modal: 13 tests
+- Toast: 15 tests
+- Skeleton: 21 tests
+- Dropdown: 15 tests
+- Sidebar: 13 tests
+- Header: 15 tests
+- Shell: 12 tests
+- MobileNav: 12 tests
+- Total: 182 tests
+
+**Success Criteria:**
+- [x] Theme switching works (dark default, light option)
+- [x] Components accessible (keyboard nav, WCAG 2.1 AA contrast)
+- [x] Mobile responsive (375px+)
+- [ ] Docker image builds and runs
+
+---
+
+### Phase 41: Project Views [x]
+
+**Goal:** Project cards, grid, and detail pages with real data.
+
+**Deliverables:**
+- [x] ProjectCard with status, tests, coverage
+- [x] ProjectGrid with search/filter/sort
+- [x] ProjectDetail with tabs (Overview, Tasks, Tests, Logs, Settings)
+- [x] BranchSelector dropdown
+- [ ] /api/project endpoint (real data from package.json, .tlc.json)
+
+**Test Progress:**
+- ProjectCard: 16 tests
+- ProjectGrid: 16 tests
+- ProjectDetail: 17 tests
+- BranchSelector: 12 tests
+- Total: 61 tests
+
+**Success Criteria:**
+- [x] Projects browsable and searchable
+- [x] Empty state with getting started guide
+- [x] Loading skeletons
+- [x] Responsive grid (1/2/3 columns)
+
+---
+
+### Phase 42: Task Management [ ]
+
+**Goal:** Kanban board for task tracking with real data from PLAN.md files.
+
+**Deliverables:**
+- [ ] TaskBoard with columns (To Do, In Progress, Done)
+- [ ] TaskCard with priority, assignee, test status
+- [ ] TaskDetail modal with activity, acceptance criteria
+- [ ] Drag and drop between columns
+- [ ] /api/tasks endpoint (parses .planning/phases/*-PLAN.md)
+- [ ] POST /api/tasks (creates tasks)
+
+**Success Criteria:**
+- [ ] Tasks loaded from actual plan files
+- [ ] Keyboard-driven navigation (h/l/j/k)
+- [ ] Task claiming/release works
+
+---
+
+### Phase 43: Logs & Preview [ ]
+
+**Goal:** Log streaming and live app preview.
+
+**Deliverables:**
+- [ ] LogStream with virtualized list (handles 10k+ entries)
+- [ ] LogFilter by level (all, info, warn, error)
+- [ ] LogSearch with highlight
+- [ ] PreviewFrame with iframe
+- [ ] DeviceToggle (phone/tablet/desktop sizes)
+- [ ] Service selector dropdown
+
+**Success Criteria:**
+- [ ] Auto-scroll with pause on user scroll
+- [ ] Logs color-coded by level
+- [ ] Preview shows actual running app
+- [ ] Device sizes: 375px, 768px, 100%
+
+---
+
+### Phase 44: Team Features (VPS Only) [ ]
+
+**Goal:** Team presence and activity for VPS deployments.
+
+**Deliverables:**
+- [ ] TeamPresence with online/offline indicators
+- [ ] ActivityFeed with time grouping (Today, Yesterday)
+- [ ] Activity types: commits, task updates, comments
+- [ ] Real-time updates via WebSocket
+- [ ] Feature toggle (hidden in local mode)
+
+**Success Criteria:**
+- [ ] Team members show online status
+- [ ] Activity updates in real-time
+- [ ] Features hidden when TLC_MODE=local
+
+---
+
+### Phase 45: Settings & Polish [ ]
+
+**Goal:** Settings, keyboard shortcuts, final polish.
+
+**Deliverables:**
+- [ ] SettingsPanel with .tlc.json editor
+- [ ] Theme toggle (dark/light)
+- [ ] CommandPalette (Cmd+K)
+- [ ] KeyboardHelp (? key)
+- [ ] ConnectionStatus indicator
+- [ ] Notification preferences
+
+**Success Criteria:**
+- [ ] Full keyboard navigation
+- [ ] Config changes saved to .tlc.json
+- [ ] WebSocket reconnection indicator
+
+---
+
+### Phase 46: Docker & Deployment [ ]
+
+**Goal:** Production-ready Docker deployment.
+
+**Deliverables:**
+- [ ] Multi-stage Dockerfile (build + nginx)
+- [ ] Docker Compose for complete stack
+- [ ] GitHub Actions for image publishing
+- [ ] ghcr.io/jurgencalleja/tlc-dashboard image
+- [ ] docker-compose.dev.yml uses published image
+- [ ] Environment detection (local vs VPS)
+
+**Success Criteria:**
+- [ ] `docker pull ghcr.io/jurgencalleja/tlc-dashboard` works
+- [ ] No more "Cannot find module" errors
+- [ ] Single command starts everything: `docker-compose up`
+
+---
+
+### Phase 47: QA Test Review [ ]
+
+**Goal:** Allow QA to review auto-generated E2E tests and verification tasks without code access.
+
+**Problem:** QA needs to:
+- Review Playwright tests generated by `/tlc:build`
+- Approve or request changes to test coverage
+- Suggest additional test scenarios
+- View test recordings and screenshots
+- Receive verification tasks when `/tlc:verify` is run
+
+**Workflow:**
+```
+Developer runs /tlc:verify
+       ↓
+System creates verification task
+       ↓
+Task auto-assigned to users with role=qa
+       ↓
+QA sees task in their dashboard queue
+       ↓
+QA completes verification (approve/reject/comment)
+       ↓
+Developer sees QA feedback
+```
+
+**Deliverables:**
+- [ ] QA role detection (users with `role: "qa"` in .tlc.json)
+- [ ] Verification task creation (from /tlc:verify)
+- [ ] QA task queue (pending verifications for QA users)
+- [ ] Test file viewer (syntax-highlighted, read-only)
+- [ ] Playwright artifacts viewer (screenshots, videos, traces)
+- [ ] Test review workflow (pending → approved / needs changes)
+- [ ] QA comment system on tests
+- [ ] Scenario request form (QA suggests new tests)
+- [ ] Test coverage visualization per feature
+- [ ] /api/tests endpoint (list tests, status, artifacts)
+- [ ] /api/tests/:id/review endpoint (approve, comment)
+- [ ] /api/qa/queue endpoint (verification tasks for QA)
+- [ ] Notification system (notify QA when new verification arrives)
+
+**Success Criteria:**
+- [ ] Users with `role: "qa"` automatically receive verification tasks
+- [ ] QA can view all E2E tests in browser
+- [ ] QA can watch Playwright recordings
+- [ ] QA can approve tests or request changes
+- [ ] QA can suggest new test scenarios
+- [ ] Developers see QA feedback in dashboard
+- [ ] `/tlc:verify` creates tasks visible to QA users
+
+**Test Progress:**
+- [ ] qa-role-detection: ~10 tests
+- [ ] verification-task-creation: ~15 tests
+- [ ] qa-task-queue: ~15 tests
+- [ ] test-file-viewer: ~15 tests
+- [ ] artifact-viewer: ~15 tests
+- [ ] review-workflow: ~20 tests
+- [ ] comment-system: ~15 tests
+- [ ] tests-api: ~25 tests
+- Total: ~130 tests
+
+---
+
+## Future Milestones (v2.x)
+
+### v2.1 - Design Studio + LiteLLM
+- LiteLLM API gateway for centralized LLM access
+- Gemini-based mockup generation
+- Visual design iteration workflow
+
+### v2.2 - Ecosystem
 - MCP tool publishing
 - Plugin marketplace
 - Custom agent definitions

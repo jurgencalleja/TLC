@@ -53,41 +53,84 @@ function parsePlan(projectDir) {
 
 /**
  * Parse task entries from PLAN.md content
- * Supports formats:
+ * Supports multiple formats:
  *   ### Task 1: Title [ ]
  *   ### Task 1: Title [>@user]
  *   ### Task 1: Title [x@user]
+ *   - [ ] Task description
+ *   - [x] Completed task
+ *   - [>] In progress task
+ *   ## Task 1: Title
  */
 function parseTasksFromPlan(content) {
   const tasks = [];
-  const taskRegex = /###\s+Task\s+(\d+)[:\s]+(.+?)\s*\[([^\]]*)\]/g;
 
+  // Format 1: ### Task N: Title [status]
+  const taskRegex1 = /###\s+Task\s+(\d+)[:\s]+(.+?)\s*\[([^\]]*)\]/g;
   let match;
-  while ((match = taskRegex.exec(content)) !== null) {
+  while ((match = taskRegex1.exec(content)) !== null) {
     const [, num, title, statusMarker] = match;
+    tasks.push(parseTaskEntry(num, title, statusMarker));
+  }
 
-    let status = 'available';
-    let owner = null;
-
-    if (statusMarker.startsWith('x')) {
-      status = 'done';
-      const ownerMatch = statusMarker.match(/@(\w+)/);
-      if (ownerMatch) owner = ownerMatch[1];
-    } else if (statusMarker.startsWith('>')) {
-      status = 'working';
-      const ownerMatch = statusMarker.match(/@(\w+)/);
-      if (ownerMatch) owner = ownerMatch[1];
+  // Format 2: Checkbox format - [ ] Task or - [x] Task
+  if (tasks.length === 0) {
+    const checkboxRegex = /^[-*]\s*\[([ x>])\]\s*(.+)$/gm;
+    let num = 1;
+    while ((match = checkboxRegex.exec(content)) !== null) {
+      const [, marker, title] = match;
+      // Skip if title looks like a sub-item or criterion
+      if (title.match(/^(Has|Should|Must|Can|Is|Are|The)\s/i)) continue;
+      const statusMarker = marker === 'x' ? 'x' : marker === '>' ? '>' : ' ';
+      tasks.push(parseTaskEntry(num++, title, statusMarker));
     }
+  }
 
-    tasks.push({
-      num: parseInt(num),
-      title: title.trim(),
-      status,
-      owner
-    });
+  // Format 3: ## Task N: Title (without status marker)
+  if (tasks.length === 0) {
+    const taskRegex3 = /##\s+Task\s+(\d+)[:\s]+(.+?)$/gm;
+    while ((match = taskRegex3.exec(content)) !== null) {
+      const [, num, title] = match;
+      tasks.push(parseTaskEntry(num, title, ' '));
+    }
+  }
+
+  // Format 4: Numbered list - 1. Task title
+  if (tasks.length === 0) {
+    const numberedRegex = /^(\d+)\.\s+(.+)$/gm;
+    while ((match = numberedRegex.exec(content)) !== null) {
+      const [, num, title] = match;
+      // Skip if looks like a sub-point
+      if (title.length < 10) continue;
+      tasks.push(parseTaskEntry(num, title, ' '));
+    }
   }
 
   return tasks;
+}
+
+function parseTaskEntry(num, title, statusMarker) {
+  let status = 'pending';
+  let owner = null;
+
+  if (typeof statusMarker === 'string') {
+    if (statusMarker.startsWith('x') || statusMarker === 'x') {
+      status = 'done';
+      const ownerMatch = statusMarker.match(/@(\w+)/);
+      if (ownerMatch) owner = ownerMatch[1];
+    } else if (statusMarker.startsWith('>') || statusMarker === '>') {
+      status = 'in_progress';
+      const ownerMatch = statusMarker.match(/@(\w+)/);
+      if (ownerMatch) owner = ownerMatch[1];
+    }
+  }
+
+  return {
+    num: parseInt(num),
+    title: title.trim(),
+    status,
+    owner
+  };
 }
 
 /**

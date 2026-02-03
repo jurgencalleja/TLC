@@ -318,8 +318,9 @@ function createUserStore() {
 
   return {
     // User methods
-    async createUser(data) {
-      if (!validateEmail(data.email)) {
+    async createUser(data, options = {}) {
+      // Skip email validation for dev setup (allows plain usernames)
+      if (!options.skipValidation && !validateEmail(data.email) && data.email.includes('@')) {
         throw new Error('Invalid email format');
       }
 
@@ -331,9 +332,12 @@ function createUserStore() {
         throw new Error('Email already registered');
       }
 
-      const passwordValidation = validatePassword(data.password);
-      if (!passwordValidation.valid) {
-        throw new Error(passwordValidation.errors.join(', '));
+      // Skip password validation for dev/config-based setup
+      if (!options.skipValidation) {
+        const passwordValidation = validatePassword(data.password);
+        if (!passwordValidation.valid) {
+          throw new Error(passwordValidation.errors.join(', '));
+        }
       }
 
       const user = createUser(data);

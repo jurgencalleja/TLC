@@ -3,8 +3,8 @@ import {
   findOrphanedAgents,
   resetCleanup,
 } from './agent-cleanup.js';
-import { getAgentRegistry, resetRegistry } from './server/lib/agent-registry.js';
-import { STATES } from './server/lib/agent-state.js';
+import { getAgentRegistry, resetRegistry } from './agent-registry.js';
+import { STATES } from './agent-state.js';
 
 describe('debug', () => {
   const BASE_TIME = new Date('2025-01-01T12:00:00Z').getTime();

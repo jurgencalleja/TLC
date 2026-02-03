@@ -1,5 +1,21 @@
 {
   "project": "TLC",
+  "auth": {
+    "users": [
+      {
+        "email": "user@local.com",
+        "password": "2026rocks",
+        "name": "Admin",
+        "role": "admin"
+      },
+      {
+        "email": "qa@local.com",
+        "password": "qa2026",
+        "name": "QA User",
+        "role": "qa"
+      }
+    ]
+  },
   "version": "1.2.24",
   "testFrameworks": {
     "primary": "vitest",

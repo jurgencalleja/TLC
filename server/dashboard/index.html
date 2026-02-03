@@ -951,7 +951,9 @@
           <span id="status-text">Connecting...</span>
         </div>
         <span style="color: #30363d">|</span>
-        <span class="version">v1.4.2</span>
+        <span class="version">v1.4.5</span>
+        <span style="color: #30363d">|</span>
+        <button id="logout-btn" onclick="logout()" style="background: transparent; border: 1px solid #30363d; color: #8b949e; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; display: none;">Logout</button>
       </div>
     </header>
 
@@ -1342,6 +1344,33 @@
     let appPort = 5001;
 
     const views = ['projects', 'tasks', 'chat', 'agents', 'preview', 'logs', 'github', 'health', 'router', 'settings'];
+
+    // Auth functions
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/auth/status');
+        const data = await res.json();
+        if (data.authEnabled) {
+          document.getElementById('logout-btn').style.display = 'inline-block';
+        }
+      } catch (e) {
+        console.log('Auth check failed:', e);
+      }
+    }
+
+    async function logout() {
+      try {
+        await fetch('/api/auth/logout', { method: 'POST' });
+        window.location.href = '/login.html';
+      } catch (e) {
+        console.error('Logout failed:', e);
+        window.location.href = '/login.html';
+      }
+    }
+
+    // Check auth on load
+    checkAuth();
+
     const viewTitles = {
       projects: '📁 Projects',
       tasks: '📋 Tasks',
@@ -1822,19 +1851,63 @@
         if (data.coverage) {
           document.getElementById('stat-coverage').textContent = data.coverage + '%';
         }
+        // Update app port for preview
+        if (data.appPort) {
+          updateAppPort(data.appPort);
+        }
       } catch (e) {
         console.error('Failed to load stats:', e);
+      }
+    }
+
+    async function refreshProject() {
+      try {
+        const res = await fetch('/api/project');
+        const data = await res.json();
+
+        document.getElementById('project-name').textContent = data.name || 'Unknown Project';
+        document.getElementById('project-desc').textContent = data.description || data.projectDir || '';
+
+        if (data.phase && data.phaseName) {
+          document.getElementById('phase-badge').textContent = `Phase ${data.phase}: ${data.phaseName}`;
+        } else if (data.branch) {
+          document.getElementById('phase-badge').textContent = `Branch: ${data.branch}`;
+        }
+
+        // Update progress bar
+        const progress = data.tasks?.progress || 0;
+        document.getElementById('progress-fill').style.width = `${progress}%`;
+
+        // Update stats if available
+        if (data.tasks) {
+          document.getElementById('stat-passing').textContent = data.tasks.done || 0;
+          document.getElementById('stat-failing').textContent = (data.tasks.total - data.tasks.done) || 0;
+        }
+      } catch (e) {
+        console.error('Failed to load project:', e);
       }
     }
 
     async function refreshTasks() {
       try {
         const res = await fetch('/api/tasks');
-        const data = await res.json();
+        const json = await res.json();
+        // Handle both { items: [...] } and direct array
+        const data = json.items || json || [];
 
-        const pending = data.filter(t => t.status === 'pending');
-        const inProgress = data.filter(t => t.status === 'in_progress');
-        const completed = data.filter(t => t.status === 'completed');
+        // Normalize status values: done -> completed, working -> in_progress
+        const normalizeStatus = (s) => {
+          if (s === 'done' || s === 'complete') return 'completed';
+          if (s === 'working') return 'in_progress';
+          if (s === 'available') return 'pending';
+          return s || 'pending';
+        };
+
+        const tasks = data.map(t => ({ ...t, status: normalizeStatus(t.status) }));
+
+        const pending = tasks.filter(t => t.status === 'pending');
+        const inProgress = tasks.filter(t => t.status === 'in_progress');
+        const completed = tasks.filter(t => t.status === 'completed');
 
         document.getElementById('tasks-pending').innerHTML = pending.map(t => `
           <div class="task-item">
@@ -1959,6 +2032,7 @@
 
     // Refresh All
     function refreshAll() {
+      refreshProject();
       refreshStats();
       refreshTasks();
       refreshGitHub();

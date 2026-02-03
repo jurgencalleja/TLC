@@ -12,6 +12,16 @@ const chokidar = require('chokidar');
 const { detectProject } = require('./lib/project-detector');
 const { parsePlan, parseBugs } = require('./lib/plan-parser');
 const { autoProvision, stopDatabase } = require('./lib/auto-database');
+const {
+  createUserStore,
+  createAuthMiddleware,
+  generateJWT,
+  verifyJWT,
+  hashPassword,
+  verifyPassword,
+  hasPermission,
+  USER_ROLES,
+} = require('./lib/auth-system');
 
 // Handle PGlite WASM crashes gracefully
 process.on('uncaughtException', (err) => {
@@ -48,6 +58,362 @@ const wss = new WebSocketServer({ server });
 
 // Middleware
 app.use(express.json());
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
+
+// ============================================
+// Authentication Setup
+// ============================================
+const userStore = createUserStore();
+const JWT_SECRET = process.env.TLC_JWT_SECRET || 'tlc-dashboard-secret-change-in-production';
+const AUTH_ENABLED = process.env.TLC_AUTH !== 'false';
+
+// Initialize users from config or environment
+async function initializeAuth() {
+  const tlcConfigPath = path.join(PROJECT_DIR, '.tlc.json');
+  let users = [];
+
+  // Try to read from .tlc.json
+  if (fs.existsSync(tlcConfigPath)) {
+    try {
+      const config = JSON.parse(fs.readFileSync(tlcConfigPath, 'utf-8'));
+
+      // Support new multi-user format: auth.users array
+      if (config.auth?.users && Array.isArray(config.auth.users)) {
+        users = config.auth.users;
+      }
+      // Also support legacy single admin format for backwards compatibility
+      else if (config.auth?.adminEmail && config.auth?.adminPassword) {
+        users.push({
+          email: config.auth.adminEmail,
+          password: config.auth.adminPassword,
+          name: config.auth.adminName || 'Admin',
+          role: 'admin',
+        });
+      }
+    } catch (e) {
+      console.error('[TLC] Failed to parse .tlc.json:', e.message);
+    }
+  }
+
+  // Also check environment variables for admin
+  if (process.env.TLC_ADMIN_EMAIL && process.env.TLC_ADMIN_PASSWORD) {
+    const envAdmin = {
+      email: process.env.TLC_ADMIN_EMAIL,
+      password: process.env.TLC_ADMIN_PASSWORD,
+      name: process.env.TLC_ADMIN_NAME || 'Admin',
+      role: 'admin',
+    };
+    // Don't duplicate if already in config
+    if (!users.find(u => u.email === envAdmin.email)) {
+      users.push(envAdmin);
+    }
+  }
+
+  // Create all users
+  for (const userData of users) {
+    if (!userData.email || !userData.password) {
+      console.warn('[TLC] Skipping user without email or password');
+      continue;
+    }
+
+    try {
+      await userStore.createUser({
+        email: userData.email,
+        password: userData.password,
+        name: userData.name || userData.email.split('@')[0],
+        role: userData.role || 'engineer',
+      }, { skipValidation: true }); // Dev tool - allow simple passwords
+      console.log(`[TLC] User initialized: ${userData.email} (${userData.role || 'engineer'})`);
+    } catch (e) {
+      if (!e.message.includes('already registered')) {
+        console.error(`[TLC] Failed to create user ${userData.email}:`, e.message);
+      }
+    }
+  }
+
+  const userCount = await userStore.getUserCount();
+  if (userCount === 0) {
+    console.log('[TLC] No users configured. Add users to .tlc.json:');
+    console.log('[TLC]   "auth": { "users": [{ "email": "...", "password": "...", "role": "admin" }] }');
+  }
+}
+
+// Role-based permission middleware
+function requireRole(...allowedRoles) {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    if (!allowedRoles.includes(req.user.role) && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Insufficient permissions' });
+    }
+    next();
+  };
+}
+
+// Permission-based middleware
+function requirePermission(permission) {
+  return async (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    const user = await userStore.findUserById(req.user.sub);
+    if (!user || !hasPermission(user, permission)) {
+      return res.status(403).json({ error: 'Permission denied' });
+    }
+    next();
+  };
+}
+
+// Auth middleware for protected routes
+const authMiddleware = createAuthMiddleware({
+  userStore,
+  jwtSecret: JWT_SECRET,
+  requireAuth: true,
+});
+
+// Public paths that don't require auth
+const publicPaths = ['/api/auth/login', '/api/auth/status', '/login.html', '/login'];
+
+// Apply auth to API routes (except public paths)
+app.use((req, res, next) => {
+  // Skip auth if disabled
+  if (!AUTH_ENABLED) return next();
+
+  // Allow public paths
+  if (publicPaths.some(p => req.path === p || req.path.startsWith(p))) {
+    return next();
+  }
+
+  // Allow static assets
+  if (req.path.match(/\.(js|css|png|jpg|ico|svg|woff|woff2)$/)) {
+    return next();
+  }
+
+  // Check for auth cookie or header
+  const token = req.cookies?.tlc_token || req.headers.authorization?.replace('Bearer ', '');
+
+  if (!token) {
+    // Redirect browser requests to login, return 401 for API
+    if (req.path.startsWith('/api/')) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    return res.redirect('/login.html');
+  }
+
+  // Verify token
+  const payload = verifyJWT(token, JWT_SECRET);
+  if (!payload) {
+    if (req.path.startsWith('/api/')) {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+    return res.redirect('/login.html');
+  }
+
+  // Attach user to request
+  req.user = payload;
+  next();
+});
+
+// Auth routes
+app.get('/api/auth/status', (req, res) => {
+  res.json({ authEnabled: AUTH_ENABLED });
+});
+
+app.post('/api/auth/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password required' });
+  }
+
+  const user = await userStore.authenticate(email, password);
+  if (!user) {
+    return res.status(401).json({ error: 'Invalid credentials' });
+  }
+
+  // Generate JWT
+  const token = generateJWT(
+    { sub: user.id, email: user.email, role: user.role, name: user.name },
+    JWT_SECRET,
+    { expiresIn: 86400 * 7 } // 7 days
+  );
+
+  // Set cookie
+  res.cookie('tlc_token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 86400 * 7 * 1000, // 7 days
+  });
+
+  res.json({ success: true, user: { email: user.email, name: user.name, role: user.role } });
+});
+
+app.post('/api/auth/logout', (req, res) => {
+  res.clearCookie('tlc_token');
+  res.json({ success: true });
+});
+
+app.get('/api/auth/me', (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+  res.json({ user: req.user });
+});
+
+// ============================================
+// User Management API (Admin only)
+// ============================================
+
+// List all users
+app.get('/api/users', requireRole('admin'), async (req, res) => {
+  try {
+    const users = await userStore.listUsers();
+    res.json({ users });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Get single user
+app.get('/api/users/:id', requireRole('admin'), async (req, res) => {
+  try {
+    const user = await userStore.findUserById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    // Don't return password hash
+    const { passwordHash, passwordSalt, ...safeUser } = user;
+    res.json({ user: safeUser });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Create new user
+app.post('/api/users', requireRole('admin'), async (req, res) => {
+  const { email, password, name, role } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password required' });
+  }
+
+  // Validate role
+  const validRoles = ['admin', 'engineer', 'qa', 'po'];
+  if (role && !validRoles.includes(role)) {
+    return res.status(400).json({ error: `Invalid role. Valid roles: ${validRoles.join(', ')}` });
+  }
+
+  try {
+    const user = await userStore.createUser({
+      email,
+      password,
+      name: name || email.split('@')[0],
+      role: role || 'engineer',
+    }, { skipValidation: true }); // Allow simple passwords for dev
+
+    res.status(201).json({ user });
+  } catch (e) {
+    if (e.message.includes('already registered')) {
+      return res.status(409).json({ error: 'Email already registered' });
+    }
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Update user
+app.put('/api/users/:id', requireRole('admin'), async (req, res) => {
+  const { name, role, active } = req.body;
+
+  // Validate role if provided
+  const validRoles = ['admin', 'engineer', 'qa', 'po'];
+  if (role && !validRoles.includes(role)) {
+    return res.status(400).json({ error: `Invalid role. Valid roles: ${validRoles.join(', ')}` });
+  }
+
+  try {
+    const updates = {};
+    if (name !== undefined) updates.name = name;
+    if (role !== undefined) updates.role = role;
+    if (active !== undefined) updates.active = active;
+
+    const user = await userStore.updateUser(req.params.id, updates);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ user });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Delete user
+app.delete('/api/users/:id', requireRole('admin'), async (req, res) => {
+  // Prevent self-deletion
+  if (req.user.sub === req.params.id) {
+    return res.status(400).json({ error: 'Cannot delete your own account' });
+  }
+
+  try {
+    const deleted = await userStore.deleteUser(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Also invalidate their sessions
+    await userStore.invalidateUserSessions(req.params.id);
+
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Reset user password (admin only)
+app.post('/api/users/:id/reset-password', requireRole('admin'), async (req, res) => {
+  const { newPassword } = req.body;
+
+  if (!newPassword) {
+    return res.status(400).json({ error: 'New password required' });
+  }
+
+  try {
+    const user = await userStore.findUserById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Use the internal hash function
+    const { hash, salt } = hashPassword(newPassword);
+    user.passwordHash = hash;
+    user.passwordSalt = salt;
+    user.updatedAt = new Date().toISOString();
+
+    // Invalidate all sessions for security
+    await userStore.invalidateUserSessions(req.params.id);
+
+    res.json({ success: true, message: 'Password reset successfully' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Get available roles
+app.get('/api/roles', (req, res) => {
+  res.json({
+    roles: [
+      { id: 'admin', name: 'Admin', description: 'Full access to all features' },
+      { id: 'engineer', name: 'Engineer', description: 'Can read, write, deploy, and claim tasks' },
+      { id: 'qa', name: 'QA', description: 'Can read, verify, report bugs, and run tests' },
+      { id: 'po', name: 'Product Owner', description: 'Can read, plan, verify, and approve' },
+    ],
+  });
+});
+
+// Serve static files (after auth middleware)
 app.use(express.static(path.join(__dirname, 'dashboard')));
 
 // Broadcast to all WebSocket clients
@@ -203,6 +569,86 @@ function runTests() {
 }
 
 // API Routes
+
+// Project info endpoint - returns real project data
+app.get('/api/project', (req, res) => {
+  try {
+    const { execSync } = require('child_process');
+
+    // Get project name and description from package.json or .tlc.json
+    let projectName = 'Unknown Project';
+    let projectDesc = '';
+    let version = '';
+
+    const pkgPath = path.join(PROJECT_DIR, 'package.json');
+    if (fs.existsSync(pkgPath)) {
+      const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+      projectName = pkg.name || projectName;
+      projectDesc = pkg.description || '';
+      version = pkg.version || '';
+    }
+
+    const tlcPath = path.join(PROJECT_DIR, '.tlc.json');
+    if (fs.existsSync(tlcPath)) {
+      const tlc = JSON.parse(fs.readFileSync(tlcPath, 'utf-8'));
+      if (tlc.project) projectName = tlc.project;
+      if (tlc.description) projectDesc = tlc.description;
+    }
+
+    // Get git info
+    let branch = 'unknown';
+    let lastCommit = null;
+    try {
+      branch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: PROJECT_DIR, encoding: 'utf-8' }).trim();
+      const commitInfo = execSync('git log -1 --pretty=format:"%h|%s|%ar"', { cwd: PROJECT_DIR, encoding: 'utf-8' }).trim();
+      const [hash, message, time] = commitInfo.split('|');
+      lastCommit = { hash, message, time };
+    } catch (e) {
+      // Not a git repo
+    }
+
+    // Get phase info
+    const plan = parsePlan(PROJECT_DIR);
+
+    // Count phases from roadmap
+    let totalPhases = 0;
+    let completedPhases = 0;
+    const roadmapPath = path.join(PROJECT_DIR, '.planning', 'ROADMAP.md');
+    if (fs.existsSync(roadmapPath)) {
+      const content = fs.readFileSync(roadmapPath, 'utf-8');
+      const phases = content.match(/##\s+Phase\s+\d+/g) || [];
+      totalPhases = phases.length;
+      const completed = content.match(/##\s+Phase\s+\d+[^[]*\[x\]/gi) || [];
+      completedPhases = completed.length;
+    }
+
+    // Calculate progress
+    const tasksDone = plan.tasks?.filter(t => t.status === 'done' || t.status === 'complete').length || 0;
+    const tasksTotal = plan.tasks?.length || 0;
+    const progress = tasksTotal > 0 ? Math.round((tasksDone / tasksTotal) * 100) : 0;
+
+    res.json({
+      name: projectName,
+      description: projectDesc,
+      version,
+      branch,
+      lastCommit,
+      phase: plan.currentPhase,
+      phaseName: plan.currentPhaseName,
+      totalPhases,
+      completedPhases,
+      tasks: {
+        total: tasksTotal,
+        done: tasksDone,
+        progress
+      },
+      projectDir: PROJECT_DIR
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/status', (req, res) => {
   const bugs = parseBugs(PROJECT_DIR);
   const plan = parsePlan(PROJECT_DIR);
@@ -834,9 +1280,17 @@ async function main() {
   TLC Dev Server
 `);
 
+  // Initialize authentication
+  await initializeAuth();
+
   server.listen(TLC_PORT, () => {
     console.log(`  Dashboard: http://localhost:${TLC_PORT}`);
     console.log(`  Share:     http://${getLocalIP()}:${TLC_PORT}`);
+    if (AUTH_ENABLED) {
+      console.log(`  Auth:      ENABLED (set TLC_AUTH=false to disable)`);
+    } else {
+      console.log(`  Auth:      DISABLED`);
+    }
     console.log('');
   });
 
