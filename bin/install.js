@@ -43,6 +43,7 @@ const COMMANDS = [
   'complete.md',
   'new-milestone.md',
   'quick.md',
+  'next.md',
   // Quality & Testing
   'status.md',
   'coverage.md',
@@ -50,6 +51,13 @@ const COMMANDS = [
   'edge-cases.md',
   'autofix.md',
   'config.md',
+  // Code Quality & Standards
+  'audit.md',
+  'cleanup.md',
+  'refactor.md',
+  // Security
+  'security.md',
+  'outdated.md',
   // Team Collaboration
   'claim.md',
   'release.md',
@@ -60,6 +68,9 @@ const COMMANDS = [
   // CI/CD & Integration
   'ci.md',
   'issues.md',
+  // Review
+  'review.md',
+  'review-pr.md',
   // Documentation
   'docs.md',
   // Multi-Tool & Deployment
