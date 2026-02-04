@@ -145,11 +145,35 @@ fi
 2. **Invoke each configured provider** (one chunk at a time if split):
 
 ```bash
-# For Codex (GPT-5.2) - use file attachment
-codex --print "Review this code diff for quality issues, bugs, security vulnerabilities, and test coverage. Respond with APPROVED or CHANGES_REQUESTED. File: /tmp/review-diff.patch"
+# For Codex (GPT-5.2) - detailed review prompt
+codex --print "You are a senior code reviewer. Analyze this diff thoroughly:
 
-# For Gemini - use file attachment
-gemini --print "Review this code diff for quality and security issues. File: /tmp/review-diff.patch"
+1. **Line-by-line Analysis**: Comment on specific lines with issues
+2. **Bugs**: Identify potential bugs, edge cases, null checks
+3. **Security**: SQL injection, XSS, command injection, auth issues
+4. **Performance**: N+1 queries, unnecessary loops, memory leaks
+5. **Code Quality**: Naming, duplication, complexity, SOLID principles
+6. **Test Coverage**: Are the changes properly tested?
+
+For each issue found:
+- File and line number
+- Severity (critical/high/medium/low)
+- What's wrong
+- How to fix it
+
+End with: APPROVED (no critical/high issues) or CHANGES_REQUESTED (has critical/high issues)
+
+File: /tmp/review-diff.patch"
+
+# For Gemini - detailed review prompt
+gemini --print "Review this code diff as a senior engineer. Provide:
+- Specific line-by-line feedback
+- Security vulnerabilities with file:line references
+- Performance concerns
+- Code quality issues
+- Missing test coverage
+
+Be thorough and specific. File: /tmp/review-diff.patch"
 ```
 
 **Large Diff Handling:**
