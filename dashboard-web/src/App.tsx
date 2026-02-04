@@ -15,7 +15,7 @@ import {
 import { useUIStore } from './stores';
 import { useWebSocket } from './hooks';
 
-const WS_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_WS_URL) || 'ws://localhost:3001/ws';
+const WS_URL = 'ws://localhost:3001/ws';
 
 function AppContent() {
   const navigate = useNavigate();
