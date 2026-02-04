@@ -13,28 +13,99 @@ Write failing tests, then implement to make them pass.
 - **Meaningful names**: Variables, functions, classes should reveal intent. No abbreviations except industry standards.
 - **Small functions**: Each function does ONE thing. If you need comments to explain sections, extract them.
 
+### Naming Conventions
+- **Functions**: Verb-first (`getUser`, `validateInput`, `sendEmail`). Boolean returns: `is`, `has`, `can`, `should` prefix.
+- **Variables**: Noun-based, specific (`userCount` not `count`, `emailList` not `list`).
+- **Classes**: Noun, singular (`UserService` not `UsersService`).
+- **Constants**: SCREAMING_SNAKE_CASE (`MAX_RETRY_COUNT`).
+- **Booleans**: Positive form (`isValid` not `isNotInvalid`).
+- **Collections**: Plural (`users`, `orderItems`).
+
+### Function Design
+- **Guard clauses first**: Handle edge cases at the top, return early.
+- **Single level of abstraction**: Don't mix high-level orchestration with low-level details.
+- **Max 3 parameters**: Use options object for more. Named parameters > positional.
+- **No boolean parameters**: Use enums or separate functions (`enableCache()` not `doThing(true)`).
+- **Return early, return often**: Avoid deep nesting with early returns.
+
+```typescript
+// ❌ Bad: Deep nesting
+function processOrder(order) {
+  if (order) {
+    if (order.items.length > 0) {
+      if (order.status === 'pending') {
+        // actual logic buried here
+      }
+    }
+  }
+}
+
+// ✅ Good: Guard clauses
+function processOrder(order) {
+  if (!order) return;
+  if (order.items.length === 0) return;
+  if (order.status !== 'pending') return;
+
+  // actual logic at top level
+}
+```
+
 ### Defensive Programming
 - **Validate at boundaries**: All external input (user, API, file) gets validated immediately.
 - **Fail fast**: Throw early with clear error messages. Don't let bad state propagate.
 - **Handle edge cases**: null, undefined, empty arrays, empty strings, zero, negative numbers.
 - **Type safety**: Use TypeScript strictly. No `any` except when interfacing with untyped libs.
+- **Defensive copies**: Return copies of internal state, not references.
+
+### Comments Philosophy
+- **Explain WHY, not WHAT**: Code shows what, comments explain why.
+- **No commented-out code**: Delete it. Git remembers.
+- **TODO format**: `// TODO(username): description - ticket#`
+- **JSDoc for public API**: Parameters, returns, throws, examples.
+- **No obvious comments**: `// increment i` before `i++` is noise.
+
+### Error Handling
+- **Specific error types**: `UserNotFoundError` not generic `Error`.
+- **Actionable messages**: "User 'abc123' not found" not "Not found".
+- **Don't swallow errors**: Log or rethrow, never empty catch blocks.
+- **Error boundaries**: Catch at appropriate level, not everywhere.
+- **User vs developer errors**: Different messages for each audience.
+
+### Logging Standards
+- **Structured logging**: JSON format with consistent fields.
+- **Log levels**: ERROR (failures), WARN (concerning), INFO (business events), DEBUG (troubleshooting).
+- **Context**: Include request ID, user ID, relevant entity IDs.
+- **No sensitive data**: Never log passwords, tokens, PII.
+- **Performance**: Don't log in tight loops.
 
 ### Performance Awareness
 - **O(n) thinking**: Know the complexity of your algorithms. Avoid nested loops on large datasets.
 - **Lazy loading**: Don't fetch/compute until needed.
 - **Caching**: Identify expensive operations and cache appropriately.
 - **Database queries**: No N+1. Use joins, batch operations, proper indexes.
+- **Measure, don't guess**: Profile before optimizing.
 
 ### Security First
 - **Never trust input**: Sanitize, escape, parameterize.
 - **Least privilege**: Functions/modules only access what they need.
 - **No secrets in code**: Environment variables for all credentials.
 - **Audit trail**: Log security-relevant actions.
+- **Defense in depth**: Multiple layers of validation.
 
 ### Testability
 - **Dependency injection**: Pass dependencies, don't import singletons.
 - **Pure functions**: Same input = same output. No hidden state.
 - **Mockable interfaces**: Code to interfaces, not implementations.
+- **Test behavior, not implementation**: Tests shouldn't break on refactors.
+
+### When to Break Rules
+Senior engineers know when rules don't apply:
+- **Performance critical paths**: Sometimes clarity yields to speed.
+- **Prototypes**: Quick validation trumps perfect architecture.
+- **Legacy integration**: Match existing patterns for consistency.
+- **Framework conventions**: Follow framework idioms even if they conflict.
+
+**Document WHY you broke the rule** with a comment.
 
 ## What This Does
 
