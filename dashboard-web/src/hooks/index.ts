@@ -4,3 +4,6 @@ export type {
   UseWebSocketReturn,
   WebSocketMessage,
 } from './useWebSocket';
+
+export { useProject } from './useProject';
+export { useTasks } from './useTasks';
