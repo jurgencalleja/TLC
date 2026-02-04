@@ -118,33 +118,24 @@ Scan diff for common security issues:
 
 For each provider in `reviewProviders` (except `claude` which is the current session):
 
+**How to invoke:**
+
+1. **Save diff to temporary file** (LLM CLIs read files, not piped input):
 ```bash
-# Get the diff
-diff=$(git diff main...HEAD)
-
-# For Codex (GPT-5.2)
-if [[ " ${reviewProviders[@]} " =~ " codex " ]]; then
-  echo "Invoking Codex for second opinion..."
-  codex "You are reviewing a code diff. Check for:
-1. Code quality issues
-2. Potential bugs
-3. Security vulnerabilities
-4. Test coverage gaps
-5. Best practice violations
-
-Respond with: APPROVED or CHANGES_REQUESTED and list any issues.
-
-Diff:
-$diff"
-fi
-
-# For Gemini
-if [[ " ${reviewProviders[@]} " =~ " gemini " ]]; then
-  echo "Invoking Gemini for review..."
-  gemini "Review this code diff for quality and security issues:
-$diff"
-fi
+git diff main...HEAD > /tmp/review-diff.patch
 ```
+
+2. **Invoke each configured provider:**
+
+```bash
+# For Codex (GPT-5.2) - use file attachment
+codex --print "Review this code diff for quality issues, bugs, security vulnerabilities, and test coverage. Respond with APPROVED or CHANGES_REQUESTED. File: /tmp/review-diff.patch"
+
+# For Gemini - use file attachment
+gemini --print "Review this code diff for quality and security issues. File: /tmp/review-diff.patch"
+```
+
+**Note:** Each CLI has its own syntax. Check `codex --help` and `gemini --help` for exact flags. The `--print` flag outputs the response without interactive mode.
 
 **Example output:**
 
