@@ -1,26 +1,77 @@
-import { Routes, Route } from 'react-router-dom';
+import { useEffect, useMemo } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { Shell } from './components/layout';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { CommandPalette, type Command } from './components/settings/CommandPalette';
+import {
+  DashboardPage,
+  TasksPage,
+  LogsPage,
+  SettingsPage,
+  ProjectsPage,
+  TeamPage,
+  HealthPage,
+} from './pages';
+import { useUIStore } from './stores';
+import { useWebSocket } from './hooks';
 
-function Dashboard() {
+const WS_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_WS_URL) || 'ws://localhost:3001/ws';
+
+function AppContent() {
+  const navigate = useNavigate();
+  const { isCommandPaletteOpen, closeCommandPalette, initFromStorage, toggleTheme } = useUIStore();
+
+  // Initialize theme from localStorage
+  useEffect(() => {
+    initFromStorage();
+  }, [initFromStorage]);
+
+  // Connect to WebSocket for real-time updates
+  useWebSocket({
+    url: WS_URL,
+    autoConnect: true,
+  });
+
+  const commands: Command[] = useMemo(() => [
+    { id: 'nav-dashboard', label: 'Go to Dashboard', shortcut: 'g d', action: () => { navigate('/'); closeCommandPalette(); } },
+    { id: 'nav-projects', label: 'Go to Projects', shortcut: 'g p', action: () => { navigate('/projects'); closeCommandPalette(); } },
+    { id: 'nav-tasks', label: 'Go to Tasks', shortcut: 'g t', action: () => { navigate('/tasks'); closeCommandPalette(); } },
+    { id: 'nav-logs', label: 'Go to Logs', shortcut: 'g l', action: () => { navigate('/logs'); closeCommandPalette(); } },
+    { id: 'nav-settings', label: 'Go to Settings', shortcut: 'g s', action: () => { navigate('/settings'); closeCommandPalette(); } },
+    { id: 'nav-team', label: 'Go to Team', shortcut: 'g m', action: () => { navigate('/team'); closeCommandPalette(); } },
+    { id: 'nav-health', label: 'Go to Health', shortcut: 'g h', action: () => { navigate('/health'); closeCommandPalette(); } },
+    { id: 'toggle-theme', label: 'Toggle Theme', shortcut: 't', action: () => { toggleTheme(); closeCommandPalette(); } },
+  ], [navigate, closeCommandPalette, toggleTheme]);
+
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-semibold text-text-primary">Dashboard</h1>
-      <p className="text-text-secondary mt-2">Welcome to TLC Dashboard v2.0</p>
-    </div>
+    <>
+      <Shell>
+        <Routes>
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/projects" element={<ProjectsPage />} />
+          <Route path="/tasks" element={<TasksPage />} />
+          <Route path="/logs" element={<LogsPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/team" element={<TeamPage />} />
+          <Route path="/health" element={<HealthPage />} />
+        </Routes>
+      </Shell>
+
+      <CommandPalette
+        commands={commands}
+        open={isCommandPaletteOpen}
+        onClose={closeCommandPalette}
+      />
+    </>
   );
 }
 
 function App() {
   return (
-    <Shell>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/projects" element={<Dashboard />} />
-        <Route path="/tasks" element={<Dashboard />} />
-        <Route path="/logs" element={<Dashboard />} />
-        <Route path="/settings" element={<Dashboard />} />
-      </Routes>
-    </Shell>
+    <ErrorBoundary>
+      <AppContent />
+    </ErrorBoundary>
   );
 }
 
