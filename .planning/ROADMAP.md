@@ -2008,7 +2008,7 @@ stable branch    → stable.example.com     (manual deploy, approval required)
 
 LiteLLM integration for unified LLM access + Gemini-powered design-to-code workflow.
 
-### Phase 58: LiteLLM Gateway [ ]
+### Phase 58: LiteLLM Gateway [x]
 
 **Goal:** Centralized LLM access through LiteLLM proxy for unified API, cost tracking, and model switching.
 
@@ -2020,22 +2020,27 @@ LiteLLM integration for unified LLM access + Gemini-powered design-to-code workf
 - No vendor lock-in
 
 **Deliverables:**
-- [ ] LiteLLM Docker service configuration
-- [ ] Model alias configuration (map logical names to providers)
-- [ ] Fallback chains (primary → secondary → tertiary)
-- [ ] Spend limits per model/user
-- [ ] Usage dashboard integration
-- [ ] `/tlc:llm config` command
-- [ ] `/tlc:llm status` command
-- [ ] `/tlc:llm models` command
+- [x] LiteLLM Docker service configuration
+- [x] Model alias configuration (map logical names to providers)
+- [x] Fallback chains (primary → secondary → tertiary)
+- [x] Spend limits per model/user
+- [x] Usage dashboard integration
+- [x] `/tlc:llm config` command
+- [x] `/tlc:llm status` command
+- [x] `/tlc:llm models` command
 
-**Test Coverage:** ~80 tests
+**Implementation:**
+- litellm-config.js: Configuration with model aliases, fallbacks, spend limits
+- litellm-client.js: Client for proxy (completion, chat, usage, health)
+- litellm-command.js: CLI commands (config, status, models, test)
+
+**Test Coverage:** 50 tests
 
 **Success Criteria:**
-- [ ] All TLC AI operations route through LiteLLM
-- [ ] Transparent model switching without code changes
-- [ ] Cost tracking unified across providers
-- [ ] Fallback works when primary model fails
+- [x] All TLC AI operations route through LiteLLM
+- [x] Transparent model switching without code changes
+- [x] Cost tracking unified across providers
+- [x] Fallback works when primary model fails
 
 ---
 
