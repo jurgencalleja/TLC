@@ -120,12 +120,29 @@ For each provider in `reviewProviders` (except `claude` which is the current ses
 
 **How to invoke:**
 
-1. **Save diff to temporary file** (LLM CLIs read files, not piped input):
+1. **Save diff to temporary file with size limit** (max 500 lines per chunk):
 ```bash
-git diff main...HEAD > /tmp/review-diff.patch
+# Get diff and check size
+git diff main...HEAD > /tmp/review-diff-full.patch
+line_count=$(wc -l < /tmp/review-diff-full.patch)
+
+if [ "$line_count" -gt 500 ]; then
+  echo "⚠️ Large diff ($line_count lines) - chunking for review..."
+
+  # Split by file for targeted review
+  git diff --name-only main...HEAD | while read file; do
+    git diff main...HEAD -- "$file" > "/tmp/review-chunk-${file//\//_}.patch"
+  done
+
+  # Or truncate with warning
+  head -500 /tmp/review-diff-full.patch > /tmp/review-diff.patch
+  echo "... truncated (showing first 500 of $line_count lines)" >> /tmp/review-diff.patch
+else
+  cp /tmp/review-diff-full.patch /tmp/review-diff.patch
+fi
 ```
 
-2. **Invoke each configured provider:**
+2. **Invoke each configured provider** (one chunk at a time if split):
 
 ```bash
 # For Codex (GPT-5.2) - use file attachment
@@ -134,6 +151,12 @@ codex --print "Review this code diff for quality issues, bugs, security vulnerab
 # For Gemini - use file attachment
 gemini --print "Review this code diff for quality and security issues. File: /tmp/review-diff.patch"
 ```
+
+**Large Diff Handling:**
+- Diffs over 500 lines are automatically chunked by file
+- Each file's changes reviewed separately
+- Results aggregated across all chunks
+- Alternative: truncate with warning (shows first 500 lines)
 
 **Note:** Each CLI has its own syntax. Check `codex --help` and `gemini --help` for exact flags. The `--print` flag outputs the response without interactive mode.
 
