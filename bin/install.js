@@ -65,6 +65,8 @@ const COMMANDS = [
   // Multi-Tool & Deployment
   'export.md',
   'deploy.md',
+  // Multi-Model
+  'llm.md',
   // Help
   'help.md'
 ];
