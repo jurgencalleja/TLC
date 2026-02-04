@@ -6,6 +6,55 @@ Write failing tests, then implement to make them pass.
 
 **Code like a senior engineer with 15+ years experience.** Every line should reflect:
 
+### Project Structure (NestJS-Style Modules)
+
+**Group by domain entity, not by file type.** Each entity gets its own module folder:
+
+```
+src/modules/{entity}/
+  ├── interfaces/                 # Types and interfaces (NEVER at module root)
+  │   ├── {entity}.interface.ts
+  │   └── index.ts
+  ├── dto/                        # Request/Response DTOs
+  │   ├── create.dto.ts
+  │   └── index.ts
+  ├── enums/                      # Enums (no magic strings)
+  ├── constants/                  # Configuration constants
+  ├── guards/                     # Auth/permission middleware
+  ├── {entity}.service.ts         # Business logic
+  ├── {entity}.controller.ts      # HTTP handlers
+  ├── {entity}.repository.ts      # Data access
+  ├── {entity}.seed.ts            # Seed data (per-entity, not monolithic)
+  ├── {entity}.test.ts            # Tests
+  └── index.ts                    # Barrel exports
+```
+
+**Server/src root should ONLY contain:**
+- `index.ts` - Entry point
+- `lib/` - Core shared libraries
+- `modules/` - Feature modules
+- `shared/` - Cross-cutting utilities
+- Config files
+
+**❌ NEVER do this:**
+```
+src/
+  services/          # ❌ All services dumped together
+  interfaces/        # ❌ All types dumped together
+  controllers/       # ❌ Flat controller folder
+
+server/
+  auth.ts            # ❌ Loose file at root (should be modules/auth/)
+  helpers.ts         # ❌ Should be in lib/ or shared/
+```
+
+**Key rules:**
+- Interfaces ALWAYS in `interfaces/` subdirectory, never at module root
+- No inline interfaces in service files - import from `interfaces/`
+- No magic strings - use `enums/` or `constants/`
+- Seeds per-entity, not one giant seeds.ts
+- Every module has `index.ts` barrel export
+
 ### Code Quality
 - **Clean Architecture**: Separate concerns. Domain logic never depends on infrastructure.
 - **SOLID Principles**: Single responsibility, open/closed, Liskov substitution, interface segregation, dependency inversion.
