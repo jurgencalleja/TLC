@@ -1040,60 +1040,98 @@ Intelligent agent orchestration with model selection, cost optimization, and qua
 
 ---
 
-### Phase 35: Quality Gate [ ]
+### Phase 35: Quality Gate [x]
 
 **Goal:** Ensure output quality meets thresholds before accepting results.
 
 **Deliverables:**
-- [ ] Quality scoring (code style, test coverage, completeness)
-- [ ] Quality thresholds (per operation type)
-- [ ] Auto-retry with better model on quality failure
-- [ ] Quality history (track improvements over time)
-- [ ] Quality presets (fast, balanced, thorough)
-- [ ] `/tlc:quality-gate` command (configure, status)
+- [x] Quality scoring (code style, test coverage, completeness)
+- [x] Quality thresholds (per operation type)
+- [x] Auto-retry with better model on quality failure
+- [x] Quality history (track improvements over time)
+- [x] Quality presets (fast, balanced, thorough)
+- [x] `/tlc:quality-gate` command (configure, status)
+- [x] QualityGatePane dashboard component
+
+**Test Progress:**
+- quality-gate-scorer: 35 tests
+- quality-thresholds: 22 tests
+- quality-evaluator: 32 tests
+- quality-retry: 23 tests
+- quality-history: 34 tests
+- quality-presets: 25 tests
+- quality-gate-command: 56 tests
+- QualityGatePane: 12 tests
+- Total: 239 tests
 
 **Success Criteria:**
-- [ ] Low-quality outputs automatically retried
-- [ ] Quality scores visible in dashboard
-- [ ] Configurable per-project thresholds
+- [x] Low-quality outputs automatically retried
+- [x] Quality scores visible in dashboard
+- [x] Configurable per-project thresholds
 
 ---
 
-### Phase 36: Agent Orchestration Dashboard [ ]
+### Phase 36: Agent Orchestration Dashboard [x]
 
 **Goal:** Visual UI for monitoring and controlling AI agents.
 
 **Deliverables:**
-- [ ] AgentList component (running, queued, completed)
-- [ ] AgentDetail component (tokens, cost, logs, output)
-- [ ] AgentControls (pause, resume, cancel, retry)
-- [ ] CostMeter component (budget vs spent)
-- [ ] ModelSelector component (override routing)
-- [ ] QualityIndicator component (per-agent scores)
+- [x] AgentCard component (individual agent display)
+- [x] AgentList component (running, queued, completed)
+- [x] AgentDetail component (tokens, cost, logs, output)
+- [x] AgentControls (pause, resume, cancel, retry)
+- [x] CostMeter component (budget vs spent)
+- [x] ModelSelector component (override routing)
+- [x] QualityIndicator component (per-agent scores)
+- [x] OrchestrationDashboard (main dashboard)
+
+**Test Progress:**
+- AgentCard: 11 tests
+- AgentControls: 10 tests
+- AgentDetail: 10 tests
+- AgentList: 11 tests
+- CostMeter: 10 tests
+- ModelSelector: 10 tests
+- QualityIndicator: 10 tests
+- OrchestrationDashboard: 10 tests
+- Total: 82 tests
 
 **Success Criteria:**
-- [ ] Real-time agent status updates
-- [ ] Cancel/retry agents from UI
-- [ ] Cost visibility at a glance
+- [x] Real-time agent status updates
+- [x] Cancel/retry agents from UI
+- [x] Cost visibility at a glance
 
 ---
 
-### Phase 37: Orchestration Command [ ]
+### Phase 37: Orchestration Command [x]
 
 **Goal:** CLI for agent management and AI operations control.
 
 **Deliverables:**
-- [ ] `/tlc:agents` - list running/queued/completed agents
-- [ ] `/tlc:agents cancel <id>` - cancel agent
-- [ ] `/tlc:agents retry <id>` - retry failed agent
-- [ ] `/tlc:agents logs <id>` - view agent output
-- [ ] `/tlc:optimize` - suggest cost/quality optimizations
-- [ ] Integration with existing TLC commands
+- [x] `/tlc:agents` - list running/queued/completed agents
+- [x] `/tlc:agents get <id>` - show agent details
+- [x] `/tlc:agents cancel <id>` - cancel agent
+- [x] `/tlc:agents retry <id>` - retry failed agent
+- [x] `/tlc:agents logs <id>` - view agent output
+- [x] `/tlc:optimize` - suggest cost/quality optimizations
+- [x] `/tlc:models` - list and test models
+- [x] Integration with existing TLC commands
+
+**Test Progress:**
+- agents-list-command: 16 tests
+- agents-get-command: 14 tests
+- agents-cancel-command: 15 tests
+- agents-retry-command: 19 tests
+- agents-logs-command: 20 tests
+- optimize-command: 19 tests
+- models-command: 23 tests
+- orchestration-integration: 22 tests
+- Total: 148 tests
 
 **Success Criteria:**
-- [ ] Full agent control from CLI
-- [ ] Consistent with existing TLC UX
-- [ ] Works alongside dashboard
+- [x] Full agent control from CLI
+- [x] Consistent with existing TLC UX
+- [x] Works alongside dashboard
 
 ---
 
