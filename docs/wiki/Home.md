@@ -53,7 +53,7 @@ tlc
 | `/tlc:verify` | Human verification |
 | `/tlc:status` | Check test status |
 
-**New in v1.5.4:** `/tlc:build` now automatically parallelizes independent tasks (up to 10 agents). No flags needed.
+**New in v1.5.5:** `/tlc:build` now automatically parallelizes independent tasks (up to 10 agents). No flags needed.
 
 ## For Teams
 
