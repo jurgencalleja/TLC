@@ -5,7 +5,7 @@ import { AgentControls } from './AgentControls.js';
 describe('AgentControls', () => {
   it('pause button shown for running agent', () => {
     const { lastFrame } = render(<AgentControls status="running" />);
-    expect(lastFrame()).toContain('Pause') || expect(lastFrame()).toContain('pause') || expect(lastFrame()).toContain('⏸');
+    expect(lastFrame()?.toLowerCase()).toMatch(/pause|⏸/);
   });
 
   it('pause button triggers callback', () => {
@@ -16,7 +16,7 @@ describe('AgentControls', () => {
 
   it('resume button shown for paused agent', () => {
     const { lastFrame } = render(<AgentControls status="paused" />);
-    expect(lastFrame()).toContain('Resume') || expect(lastFrame()).toContain('resume') || expect(lastFrame()).toContain('▶');
+    expect(lastFrame()?.toLowerCase()).toMatch(/resume|▶/);
   });
 
   it('resume button triggers callback', () => {
@@ -27,17 +27,17 @@ describe('AgentControls', () => {
 
   it('cancel button shown for running', () => {
     const { lastFrame } = render(<AgentControls status="running" />);
-    expect(lastFrame()).toContain('Cancel') || expect(lastFrame()).toContain('cancel') || expect(lastFrame()).toContain('✗');
+    expect(lastFrame()?.toLowerCase()).toMatch(/cancel|✗/);
   });
 
   it('cancel button shown for queued', () => {
     const { lastFrame } = render(<AgentControls status="queued" />);
-    expect(lastFrame()).toContain('Cancel') || expect(lastFrame()).toContain('cancel');
+    expect(lastFrame()?.toLowerCase()).toMatch(/cancel/);
   });
 
   it('retry button shown for failed', () => {
     const { lastFrame } = render(<AgentControls status="failed" />);
-    expect(lastFrame()).toContain('Retry') || expect(lastFrame()).toContain('retry') || expect(lastFrame()).toContain('↻');
+    expect(lastFrame()?.toLowerCase()).toMatch(/retry|↻/);
   });
 
   it('retry button triggers callback', () => {

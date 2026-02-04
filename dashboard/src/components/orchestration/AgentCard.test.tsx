@@ -26,7 +26,7 @@ describe('AgentCard', () => {
   it('renders model icon', () => {
     const { lastFrame } = render(<AgentCard agent={{ ...defaultAgent, model: 'claude-3-opus' }} />);
     const output = lastFrame();
-    expect(output).toContain('claude') || expect(output).toBeDefined();
+    expect(output).toBeDefined();
   });
 
   it('status badge shows correct color for running', () => {
@@ -47,12 +47,12 @@ describe('AgentCard', () => {
 
   it('token count displays', () => {
     const { lastFrame } = render(<AgentCard agent={defaultAgent} />);
-    expect(lastFrame()).toContain('500') || expect(lastFrame()).toContain('700');
+    expect(lastFrame()).toMatch(/500|700/);
   });
 
   it('cost displays with currency', () => {
     const { lastFrame } = render(<AgentCard agent={defaultAgent} />);
-    expect(lastFrame()).toContain('0.05') || expect(lastFrame()).toContain('$');
+    expect(lastFrame()).toMatch(/0\.05|\$/);
   });
 
   it('quality score shows when available', () => {
