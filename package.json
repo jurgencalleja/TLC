@@ -9,6 +9,7 @@
   },
   "files": [
     "bin/",
+    ".claude/commands/",
     "dashboard/dist/",
     "dashboard/package.json",
     "server/index.js",
@@ -28,6 +29,7 @@
     ".gitattributes"
   ],
   "scripts": {
+    "postinstall": "node bin/postinstall.js",
     "build": "cd dashboard && npm run build",
     "prepublishOnly": "npm run build",
     "docs": "node scripts/docs-update.js",
