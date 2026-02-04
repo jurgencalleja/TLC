@@ -2,6 +2,18 @@
 
 One command. Context-aware. Visual dashboard.
 
+## Engineering Mindset
+
+**All TLC code generation follows senior engineer standards:**
+- Clean architecture with separated concerns
+- SOLID principles strictly applied
+- Defensive programming with validation at boundaries
+- Performance-aware (O(n) thinking, no N+1 queries)
+- Security-first (no secrets in code, sanitize all input)
+- Fully testable (dependency injection, pure functions)
+
+See `/tlc:build` for the complete engineering standards checklist.
+
 ## What This Does
 
 Launches the TLC dashboard - a visual interface showing project state, phases, tests, and next actions.

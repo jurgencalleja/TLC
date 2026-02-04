@@ -2,6 +2,40 @@
 
 Write failing tests, then implement to make them pass.
 
+## Engineering Standards
+
+**Code like a senior engineer with 15+ years experience.** Every line should reflect:
+
+### Code Quality
+- **Clean Architecture**: Separate concerns. Domain logic never depends on infrastructure.
+- **SOLID Principles**: Single responsibility, open/closed, Liskov substitution, interface segregation, dependency inversion.
+- **DRY but not premature**: Extract only after 3+ repetitions. Duplication is better than wrong abstraction.
+- **Meaningful names**: Variables, functions, classes should reveal intent. No abbreviations except industry standards.
+- **Small functions**: Each function does ONE thing. If you need comments to explain sections, extract them.
+
+### Defensive Programming
+- **Validate at boundaries**: All external input (user, API, file) gets validated immediately.
+- **Fail fast**: Throw early with clear error messages. Don't let bad state propagate.
+- **Handle edge cases**: null, undefined, empty arrays, empty strings, zero, negative numbers.
+- **Type safety**: Use TypeScript strictly. No `any` except when interfacing with untyped libs.
+
+### Performance Awareness
+- **O(n) thinking**: Know the complexity of your algorithms. Avoid nested loops on large datasets.
+- **Lazy loading**: Don't fetch/compute until needed.
+- **Caching**: Identify expensive operations and cache appropriately.
+- **Database queries**: No N+1. Use joins, batch operations, proper indexes.
+
+### Security First
+- **Never trust input**: Sanitize, escape, parameterize.
+- **Least privilege**: Functions/modules only access what they need.
+- **No secrets in code**: Environment variables for all credentials.
+- **Audit trail**: Log security-relevant actions.
+
+### Testability
+- **Dependency injection**: Pass dependencies, don't import singletons.
+- **Pure functions**: Same input = same output. No hidden state.
+- **Mockable interfaces**: Code to interfaces, not implementations.
+
 ## What This Does
 
 1. **Write failing tests** for all tasks in the phase

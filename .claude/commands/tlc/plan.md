@@ -2,6 +2,26 @@
 
 Research and create implementation plans with clear tasks.
 
+## Architectural Standards
+
+**Plan like a principal engineer designing for scale:**
+
+### Structure
+- **Layered architecture**: UI → Application → Domain → Infrastructure
+- **Bounded contexts**: Group related functionality, minimize coupling
+- **Dependency direction**: Always point inward (infrastructure depends on domain, never reverse)
+
+### Design Decisions
+- **Interface-first**: Define contracts before implementations
+- **Extension points**: Where will this need to grow? Plan for it.
+- **Error boundaries**: Where can failures occur? How are they handled?
+- **Data flow**: How does data enter, transform, and exit the system?
+
+### Task Breakdown
+- **Vertical slices**: Each task delivers testable, visible progress
+- **Risk-first**: Tackle unknowns and integrations early
+- **Dependencies explicit**: Mark what blocks what
+
 ## What This Does
 
 1. Researches how to implement the phase

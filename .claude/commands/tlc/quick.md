@@ -2,6 +2,16 @@
 
 For ad-hoc tasks that don't need full phase planning, but still deserve tests.
 
+## Engineering Standards
+
+Even quick tasks follow senior engineer standards:
+- **Clean code**: Meaningful names, single responsibility, no magic values
+- **Defensive**: Validate input, handle edge cases, fail fast
+- **Secure**: No hardcoded secrets, sanitize user input
+- **Testable**: Pure functions, injected dependencies
+
+Quick doesn't mean sloppy. Every line should be production-ready.
+
 ## What This Does
 
 1. **Ask what you want to do**
