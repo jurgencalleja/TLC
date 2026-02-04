@@ -1993,14 +1993,137 @@ stable branch    → stable.example.com     (manual deploy, approval required)
 
 ---
 
-## Future Milestones (v2.x)
+## Milestone: v2.2 (continued) - Design Studio
 
-### v2.2 - Design Studio + LiteLLM
-- LiteLLM API gateway for centralized LLM access
-- Gemini-based mockup generation
-- Visual design iteration workflow
+LiteLLM integration for unified LLM access + Gemini-powered design-to-code workflow.
 
-### v2.3 - Ecosystem
+### Phase 58: LiteLLM Gateway [ ]
+
+**Goal:** Centralized LLM access through LiteLLM proxy for unified API, cost tracking, and model switching.
+
+**Why LiteLLM:**
+- Single API for Claude, OpenAI, Gemini, DeepSeek, Ollama
+- Built-in usage tracking and spend limits
+- Load balancing and fallback
+- Caching to reduce costs
+- No vendor lock-in
+
+**Deliverables:**
+- [ ] LiteLLM Docker service configuration
+- [ ] Model alias configuration (map logical names to providers)
+- [ ] Fallback chains (primary → secondary → tertiary)
+- [ ] Spend limits per model/user
+- [ ] Usage dashboard integration
+- [ ] `/tlc:llm config` command
+- [ ] `/tlc:llm status` command
+- [ ] `/tlc:llm models` command
+
+**Test Coverage:** ~80 tests
+
+**Success Criteria:**
+- [ ] All TLC AI operations route through LiteLLM
+- [ ] Transparent model switching without code changes
+- [ ] Cost tracking unified across providers
+- [ ] Fallback works when primary model fails
+
+---
+
+### Phase 59: Gemini Vision Integration [ ]
+
+**Goal:** Use Gemini 2.0 Flash for visual understanding - screenshots, mockups, design analysis.
+
+**Why Gemini:**
+- Best-in-class vision capabilities
+- Fast inference (Flash model)
+- Cost-effective for high-volume visual tasks
+- Native multimodal (no separate vision API)
+
+**Deliverables:**
+- [ ] Gemini adapter for LiteLLM
+- [ ] Screenshot analysis (describe UI, find issues)
+- [ ] Design comparison (before/after diff)
+- [ ] Accessibility audit from screenshots
+- [ ] Component extraction from mockups
+- [ ] `/tlc:vision analyze <image>` command
+- [ ] `/tlc:vision compare <before> <after>` command
+- [ ] `/tlc:vision a11y <image>` command
+
+**Test Coverage:** ~70 tests
+
+**Success Criteria:**
+- [ ] Analyze screenshot and describe UI elements
+- [ ] Identify visual regressions between versions
+- [ ] Detect accessibility issues (contrast, touch targets)
+
+---
+
+### Phase 60: Design-to-Code Pipeline [ ]
+
+**Goal:** Convert design mockups (Figma exports, screenshots) to working code.
+
+**Workflow:**
+```
+Designer uploads mockup (PNG/Figma)
+       ↓
+Gemini Vision analyzes layout, components, colors
+       ↓
+Claude generates React/Vue/HTML code
+       ↓
+Developer reviews and iterates
+       ↓
+Code committed with design reference
+```
+
+**Deliverables:**
+- [ ] Mockup parser (extract components, layout, colors)
+- [ ] Design token extractor (colors, spacing, typography)
+- [ ] Component mapper (mockup element → UI library component)
+- [ ] Code generator (React, Vue, HTML/Tailwind)
+- [ ] Design reference linking (comment with mockup source)
+- [ ] Iteration feedback loop (show generated vs mockup)
+- [ ] `/tlc:design import <mockup>` command
+- [ ] `/tlc:design generate <mockup>` command
+- [ ] `/tlc:design iterate` command
+- [ ] Dashboard DesignPane component
+
+**Test Coverage:** ~100 tests
+
+**Success Criteria:**
+- [ ] Generate working component from mockup
+- [ ] Extract accurate design tokens
+- [ ] Map to existing UI library components
+- [ ] Side-by-side comparison in dashboard
+
+---
+
+### Phase 61: Visual Regression Testing [ ]
+
+**Goal:** Automated visual testing with AI-powered diff analysis.
+
+**Deliverables:**
+- [ ] Screenshot capture automation (Playwright)
+- [ ] Visual diff generation (pixel + perceptual)
+- [ ] AI-powered diff analysis (meaningful vs noise)
+- [ ] Baseline management (approve/reject changes)
+- [ ] CI integration (fail on visual regression)
+- [ ] `/tlc:visual baseline` command
+- [ ] `/tlc:visual test` command
+- [ ] `/tlc:visual approve` command
+- [ ] Dashboard VisualTestPane component
+
+**Test Coverage:** ~80 tests
+
+**Success Criteria:**
+- [ ] Capture screenshots in CI
+- [ ] AI filters out meaningless diffs (anti-aliasing, timing)
+- [ ] Visual regressions block PR merge
+- [ ] Easy baseline updates from dashboard
+
+---
+
+## Future Milestones (v3.x)
+
+### v3.0 - Ecosystem
 - MCP tool publishing
 - Plugin marketplace
 - Custom agent definitions
