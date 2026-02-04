@@ -38,9 +38,9 @@
   "lastSync": "6286cb3e25f26e5c065a6938f3ceac9136596a0f",
   "router": {
     "providers": {
-      "claude": { "type": "cli", "command": "claude", "capabilities": ["review", "code-gen", "refactor"] },
-      "codex": { "type": "cli", "command": "codex", "capabilities": ["review", "code-gen"] },
-      "gemini": { "type": "cli", "command": "gemini", "capabilities": ["design", "vision", "analyze"] }
+      "claude": { "type": "cli", "command": "claude", "model": "claude-4-opus", "capabilities": ["review", "code-gen", "refactor"] },
+      "codex": { "type": "cli", "command": "codex", "model": "gpt-5.2", "capabilities": ["review", "code-gen"] },
+      "gemini": { "type": "cli", "command": "gemini", "model": "gemini-3-preview", "capabilities": ["design", "vision", "analyze"] }
     },
     "capabilities": {
       "review": { "providers": ["claude", "codex"], "fallback": "claude" },

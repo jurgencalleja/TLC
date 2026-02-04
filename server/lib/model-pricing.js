@@ -16,15 +16,23 @@ const DEFAULT_PRICING = {
   'claude-3-sonnet': { inputPer1kTokens: 0.003, outputPer1kTokens: 0.015 },
   'claude-3-haiku': { inputPer1kTokens: 0.00025, outputPer1kTokens: 0.00125 },
   'claude-3.5-sonnet': { inputPer1kTokens: 0.003, outputPer1kTokens: 0.015 },
+  'claude-4-opus': { inputPer1kTokens: 0.015, outputPer1kTokens: 0.075 },
+  'claude-4-sonnet': { inputPer1kTokens: 0.003, outputPer1kTokens: 0.015 },
   'claude-opus-4-5-20251101': { inputPer1kTokens: 0.015, outputPer1kTokens: 0.075 },
 
   // OpenAI models
   'gpt-4': { inputPer1kTokens: 0.03, outputPer1kTokens: 0.06 },
   'gpt-4-turbo': { inputPer1kTokens: 0.01, outputPer1kTokens: 0.03 },
   'gpt-4o': { inputPer1kTokens: 0.005, outputPer1kTokens: 0.015 },
+  'gpt-4o-mini': { inputPer1kTokens: 0.00015, outputPer1kTokens: 0.0006 },
+  'gpt-5': { inputPer1kTokens: 0.02, outputPer1kTokens: 0.08 },
+  'gpt-5.2': { inputPer1kTokens: 0.02, outputPer1kTokens: 0.08 },
   'gpt-3.5-turbo': { inputPer1kTokens: 0.0005, outputPer1kTokens: 0.0015 },
   'o1': { inputPer1kTokens: 0.015, outputPer1kTokens: 0.06 },
+  'o1-mini': { inputPer1kTokens: 0.003, outputPer1kTokens: 0.012 },
+  'o1-pro': { inputPer1kTokens: 0.15, outputPer1kTokens: 0.6 },
   'o3': { inputPer1kTokens: 0.015, outputPer1kTokens: 0.06 },
+  'o3-mini': { inputPer1kTokens: 0.0011, outputPer1kTokens: 0.0044 },
 
   // DeepSeek models
   'deepseek-r1': { inputPer1kTokens: 0.00055, outputPer1kTokens: 0.00219 },
@@ -32,7 +40,11 @@ const DEFAULT_PRICING = {
   'deepseek-coder': { inputPer1kTokens: 0.00014, outputPer1kTokens: 0.00028 },
 
   // Google Gemini models
+  'gemini-3': { inputPer1kTokens: 0.001, outputPer1kTokens: 0.004 },
+  'gemini-3-preview': { inputPer1kTokens: 0.001, outputPer1kTokens: 0.004 },
+  'gemini-2.5-pro': { inputPer1kTokens: 0.00125, outputPer1kTokens: 0.01 },
   'gemini-2.0-flash': { inputPer1kTokens: 0.00, outputPer1kTokens: 0.00 },
+  'gemini-2.0-flash-thinking': { inputPer1kTokens: 0.00, outputPer1kTokens: 0.00 },
   'gemini-1.5-pro': { inputPer1kTokens: 0.00125, outputPer1kTokens: 0.005 },
   'gemini-1.5-flash': { inputPer1kTokens: 0.000075, outputPer1kTokens: 0.0003 },
 };
