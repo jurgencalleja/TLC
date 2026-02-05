@@ -3,7 +3,7 @@
  * Displays compliance status for multiple frameworks with filtering,
  * control mapping, evidence linking, and gap remediation features.
  */
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 
 interface FrameworkStatus {
   score: number;
@@ -151,6 +151,7 @@ export function TrustCentrePane({
         <div className="framework-cards">
           {filteredFrameworks.map(framework => {
             const frameworkStatus = status[framework];
+            if (!frameworkStatus) return null;
             return (
               <div
                 key={framework}

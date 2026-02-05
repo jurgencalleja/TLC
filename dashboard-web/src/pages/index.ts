@@ -5,3 +5,4 @@ export { SettingsPage } from './SettingsPage';
 export { ProjectsPage } from './ProjectsPage';
 export { TeamPage } from './TeamPage';
 export { HealthPage } from './HealthPage';
+export { PreviewPage } from './PreviewPage';

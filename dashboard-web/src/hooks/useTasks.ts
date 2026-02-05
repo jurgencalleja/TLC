@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useTaskStore, type Task, type TaskStatus, type TaskPriority } from '../stores/task.store';
+import { useTaskStore, type Task } from '../stores/task.store';
 import { api } from '../api';
 
 export function useTasks() {

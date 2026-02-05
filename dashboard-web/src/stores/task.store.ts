@@ -6,15 +6,23 @@ export type TaskPriority = 'low' | 'medium' | 'high';
 
 export interface Task {
   id: string;
-  title: string;
-  description: string;
-  status: TaskStatus;
-  priority: TaskPriority;
-  assignee: string | null;
-  phase: number;
-  acceptanceCriteria: string[];
-  createdAt: string;
+  // Component format
+  title?: string;
+  description?: string;
+  // Server format
+  subject?: string;
+  goal?: string;
+  owner?: string | null;
+  number?: number;
+  // Common fields
+  status: TaskStatus | string;
+  priority?: TaskPriority;
+  assignee?: string | null;
+  phase?: number;
+  acceptanceCriteria?: string[];
+  createdAt?: string;
   updatedAt?: string;
+  testStatus?: { passed: number; failed: number; total: number };
 }
 
 interface TaskFilters {

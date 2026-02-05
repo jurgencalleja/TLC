@@ -1,13 +1,14 @@
 import { forwardRef, type ButtonHTMLAttributes, type AnchorHTMLAttributes } from 'react';
 import { Loader2 } from 'lucide-react';
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline' | 'destructive';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
 interface ButtonBaseProps {
   variant?: ButtonVariant;
   size?: ButtonSize;
   loading?: boolean;
+  disabled?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   children: React.ReactNode;
@@ -30,6 +31,8 @@ const variantClasses: Record<ButtonVariant, string> = {
   secondary: 'btn-secondary',
   ghost: 'btn-ghost',
   danger: 'btn-danger',
+  outline: 'btn-outline border border-border bg-transparent hover:bg-surface-secondary',
+  destructive: 'btn-danger',
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

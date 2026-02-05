@@ -74,7 +74,7 @@ export function TaskDetail({
       <div className="flex items-start justify-between p-4 border-b border-border">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2">
-            <Badge variant="stopped">{statusLabels[task.status]}</Badge>
+            <Badge variant="neutral">{statusLabels[task.status]}</Badge>
             <span className={`px-1.5 py-0.5 text-xs font-medium rounded ${priorityColors[task.priority]}`}>
               {task.priority}
             </span>

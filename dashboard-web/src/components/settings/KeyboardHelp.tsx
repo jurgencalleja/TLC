@@ -18,10 +18,11 @@ export interface KeyboardHelpProps {
 function groupByCategory(shortcuts: KeyboardShortcut[]): Record<string, KeyboardShortcut[]> {
   return shortcuts.reduce(
     (acc, shortcut) => {
-      if (!acc[shortcut.category]) {
-        acc[shortcut.category] = [];
+      const category = shortcut.category;
+      if (!acc[category]) {
+        acc[category] = [];
       }
-      acc[shortcut.category].push(shortcut);
+      acc[category]!.push(shortcut);
       return acc;
     },
     {} as Record<string, KeyboardShortcut[]>

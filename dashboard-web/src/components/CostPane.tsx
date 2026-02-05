@@ -4,7 +4,6 @@
  * Dashboard component for cost visibility
  */
 
-import React from 'react';
 
 interface TrendPoint {
   date: string;

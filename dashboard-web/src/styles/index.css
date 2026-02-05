@@ -132,19 +132,23 @@
   }
 
   .badge-success {
-    @apply bg-success/20 text-success;
+    @apply text-success;
+    background-color: color-mix(in srgb, var(--color-success) 20%, transparent);
   }
 
   .badge-warning {
-    @apply bg-warning/20 text-warning;
+    @apply text-warning;
+    background-color: color-mix(in srgb, var(--color-warning) 20%, transparent);
   }
 
   .badge-error {
-    @apply bg-error/20 text-error;
+    @apply text-error;
+    background-color: color-mix(in srgb, var(--color-error) 20%, transparent);
   }
 
   .badge-info {
-    @apply bg-info/20 text-info;
+    @apply text-info;
+    background-color: color-mix(in srgb, var(--color-info) 20%, transparent);
   }
 
   .badge-neutral {

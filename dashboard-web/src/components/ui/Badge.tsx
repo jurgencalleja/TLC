@@ -1,7 +1,7 @@
 import { forwardRef, type HTMLAttributes } from 'react';
 
 type BadgeStatus = 'running' | 'stopped' | 'building' | 'error' | 'pending' | 'success';
-type BadgeVariant = 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'neutral';
+type BadgeVariant = 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'neutral' | 'secondary' | 'error' | 'outline' | 'destructive';
 type BadgeSize = 'sm' | 'md' | 'lg';
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
@@ -29,6 +29,10 @@ const variantClasses: Record<BadgeVariant, string> = {
   danger: 'badge-error bg-danger/10 text-danger border-danger/20',
   info: 'badge-info bg-info/10 text-info border-info/20',
   neutral: 'badge-neutral bg-text-muted/10 text-text-secondary border-border',
+  secondary: 'badge-secondary bg-text-muted/10 text-text-secondary border-border',
+  error: 'badge-error bg-danger/10 text-danger border-danger/20',
+  outline: 'badge-outline bg-transparent text-text-primary border-border',
+  destructive: 'badge-destructive bg-danger/10 text-danger border-danger/20',
 };
 
 const dotColors: Record<BadgeStatus, string> = {

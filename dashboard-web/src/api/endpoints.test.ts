@@ -7,6 +7,7 @@ vi.mock('./client', () => ({
     get: vi.fn(),
     post: vi.fn(),
     put: vi.fn(),
+    patch: vi.fn(),
     delete: vi.fn(),
   })),
 }));
@@ -84,11 +85,11 @@ describe('api/endpoints', () => {
     it('updateTask updates existing task', async () => {
       const updates = { status: 'completed' };
       const updatedTask = { id: '1', title: 'Task 1', status: 'completed' };
-      vi.mocked(mockClient.put).mockResolvedValueOnce(updatedTask);
+      vi.mocked(mockClient.patch).mockResolvedValueOnce(updatedTask);
 
       const result = await endpoints.tasks.updateTask('1', updates);
 
-      expect(mockClient.put).toHaveBeenCalledWith('/api/tasks/1', updates);
+      expect(mockClient.patch).toHaveBeenCalledWith('/api/tasks/1', updates);
       expect(result).toEqual(updatedTask);
     });
 

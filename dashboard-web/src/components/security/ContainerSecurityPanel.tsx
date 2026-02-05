@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { RefreshCw, Shield, AlertTriangle, CheckCircle, ChevronDown, ExternalLink } from 'lucide-react';
+import { RefreshCw, Shield, CheckCircle, ChevronDown, ExternalLink } from 'lucide-react';
 
 export interface SecurityFinding {
   severity: 'critical' | 'high' | 'medium' | 'low';

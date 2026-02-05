@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { LogStream } from '../components/logs/LogStream';
+import { useEffect, useMemo } from 'react';
+import { LogStream, type LogEntry as StreamLogEntry } from '../components/logs/LogStream';
 import { LogSearch } from '../components/logs/LogSearch';
 import { useLogStore, useUIStore } from '../stores';
 import { Button } from '../components/ui/Button';
@@ -29,6 +29,17 @@ export function LogsPage() {
     setActiveView('logs');
   }, [setActiveView]);
 
+  // Map store log entries to component log entries
+  const streamLogs: StreamLogEntry[] = useMemo(() => {
+    return filteredLogs.map((log) => ({
+      id: log.id,
+      timestamp: log.timestamp,
+      level: log.level,
+      message: log.text,
+      source: log.source || activeType,
+    }));
+  }, [filteredLogs, activeType]);
+
   return (
     <div className="h-full flex flex-col">
       <div className="p-4 border-b border-border">
@@ -48,8 +59,8 @@ export function LogsPage() {
 
           <div className="flex items-center gap-4">
             <LogSearch
-              value={searchQuery}
-              onChange={setSearchQuery}
+              onSearch={setSearchQuery}
+              searchQuery={searchQuery}
             />
             <Button
               variant="ghost"
@@ -71,7 +82,7 @@ export function LogsPage() {
 
       <div className="flex-1 overflow-hidden">
         <LogStream
-          logs={filteredLogs}
+          logs={streamLogs}
           autoScroll={autoScroll}
         />
       </div>

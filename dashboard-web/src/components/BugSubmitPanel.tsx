@@ -38,16 +38,18 @@ export function BugSubmitPanel({ onSubmit }: BugSubmitPanelProps) {
 
   const handlePaste = useCallback((e: ClipboardEvent) => {
     const files = e.clipboardData?.files;
-    if (files && files.length > 0) {
-      handleScreenshotFile(files[0]);
+    const firstFile = files?.[0];
+    if (firstFile) {
+      handleScreenshotFile(firstFile);
     }
   }, [handleScreenshotFile]);
 
   const handleDrop = useCallback((e: DragEvent) => {
     e.preventDefault();
     const files = e.dataTransfer?.files;
-    if (files && files.length > 0) {
-      handleScreenshotFile(files[0]);
+    const firstFile = files?.[0];
+    if (firstFile) {
+      handleScreenshotFile(firstFile);
     }
   }, [handleScreenshotFile]);
 

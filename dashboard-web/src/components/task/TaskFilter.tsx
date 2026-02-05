@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Filter, X } from 'lucide-react';
+import { Filter } from 'lucide-react';
 import { TaskPriority } from './TaskCard';
 
 export interface TaskFilterValues {

@@ -2,7 +2,7 @@
  * SecurityScanPane Component
  * Displays security scan results with filtering, risk score, and export capabilities
  */
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 
 interface Finding {
   id: string;

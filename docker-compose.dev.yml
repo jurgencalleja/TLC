@@ -121,6 +121,26 @@ services:
       - app
     restart: on-failure
 
+  # TLC Dashboard Web (built from dashboard-web, serves static files via nginx)
+  dashboard-web:
+    build:
+      context: ./dashboard-web
+      dockerfile: Dockerfile
+    container_name: tlc-${COMPOSE_PROJECT_NAME:-dev}-dashboard-web
+    ports:
+      - "${DASHBOARD_WEB_PORT:-3002}:80"
+    environment:
+      - API_URL=http://dashboard:3147
+    depends_on:
+      - dashboard
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+
   # Playwright E2E Tests (optional - starts on demand)
   playwright:
     image: mcr.microsoft.com/playwright:v1.40.0-jammy

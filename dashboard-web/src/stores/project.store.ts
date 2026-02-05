@@ -5,6 +5,8 @@ export interface ProjectInfo {
   description?: string;
   phase?: number;
   phaseName?: string;
+  branch?: string;
+  totalPhases?: number;
 }
 
 export interface ProjectStatus {

@@ -11,6 +11,7 @@ import {
   ProjectsPage,
   TeamPage,
   HealthPage,
+  PreviewPage,
 } from './pages';
 import { useUIStore } from './stores';
 import { useWebSocket } from './hooks';
@@ -40,6 +41,7 @@ function AppContent() {
     { id: 'nav-settings', label: 'Go to Settings', shortcut: 'g s', action: () => { navigate('/settings'); closeCommandPalette(); } },
     { id: 'nav-team', label: 'Go to Team', shortcut: 'g m', action: () => { navigate('/team'); closeCommandPalette(); } },
     { id: 'nav-health', label: 'Go to Health', shortcut: 'g h', action: () => { navigate('/health'); closeCommandPalette(); } },
+    { id: 'nav-preview', label: 'Go to Preview', shortcut: 'g v', action: () => { navigate('/preview'); closeCommandPalette(); } },
     { id: 'toggle-theme', label: 'Toggle Theme', shortcut: 't', action: () => { toggleTheme(); closeCommandPalette(); } },
   ], [navigate, closeCommandPalette, toggleTheme]);
 
@@ -55,6 +57,7 @@ function AppContent() {
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/team" element={<TeamPage />} />
           <Route path="/health" element={<HealthPage />} />
+          <Route path="/preview" element={<PreviewPage />} />
         </Routes>
       </Shell>
 

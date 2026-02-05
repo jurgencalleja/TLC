@@ -31,6 +31,21 @@ export interface CommandHistoryEntry {
   result?: CommandResult;
 }
 
+export interface BugReport {
+  description: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  url?: string;
+  screenshot?: string;
+}
+
+export interface Bug {
+  id: string;
+  description: string;
+  severity: string;
+  status: string;
+  createdAt: string;
+}
+
 export interface ApiEndpoints {
   project: {
     getProject(): Promise<ProjectInfo>;
@@ -59,6 +74,10 @@ export interface ApiEndpoints {
     runCommand(command: string, args?: Record<string, unknown>): Promise<CommandResult>;
     getHistory(): Promise<CommandHistoryEntry[]>;
   };
+  bugs: {
+    getBugs(): Promise<Bug[]>;
+    createBug(bug: BugReport): Promise<{ bugId: string }>;
+  };
 }
 
 export function createApiEndpoints(client: ApiClient): ApiEndpoints {
@@ -83,7 +102,7 @@ export function createApiEndpoints(client: ApiClient): ApiEndpoints {
         return client.post<Task>('/api/tasks', task);
       },
       updateTask(id: string, updates: Partial<Task>) {
-        return client.put<Task>(`/api/tasks/${id}`, updates);
+        return client.patch<Task>(`/api/tasks/${id}`, updates);
       },
       deleteTask(id: string) {
         return client.delete(`/api/tasks/${id}`);
@@ -123,6 +142,15 @@ export function createApiEndpoints(client: ApiClient): ApiEndpoints {
       },
       getHistory() {
         return client.get<CommandHistoryEntry[]>('/api/commands/history');
+      },
+    },
+
+    bugs: {
+      getBugs() {
+        return client.get<Bug[]>('/api/bugs');
+      },
+      createBug(bug: BugReport) {
+        return client.post<{ bugId: string }>('/api/bug', bug);
       },
     },
   };

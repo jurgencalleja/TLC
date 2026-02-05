@@ -21,10 +21,10 @@ export interface TestReviewPanelProps {
   className?: string;
 }
 
-const statusConfig: Record<TestReviewStatus, { label: string; variant: 'success' | 'warning' | 'error' }> = {
+const statusConfig: Record<TestReviewStatus, { label: string; variant: 'success' | 'warning' | 'danger' }> = {
   pending: { label: 'Pending Review', variant: 'warning' },
   approved: { label: 'Approved', variant: 'success' },
-  needs_changes: { label: 'Needs Changes', variant: 'error' },
+  needs_changes: { label: 'Needs Changes', variant: 'danger' },
 };
 
 export function TestReviewPanel({

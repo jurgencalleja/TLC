@@ -31,11 +31,11 @@ const statusLabels: Record<ProjectStatus, string> = {
   unknown: 'Unknown',
 };
 
-const statusVariants: Record<ProjectStatus, 'running' | 'error' | 'building' | 'stopped'> = {
-  healthy: 'running',
-  failing: 'error',
-  building: 'building',
-  unknown: 'stopped',
+const statusVariants: Record<ProjectStatus, 'success' | 'danger' | 'warning' | 'neutral'> = {
+  healthy: 'success',
+  failing: 'danger',
+  building: 'warning',
+  unknown: 'neutral',
 };
 
 export function ProjectDetail({

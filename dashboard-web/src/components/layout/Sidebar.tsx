@@ -8,6 +8,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  Eye,
 } from 'lucide-react';
 
 interface SidebarProps extends HTMLAttributes<HTMLElement> {
@@ -26,6 +27,7 @@ const navItems: NavItem[] = [
   { path: '/projects', label: 'Projects', icon: <FolderKanban className="h-5 w-5" /> },
   { path: '/tasks', label: 'Tasks', icon: <CheckSquare className="h-5 w-5" /> },
   { path: '/logs', label: 'Logs', icon: <ScrollText className="h-5 w-5" /> },
+  { path: '/preview', label: 'Preview', icon: <Eye className="h-5 w-5" /> },
   { path: '/settings', label: 'Settings', icon: <Settings className="h-5 w-5" /> },
 ];
 

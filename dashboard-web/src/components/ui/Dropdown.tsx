@@ -74,8 +74,9 @@ export function Dropdown({
 
       case 'Enter':
         e.preventDefault();
-        if (highlightedIndex >= 0 && !items[highlightedIndex].disabled) {
-          handleSelect(items[highlightedIndex]);
+        const selectedItem = items[highlightedIndex];
+        if (highlightedIndex >= 0 && selectedItem && !selectedItem.disabled) {
+          handleSelect(selectedItem);
         }
         break;
 

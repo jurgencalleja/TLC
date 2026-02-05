@@ -63,7 +63,9 @@ export function TaskBoard({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    const currentColumnTasks = getTasksByStatus(columns[focusedColumn].id);
+    const column = columns[focusedColumn];
+    if (!column) return;
+    const currentColumnTasks = getTasksByStatus(column.id);
 
     switch (e.key) {
       case 'h':

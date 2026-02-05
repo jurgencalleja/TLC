@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ClipboardCheck, FileCode, Clock, CheckCircle2, User } from 'lucide-react';
+import { ClipboardCheck, FileCode, Clock, User } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 
 export type QATaskType = 'verification' | 'test_review';

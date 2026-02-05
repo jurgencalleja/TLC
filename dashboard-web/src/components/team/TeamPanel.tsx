@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, Wifi, WifiOff } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { TeamPresence, TeamMember } from './TeamPresence';
 import { ActivityFeed, ActivityItem } from './ActivityFeed';
 import { EnvironmentBadge, Environment } from './EnvironmentBadge';

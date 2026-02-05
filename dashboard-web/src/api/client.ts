@@ -24,10 +24,11 @@ export interface ApiClient {
   get<T = unknown>(path: string, options?: RequestOptions): Promise<T>;
   post<T = unknown>(path: string, body?: unknown, options?: RequestOptions): Promise<T>;
   put<T = unknown>(path: string, body?: unknown, options?: RequestOptions): Promise<T>;
+  patch<T = unknown>(path: string, body?: unknown, options?: RequestOptions): Promise<T>;
   delete<T = unknown>(path: string, options?: RequestOptions): Promise<T>;
 }
 
-const DEFAULT_BASE_URL = 'http://localhost:3001';
+const DEFAULT_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3147';
 
 export function createApiClient(options: ApiClientOptions = {}): ApiClient {
   const baseUrl = options.baseUrl || DEFAULT_BASE_URL;
@@ -85,6 +86,10 @@ export function createApiClient(options: ApiClientOptions = {}): ApiClient {
 
     put<T = unknown>(path: string, body?: unknown, options?: RequestOptions): Promise<T> {
       return request<T>('PUT', path, body, options);
+    },
+
+    patch<T = unknown>(path: string, body?: unknown, options?: RequestOptions): Promise<T> {
+      return request<T>('PATCH', path, body, options);
     },
 
     delete<T = unknown>(path: string, options?: RequestOptions): Promise<T> {

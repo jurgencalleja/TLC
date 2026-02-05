@@ -156,7 +156,7 @@ export const useLogStore = create<LogState & LogActions>()(
       }),
 
     clearAllLogs: () =>
-      set((state) => ({
+      set(() => ({
         logs: initialLogs,
         currentLogs: [],
         filteredLogs: [],

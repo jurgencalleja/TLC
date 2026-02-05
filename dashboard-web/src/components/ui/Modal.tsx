@@ -66,8 +66,9 @@ export function Modal({
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     );
 
-    if (focusableElements.length > 0) {
-      focusableElements[0].focus();
+    const firstElement = focusableElements[0];
+    if (firstElement) {
+      firstElement.focus();
     }
   }, [isOpen]);
 
