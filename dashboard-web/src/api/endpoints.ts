@@ -78,6 +78,10 @@ export interface ApiEndpoints {
     getBugs(): Promise<Bug[]>;
     createBug(bug: BugReport): Promise<{ bugId: string }>;
   };
+  config: {
+    getConfig(): Promise<Record<string, unknown>>;
+    saveConfig(config: Record<string, unknown>): Promise<void>;
+  };
 }
 
 export function createApiEndpoints(client: ApiClient): ApiEndpoints {
@@ -151,6 +155,15 @@ export function createApiEndpoints(client: ApiClient): ApiEndpoints {
       },
       createBug(bug: BugReport) {
         return client.post<{ bugId: string }>('/api/bug', bug);
+      },
+    },
+
+    config: {
+      getConfig() {
+        return client.get<Record<string, unknown>>('/api/config');
+      },
+      saveConfig(config: Record<string, unknown>) {
+        return client.put('/api/config', config);
       },
     },
   };
