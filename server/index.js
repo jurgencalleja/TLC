@@ -1,5 +1,14 @@
 #!/usr/bin/env node
 
+// Suppress punycode deprecation from upstream deps (http-proxy-middleware, ws)
+const originalEmit = process.emit;
+process.emit = function (event, error) {
+  if (event === 'warning' && error?.name === 'DeprecationWarning' && error?.message?.includes('punycode')) {
+    return false;
+  }
+  return originalEmit.apply(process, arguments);
+};
+
 const express = require('express');
 const { createServer } = require('http');
 const { WebSocketServer } = require('ws');
