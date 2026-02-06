@@ -17,22 +17,40 @@ export function TeamPage() {
   const fetchTeamData = useCallback(async () => {
     setLoading(true);
     try {
-      // Get current user from project info (git user)
-      const project = await api.project.getProject();
-      const currentUser: TeamMember = {
-        id: 'current',
-        name: project.name ? `${project.name} Developer` : 'Developer',
-        email: '',
-        status: wsStatus === 'connected' ? 'online' : 'away',
-      };
-      setMembers([currentUser]);
-
       // Get activity from changelog
       const changelog = await api.project.getChangelog();
-      const items: ActivityItem[] = (changelog || []).slice(0, 10).map((commit: { hash?: string; message?: string; time?: string; author?: string }, i: number) => ({
+      const commits = (changelog || []).slice(0, 20);
+
+      // Extract unique authors from git changelog (real data, not fabricated)
+      const authorMap = new Map<string, { name: string; lastSeen: string }>();
+      for (const commit of commits) {
+        if (commit.author && !authorMap.has(commit.author)) {
+          authorMap.set(commit.author, {
+            name: commit.author,
+            lastSeen: commit.time || new Date().toISOString(),
+          });
+        }
+      }
+
+      if (authorMap.size > 0) {
+        const teamMembers: TeamMember[] = Array.from(authorMap.entries()).map(
+          ([, info], index) => ({
+            id: `author-${index}`,
+            name: info.name,
+            email: '',
+            status: (index === 0 && wsStatus === 'connected' ? 'online' : 'offline') as TeamMember['status'],
+            lastSeen: info.lastSeen,
+          })
+        );
+        setMembers(teamMembers);
+      } else {
+        setMembers([]);
+      }
+
+      const items: ActivityItem[] = commits.slice(0, 10).map((commit: { hash?: string; message?: string; time?: string; author?: string }, i: number) => ({
         id: commit.hash || String(i),
         type: 'commit' as const,
-        user: commit.author || 'Developer',
+        user: commit.author || 'Unknown',
         message: commit.message || '',
         timestamp: commit.time || new Date().toISOString(),
       }));

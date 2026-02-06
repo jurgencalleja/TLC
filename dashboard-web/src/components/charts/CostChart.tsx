@@ -143,7 +143,7 @@ export function CostChart({ data, budget, className = '', height = 300 }: CostCh
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" />
           <YAxis tickFormatter={(value: number) => `$${value}`} />
-          <Tooltip content={CustomTooltip as never} />
+          <Tooltip content={(props) => <CustomTooltip active={props.active} payload={props.payload as CustomTooltipProps['payload']} label={String(props.label ?? '')} />} />
           <Legend />
           {models.map((model, index) => (
             <Bar

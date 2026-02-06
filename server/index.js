@@ -50,6 +50,7 @@ let appProcess = null;
 let appPort = 3000;
 let wsClients = new Set();
 const logs = { app: [], test: [], git: [] };
+const commandHistory = [];
 
 // Create Express app
 const app = express();
@@ -945,6 +946,85 @@ app.post('/api/test', (req, res) => {
 });
 
 // ============================================
+// Command Execution API
+// ============================================
+
+// GET /api/commands/history - Return command execution history
+app.get('/api/commands/history', (req, res) => {
+  res.json({ success: true, history: commandHistory });
+});
+
+// POST /api/commands/:command - Execute a TLC command
+app.post('/api/commands/:command', (req, res) => {
+  const command = req.params.command;
+  const { args } = req.body || {};
+
+  // Whitelist of allowed TLC commands
+  const allowedCommands = ['plan', 'build', 'verify', 'bug', 'claim', 'release', 'who', 'progress'];
+  if (!allowedCommands.includes(command)) {
+    return res.status(400).json({ success: false, error: `Unknown command: ${command}. Allowed: ${allowedCommands.join(', ')}` });
+  }
+
+  const entry = {
+    id: `cmd-${Date.now()}`,
+    command,
+    args: args || null,
+    status: 'running',
+    startedAt: new Date().toISOString(),
+    output: '',
+  };
+  commandHistory.push(entry);
+  if (commandHistory.length > 100) commandHistory.shift();
+
+  addLog('app', `Executing command: tlc:${command}${args ? ' ' + args : ''}`, 'info');
+  broadcast('command-started', { id: entry.id, command });
+
+  // Build the CLI command
+  const cliArgs = ['tlc', command];
+  if (args) cliArgs.push(args);
+  const fullCmd = `npx ${cliArgs.join(' ')}`;
+
+  const cmdProcess = spawn('npx', cliArgs.slice(1), {
+    cwd: PROJECT_DIR,
+    env: { ...process.env },
+    shell: true,
+  });
+
+  let output = '';
+
+  cmdProcess.stdout.on('data', (data) => {
+    const text = data.toString();
+    output += text;
+    broadcast('command-output', { id: entry.id, data: text, stream: 'stdout' });
+  });
+
+  cmdProcess.stderr.on('data', (data) => {
+    const text = data.toString();
+    output += text;
+    broadcast('command-output', { id: entry.id, data: text, stream: 'stderr' });
+  });
+
+  cmdProcess.on('exit', (code) => {
+    entry.status = code === 0 ? 'completed' : 'failed';
+    entry.exitCode = code;
+    entry.output = output;
+    entry.completedAt = new Date().toISOString();
+    broadcast('command-completed', { id: entry.id, exitCode: code });
+    addLog('app', `Command tlc:${command} ${code === 0 ? 'completed' : 'failed'} (exit ${code})`, code === 0 ? 'info' : 'error');
+  });
+
+  cmdProcess.on('error', (err) => {
+    entry.status = 'failed';
+    entry.output = err.message;
+    entry.completedAt = new Date().toISOString();
+    broadcast('command-completed', { id: entry.id, error: err.message });
+    addLog('app', `Command tlc:${command} error: ${err.message}`, 'error');
+  });
+
+  res.json({ success: true, id: entry.id, command, message: `Command tlc:${command} started` });
+});
+
+// ============================================
 // Dashboard Completion API (Phase 62)
 // ============================================
 
@@ -1100,6 +1180,37 @@ app.get('/api/agents/:id', (req, res) => {
     if (!agent) {
       return res.status(404).json({ success: false, error: 'Agent not found' });
     }
+    res.json({ success: true, agent: formatAgent(agent) });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Stop a running agent
+app.post('/api/agents/:id/stop', (req, res) => {
+  try {
+    const registry = getAgentRegistry();
+    const agent = registry.getAgent(req.params.id);
+    if (!agent) {
+      return res.status(404).json({ success: false, error: 'Agent not found' });
+    }
+
+    // Transition state to stopped
+    if (agent.stateMachine) {
+      const currentState = agent.stateMachine.getState();
+      if (currentState === 'stopped' || currentState === 'completed') {
+        return res.status(400).json({ success: false, error: `Agent is already ${currentState}` });
+      }
+      const result = agent.stateMachine.transition('stopped', { reason: req.body.reason || 'Stopped via API' });
+      if (!result.success) {
+        // If formal transition fails, force the state
+        agent.stateMachine.forceState('stopped', { reason: req.body.reason || 'Force stopped via API' });
+      }
+    }
+
+    broadcast('agent-updated', formatAgent(agent));
+    addLog('app', `Agent ${agent.name || req.params.id} stopped`, 'info');
+
     res.json({ success: true, agent: formatAgent(agent) });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

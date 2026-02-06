@@ -102,14 +102,14 @@ export function createCommandRegistry(
       label: 'Run Tests',
       category: 'actions',
       shortcut: 'r t',
-      action: actions?.runTests || (() => console.log('Run Tests')),
+      action: actions?.runTests || (() => { /* requires action handler */ }),
     },
     {
       id: 'action-clear-logs',
       label: 'Clear Logs',
       category: 'actions',
       shortcut: 'c l',
-      action: actions?.clearLogs || (() => console.log('Clear Logs')),
+      action: actions?.clearLogs || (() => { /* requires action handler */ }),
     },
     {
       id: 'action-refresh',

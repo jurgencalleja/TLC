@@ -12,6 +12,7 @@ vi.mock('../api', () => ({
   api: {
     project: {
       getProject: vi.fn(),
+      getStatus: vi.fn().mockResolvedValue({ testsPass: 0, testsFail: 0, coverage: 0 }),
     },
   },
 }));
@@ -20,6 +21,7 @@ describe('useProjects', () => {
   beforeEach(() => {
     useProjectStore.getState().reset();
     vi.clearAllMocks();
+    vi.mocked(api.project.getStatus).mockResolvedValue({ testsPass: 0, testsFail: 0, coverage: 0 });
   });
 
   afterEach(() => {
@@ -58,9 +60,13 @@ describe('useProjects', () => {
     });
 
     it('sets loading state during fetch', async () => {
-      let resolvePromise: (value: { name: string }) => void;
+      let resolveProject: (value: { name: string }) => void;
+      let resolveStatus: (value: unknown) => void;
       vi.mocked(api.project.getProject).mockImplementation(
-        () => new Promise((resolve) => { resolvePromise = resolve; })
+        () => new Promise((resolve) => { resolveProject = resolve; })
+      );
+      vi.mocked(api.project.getStatus).mockImplementation(
+        () => new Promise((resolve) => { resolveStatus = resolve; })
       );
 
       const { result } = renderHook(() => useProjects());
@@ -72,7 +78,8 @@ describe('useProjects', () => {
       expect(result.current.loading).toBe(true);
 
       await act(async () => {
-        resolvePromise!({ name: 'TLC' });
+        resolveProject!({ name: 'TLC' });
+        resolveStatus!({ testsPass: 0, testsFail: 0, coverage: 0 });
       });
 
       expect(result.current.loading).toBe(false);

@@ -1,10 +1,13 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, type ComponentProps } from 'react';
 import { HealthDiagnosticsPanel } from '../components/HealthDiagnosticsPanel';
 import { useUIStore } from '../stores';
 import { api } from '../api';
 import { Skeleton } from '../components/ui/Skeleton';
 import { Button } from '../components/ui/Button';
 import { RefreshCw } from 'lucide-react';
+
+/** Extract the HealthData type expected by HealthDiagnosticsPanel's onRefresh prop */
+type HealthData = Awaited<ReturnType<NonNullable<ComponentProps<typeof HealthDiagnosticsPanel>['onRefresh']>>>;
 
 export function HealthPage() {
   const setActiveView = useUIStore((state) => state.setActiveView);
@@ -67,7 +70,7 @@ export function HealthPage() {
       </div>
       <HealthDiagnosticsPanel onRefresh={async () => {
         const data = await api.health.getHealth();
-        return data as never;
+        return data as HealthData;
       }} />
     </div>
   );

@@ -51,13 +51,20 @@ function extractAssignees(tasks: ComponentTask[]): Assignee[] {
   return assignees;
 }
 
-// Default acceptance criteria and activity for task detail
-const defaultAcceptanceCriteria: AcceptanceCriterion[] = [
-  { id: '1', text: 'All tests pass', completed: false },
-  { id: '2', text: 'Code reviewed', completed: false },
-];
-
 const defaultActivity: ActivityItem[] = [];
+
+// Derive acceptance criteria from actual task data instead of using hardcoded defaults
+function getAcceptanceCriteria(task: ComponentTask, storeTasks: StoreTask[]): AcceptanceCriterion[] {
+  const storeTask = storeTasks.find((t) => t.id === task.id);
+  if (storeTask?.acceptanceCriteria && storeTask.acceptanceCriteria.length > 0) {
+    return storeTask.acceptanceCriteria.map((text, index) => ({
+      id: String(index + 1),
+      text,
+      completed: task.status === 'done',
+    }));
+  }
+  return [];
+}
 
 export function TasksPage() {
   const setActiveView = useUIStore((state) => state.setActiveView);
@@ -167,7 +174,7 @@ export function TasksPage() {
         <div className="w-96 border-l border-border">
           <TaskDetail
             task={selectedTask}
-            acceptanceCriteria={defaultAcceptanceCriteria}
+            acceptanceCriteria={getAcceptanceCriteria(selectedTask, storeTasks)}
             activity={defaultActivity}
             onClose={handleCloseDetail}
           />

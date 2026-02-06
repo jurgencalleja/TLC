@@ -58,22 +58,20 @@ vi.mock('recharts', () => {
   const MockTooltip = ({
     content,
   }: {
-    content?: React.ComponentType<{ active?: boolean; payload?: unknown[]; label?: string }>;
+    content?: React.ComponentType<{ active?: boolean; payload?: unknown[]; label?: string }> | ((props: { active?: boolean; payload?: unknown[]; label?: string }) => React.ReactNode);
   }) => {
     // Render custom tooltip content for testing
-    const CustomContent = content;
+    const tooltipProps = {
+      active: true,
+      payload: [
+        { name: 'Claude', value: 10.5, fill: '#8b5cf6' },
+        { name: 'GPT-4', value: 5.25, fill: '#10b981' },
+      ],
+      label: '2025-01-15',
+    };
     return (
       <div data-testid="tooltip" data-has-custom-content={!!content}>
-        {CustomContent && (
-          <CustomContent
-            active={true}
-            payload={[
-              { name: 'Claude', value: 10.5, fill: '#8b5cf6' },
-              { name: 'GPT-4', value: 5.25, fill: '#10b981' },
-            ]}
-            label="2025-01-15"
-          />
-        )}
+        {typeof content === 'function' && content(tooltipProps)}
       </div>
     );
   };

@@ -66,7 +66,7 @@ export function DashboardPage() {
   const handleRunTests = async () => {
     setRunningTests(true);
     try {
-      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3147'}/api/test`, { method: 'POST' });
+      await api.commands.runCommand('test');
     } catch {
       // Test command fires and forgets
     } finally {
