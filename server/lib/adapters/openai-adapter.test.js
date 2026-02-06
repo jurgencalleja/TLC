@@ -214,13 +214,13 @@ describe('OpenAIAdapter', () => {
   });
 
   describe('exports', () => {
-    it('exports OPENAI_PRICING for o3', () => {
+    it('exports OPENAI_PRICING for gpt-5.3-codex', () => {
       expect(OPENAI_PRICING.inputPerMillion).toBe(10.00);
       expect(OPENAI_PRICING.outputPerMillion).toBe(40.00);
     });
 
     it('exports OPENAI_MODEL', () => {
-      expect(OPENAI_MODEL).toBe('o3');
+      expect(OPENAI_MODEL).toBe('gpt-5.3-codex');
     });
 
     it('exports DEFAULT_RATE_LIMITS', () => {

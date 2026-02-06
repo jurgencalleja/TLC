@@ -4,11 +4,11 @@
 
 const { BaseAdapter } = require('./base-adapter.js');
 
-// Latest model: o3 (January 2025)
-const OPENAI_MODEL = 'o3';
+// Latest model: gpt-5.3-codex (February 2026)
+const OPENAI_MODEL = 'gpt-5.3-codex';
 
 const OPENAI_PRICING = {
-  // Pricing per 1M tokens (o3)
+  // Pricing per 1M tokens (gpt-5.3-codex)
   inputPerMillion: 10.00,
   outputPerMillion: 40.00,
 };

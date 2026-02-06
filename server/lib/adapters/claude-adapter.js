@@ -5,11 +5,11 @@
 
 const { BaseAdapter } = require('./base-adapter.js');
 
-// Latest model: claude-opus-4-5-20251101 (Claude Opus 4.5)
-const CLAUDE_MODEL = 'claude-opus-4-5-20251101';
+// Latest model: claude-opus-4-6-20260205 (Claude Opus 4.6)
+const CLAUDE_MODEL = 'claude-opus-4-6-20260205';
 
 const CLAUDE_PRICING = {
-  // Pricing per 1M tokens (Claude Opus 4.5)
+  // Pricing per 1M tokens (Claude Opus 4.6)
   inputPerMillion: 15.00,
   outputPerMillion: 75.00,
 };

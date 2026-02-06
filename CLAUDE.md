@@ -89,6 +89,17 @@ All implementation follows **Red → Green → Refactor**:
 
 Tests are written BEFORE implementation, not after.
 
+## Context Management
+
+**Use multiple sessions/agents for large tasks.** When working in overdrive mode or across workspaces:
+- Use the `Task` tool to spawn sub-agents for independent work (research, testing, building)
+- Keep the main conversation focused on orchestration and decisions
+- Delegate file-heavy operations (reading many files, running test suites) to sub-agents
+- This prevents context window overflow, which causes crashes and lost work
+- Especially critical in workspace mode where multiple repos are involved
+
+**Signs you need to delegate:** If you've read 15+ files, run 10+ commands, or the conversation is getting long — spawn a sub-agent for the next chunk of work.
+
 ## After TLC Updates
 
 If TLC command files are updated, re-read them before executing. Check version in `package.json`.

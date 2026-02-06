@@ -61,13 +61,13 @@ Add to `.tlc.json`:
       "claude": {
         "type": "cli",
         "command": "claude",
-        "model": "claude-4-opus",
+        "model": "claude-opus-4-6",
         "capabilities": ["review", "code-gen", "refactor"]
       },
       "codex": {
         "type": "cli",
         "command": "codex",
-        "model": "gpt-5.2",
+        "model": "gpt-5.3-codex",
         "capabilities": ["review", "code-gen"]
       },
       "gemini": {
@@ -89,9 +89,9 @@ Add to `.tlc.json`:
 
 ## Supported Models
 
-**Claude:** claude-4-opus, claude-4-sonnet, claude-3.5-sonnet, claude-3-opus, claude-3-sonnet, claude-3-haiku
+**Claude:** claude-opus-4-6, claude-sonnet-4-5, claude-4-opus, claude-4-sonnet, claude-3.5-sonnet, claude-3-opus, claude-3-sonnet, claude-3-haiku
 
-**OpenAI/Codex:** gpt-5.2, gpt-5, gpt-4o, gpt-4o-mini, gpt-4-turbo, o3, o3-mini, o1, o1-mini, o1-pro
+**OpenAI/Codex:** gpt-5.3-codex, gpt-5.2, gpt-5, gpt-4o, gpt-4o-mini, gpt-4-turbo, o3, o3-mini, o1, o1-mini, o1-pro
 
 **Gemini:** gemini-3-preview, gemini-3, gemini-2.5-pro, gemini-2.0-flash, gemini-2.0-flash-thinking, gemini-1.5-pro
 

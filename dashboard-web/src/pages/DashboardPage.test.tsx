@@ -10,6 +10,22 @@ import { useProjectStore } from '../stores/project.store';
 import { useTaskStore } from '../stores/task.store';
 import { useUIStore } from '../stores/ui.store';
 
+// Mock the api module
+vi.mock('../api', () => ({
+  api: {
+    project: {
+      getProject: vi.fn().mockResolvedValue({ name: 'Test' }),
+      getStatus: vi.fn().mockResolvedValue({}),
+      getChangelog: vi.fn().mockResolvedValue([
+        { hash: 'abc123', message: 'test commit', time: new Date().toISOString(), author: 'Dev' },
+      ]),
+    },
+    commands: {
+      runCommand: vi.fn().mockResolvedValue({ success: true }),
+    },
+  },
+}));
+
 // Mock the hooks
 vi.mock('../hooks', () => ({
   useProject: vi.fn(() => ({
@@ -38,6 +54,9 @@ vi.mock('react-router-dom', async () => {
 });
 
 import { useProject, useTasks } from '../hooks';
+
+// Mock global fetch for test runner button
+globalThis.fetch = vi.fn().mockResolvedValue({ ok: true });
 
 const renderWithRouter = (ui: React.ReactElement) => {
   return render(<BrowserRouter>{ui}</BrowserRouter>);
@@ -474,7 +493,7 @@ describe('DashboardPage', () => {
       expect(screen.getByText(/recent activity/i)).toBeInTheDocument();
     });
 
-    it('limits activity feed to 5 items', () => {
+    it('limits activity feed to 5 items', async () => {
       vi.mocked(useProject).mockReturnValue({
         project: { name: 'Test Project', phase: 1 },
         status: null,
@@ -503,9 +522,11 @@ describe('DashboardPage', () => {
 
       renderWithRouter(<DashboardPage />);
 
-      // The activity feed component should exist and show max 5 items
-      const activityFeed = screen.getByTestId('activity-feed');
-      expect(activityFeed).toBeInTheDocument();
+      // Wait for async activity fetch to complete
+      await waitFor(() => {
+        const activityFeed = screen.queryByTestId('activity-feed');
+        expect(activityFeed).toBeInTheDocument();
+      });
 
       // Check that we don't have more than 5 activity items
       const activityItems = screen.queryAllByTestId('activity-item');

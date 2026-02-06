@@ -166,7 +166,7 @@ describe('ClaudeAdapter', () => {
   });
 
   describe('CLAUDE_PRICING', () => {
-    it('exports default pricing for Opus 4.5', () => {
+    it('exports default pricing for Opus 4.6', () => {
       expect(CLAUDE_PRICING.inputPerMillion).toBe(15.00);
       expect(CLAUDE_PRICING.outputPerMillion).toBe(75.00);
     });
@@ -174,7 +174,7 @@ describe('ClaudeAdapter', () => {
 
   describe('CLAUDE_MODEL', () => {
     it('exports latest model identifier', () => {
-      expect(CLAUDE_MODEL).toBe('claude-opus-4-5-20251101');
+      expect(CLAUDE_MODEL).toBe('claude-opus-4-6-20260205');
     });
   });
 });

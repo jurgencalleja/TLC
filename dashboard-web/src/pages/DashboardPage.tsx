@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Play, FileText, ListTodo, Settings, GitBranch, FolderOpen } from 'lucide-react';
 import { Card } from '../components/ui/Card';
@@ -8,45 +8,7 @@ import { Skeleton } from '../components/ui/Skeleton';
 import { ActivityFeed, type ActivityItem } from '../components/team/ActivityFeed';
 import { useProject, useTasks } from '../hooks';
 import { useUIStore } from '../stores';
-
-// Mock activity data for now (will be replaced with real data from API)
-const mockActivities: ActivityItem[] = [
-  {
-    id: '1',
-    type: 'commit',
-    user: 'Developer',
-    message: 'added dashboard components',
-    timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 min ago
-  },
-  {
-    id: '2',
-    type: 'task_complete',
-    user: 'Developer',
-    message: 'completed Task 4: Setup routing',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(), // 1 hour ago
-  },
-  {
-    id: '3',
-    type: 'task_claim',
-    user: 'Developer',
-    message: 'claimed Task 5: Dashboard page',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
-  },
-  {
-    id: '4',
-    type: 'review',
-    user: 'Reviewer',
-    message: 'approved PR #42',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(), // 3 hours ago
-  },
-  {
-    id: '5',
-    type: 'comment',
-    user: 'Reviewer',
-    message: 'commented on Task 3',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(), // 4 hours ago
-  },
-];
+import { api } from '../api';
 
 export function DashboardPage() {
   const navigate = useNavigate();
@@ -54,13 +16,35 @@ export function DashboardPage() {
   const { tasks, fetchTasks } = useTasks();
   const setActiveView = useUIStore((state) => state.setActiveView);
   const [runningTests, setRunningTests] = useState(false);
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [activitiesLoading, setActivitiesLoading] = useState(true);
+
+  const fetchActivities = useCallback(async () => {
+    setActivitiesLoading(true);
+    try {
+      const data = await api.project.getChangelog();
+      const items: ActivityItem[] = (data || []).slice(0, 10).map((commit: { hash?: string; message?: string; time?: string; author?: string }, i: number) => ({
+        id: commit.hash || String(i),
+        type: 'commit' as const,
+        user: commit.author || 'Developer',
+        message: commit.message || '',
+        timestamp: commit.time || new Date().toISOString(),
+      }));
+      setActivities(items);
+    } catch {
+      setActivities([]);
+    } finally {
+      setActivitiesLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     setActiveView('dashboard');
     fetchProject();
     fetchStatus();
     fetchTasks();
-  }, [setActiveView, fetchProject, fetchStatus, fetchTasks]);
+    fetchActivities();
+  }, [setActiveView, fetchProject, fetchStatus, fetchTasks, fetchActivities]);
 
   // Calculate test totals
   const testsPass = status?.testsPass ?? 0;
@@ -79,10 +63,15 @@ export function DashboardPage() {
   const phaseProgress = totalPhases > 0 ? (currentPhase / totalPhases) * 100 : 0;
 
   // Quick action handlers
-  const handleRunTests = () => {
+  const handleRunTests = async () => {
     setRunningTests(true);
-    // Simulate test running (will be replaced with real API call)
-    setTimeout(() => setRunningTests(false), 2000);
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3147'}/api/test`, { method: 'POST' });
+    } catch {
+      // Test command fires and forgets
+    } finally {
+      setTimeout(() => setRunningTests(false), 2000);
+    }
   };
 
   const handleViewLogs = () => navigate('/logs');
@@ -285,10 +274,18 @@ export function DashboardPage() {
         {/* Right Column - Activity Feed */}
         <div>
           <h3 className="font-medium text-text-primary mb-4">Recent Activity</h3>
-          <ActivityFeed
-            activities={mockActivities.slice(0, 5)}
-            data-testid="activity-feed"
-          />
+          {activitiesLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-12" />
+              ))}
+            </div>
+          ) : (
+            <ActivityFeed
+              activities={activities.slice(0, 5)}
+              data-testid="activity-feed"
+            />
+          )}
         </div>
       </div>
     </div>

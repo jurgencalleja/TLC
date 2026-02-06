@@ -19,6 +19,7 @@ const DEFAULT_PRICING = {
   'claude-4-opus': { inputPer1kTokens: 0.015, outputPer1kTokens: 0.075 },
   'claude-4-sonnet': { inputPer1kTokens: 0.003, outputPer1kTokens: 0.015 },
   'claude-opus-4-5-20251101': { inputPer1kTokens: 0.015, outputPer1kTokens: 0.075 },
+  'claude-opus-4-6-20260205': { inputPer1kTokens: 0.015, outputPer1kTokens: 0.075 },
 
   // OpenAI models
   'gpt-4': { inputPer1kTokens: 0.03, outputPer1kTokens: 0.06 },
@@ -33,6 +34,7 @@ const DEFAULT_PRICING = {
   'o1-pro': { inputPer1kTokens: 0.15, outputPer1kTokens: 0.6 },
   'o3': { inputPer1kTokens: 0.015, outputPer1kTokens: 0.06 },
   'o3-mini': { inputPer1kTokens: 0.0011, outputPer1kTokens: 0.0044 },
+  'gpt-5.3-codex': { inputPer1kTokens: 0.01, outputPer1kTokens: 0.04 },
 
   // DeepSeek models
   'deepseek-r1': { inputPer1kTokens: 0.00055, outputPer1kTokens: 0.00219 },

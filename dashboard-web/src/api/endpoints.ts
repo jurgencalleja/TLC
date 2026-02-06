@@ -46,10 +46,18 @@ export interface Bug {
   createdAt: string;
 }
 
+export interface ChangelogEntry {
+  hash: string;
+  message: string;
+  time: string;
+  author?: string;
+}
+
 export interface ApiEndpoints {
   project: {
     getProject(): Promise<ProjectInfo>;
     getStatus(): Promise<ProjectStatus>;
+    getChangelog(): Promise<ChangelogEntry[]>;
   };
   tasks: {
     getTasks(): Promise<Task[]>;
@@ -92,6 +100,9 @@ export function createApiEndpoints(client: ApiClient): ApiEndpoints {
       },
       getStatus() {
         return client.get<ProjectStatus>('/api/status');
+      },
+      getChangelog() {
+        return client.get<ChangelogEntry[]>('/api/changelog');
       },
     },
 

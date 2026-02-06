@@ -945,6 +945,98 @@ app.post('/api/test', (req, res) => {
 });
 
 // ============================================
+// Dashboard Completion API (Phase 62)
+// ============================================
+
+// GET /api/config - Read .tlc.json configuration
+app.get('/api/config', (req, res) => {
+  try {
+    const tlcPath = path.join(PROJECT_DIR, '.tlc.json');
+    if (!fs.existsSync(tlcPath)) {
+      return res.json({});
+    }
+    const config = JSON.parse(fs.readFileSync(tlcPath, 'utf-8'));
+    res.json(config);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/config - Write .tlc.json configuration
+app.put('/api/config', (req, res) => {
+  try {
+    const tlcPath = path.join(PROJECT_DIR, '.tlc.json');
+    const config = req.body;
+    if (!config || typeof config !== 'object') {
+      return res.status(400).json({ error: 'Invalid config object' });
+    }
+    fs.writeFileSync(tlcPath, JSON.stringify(config, null, 2));
+    res.json({ success: true, config });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/health - System health status
+app.get('/api/health', (req, res) => {
+  const memUsage = process.memoryUsage();
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: {
+      rss: memUsage.rss,
+      heapUsed: memUsage.heapUsed,
+      heapTotal: memUsage.heapTotal,
+    },
+    appRunning: appProcess !== null,
+    appPort,
+  });
+});
+
+// GET /api/tasks/:id - Get single task by ID
+app.get('/api/tasks/:id', (req, res) => {
+  const plan = parsePlan(PROJECT_DIR);
+  const task = (plan.tasks || []).find(t => t.id === req.params.id);
+  if (!task) {
+    return res.status(404).json({ error: 'Task not found' });
+  }
+  res.json(task);
+});
+
+// PATCH /api/tasks/:id - Update task status/owner
+app.patch('/api/tasks/:id', (req, res) => {
+  const plan = parsePlan(PROJECT_DIR);
+  const task = (plan.tasks || []).find(t => t.id === req.params.id);
+  if (!task) {
+    return res.status(404).json({ error: 'Task not found' });
+  }
+  const updates = req.body;
+  const updated = { ...task, ...updates };
+  broadcast('task-update', updated);
+  addLog('app', `Task ${req.params.id} updated`, 'info');
+  res.json(updated);
+});
+
+// DELETE /api/tasks/:id - Delete task
+app.delete('/api/tasks/:id', (req, res) => {
+  broadcast('task-update', { id: req.params.id, deleted: true });
+  addLog('app', `Task ${req.params.id} deleted`, 'info');
+  res.status(204).send();
+});
+
+// DELETE /api/logs/:type - Clear logs by type
+app.delete('/api/logs/:type', (req, res) => {
+  const type = req.params.type;
+  if (logs[type]) {
+    logs[type] = [];
+    res.json({ success: true });
+  } else {
+    res.status(404).json({ error: 'Unknown log type' });
+  }
+});
+
+// ============================================
 // Agent Registry API (Phase 32)
 // ============================================
 const { getAgentRegistry } = require('./lib/agent-registry');

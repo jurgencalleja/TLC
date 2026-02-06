@@ -628,8 +628,8 @@ Add architecture-level operations: multi-LLM code review with consensus, systema
 - [x] Usage tracking persistence
 
 **Models:**
-- Claude: claude-opus-4-5-20251101 (Opus 4.5)
-- OpenAI: o3
+- Claude: claude-opus-4-6-20260205 (Opus 4.6)
+- OpenAI: gpt-5.3-codex
 - DeepSeek: deepseek-r1
 
 **Test Progress:**
