@@ -4,7 +4,6 @@ import { api } from '../api';
 
 export function useLogs() {
   const {
-    logs,
     activeType,
     searchQuery,
     autoScroll,

@@ -8,7 +8,6 @@ import { RefreshCw } from 'lucide-react';
 
 export function HealthPage() {
   const setActiveView = useUIStore((state) => state.setActiveView);
-  const [healthData, setHealthData] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -16,8 +15,7 @@ export function HealthPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.health.getHealth();
-      setHealthData(data);
+      await api.health.getHealth();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch health data');
     } finally {
@@ -67,7 +65,10 @@ export function HealthPage() {
           Refresh
         </Button>
       </div>
-      <HealthDiagnosticsPanel data={healthData} />
+      <HealthDiagnosticsPanel onRefresh={async () => {
+        const data = await api.health.getHealth();
+        return data as never;
+      }} />
     </div>
   );
 }

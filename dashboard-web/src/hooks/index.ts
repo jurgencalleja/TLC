@@ -6,7 +6,10 @@ export type {
 } from './useWebSocket';
 
 export { useProject } from './useProject';
+export { useProjects } from './useProjects';
 export { useTasks } from './useTasks';
+export { useSettings } from './useSettings';
+export { useLogs } from './useLogs';
 
 export { useCommandPalette, fuzzyMatch, createCommandRegistry } from './useCommandPalette';
 export type {

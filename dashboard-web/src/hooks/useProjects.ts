@@ -1,5 +1,4 @@
 import { useCallback, useState } from 'react';
-import { useProjectStore } from '../stores/project.store';
 import { api } from '../api';
 
 export interface Project {
@@ -7,16 +6,13 @@ export interface Project {
   name: string;
   description?: string;
   branch: string;
-  status: 'healthy' | 'degraded' | 'failing';
+  status: 'healthy' | 'failing' | 'building' | 'unknown';
   tests: { passed: number; failed: number; total: number };
   coverage: number;
   lastActivity: string;
 }
 
 export function useProjects() {
-  const { loading: storeLoading, error: storeError, setLoading, setError, clearError } =
-    useProjectStore();
-
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLocalLoading] = useState(false);
   const [error, setLocalError] = useState<string | null>(null);

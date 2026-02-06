@@ -47,7 +47,7 @@ const MODEL_COLORS: Record<string, string> = {
 const DEFAULT_COLORS = ['#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#ec4899', '#06b6d4', '#84cc16'];
 
 function getModelColor(model: string, index: number): string {
-  return MODEL_COLORS[model] ?? DEFAULT_COLORS[index % DEFAULT_COLORS.length];
+  return MODEL_COLORS[model] || DEFAULT_COLORS[index % DEFAULT_COLORS.length] || '#8b5cf6';
 }
 
 /**
@@ -143,7 +143,7 @@ export function CostChart({ data, budget, className = '', height = 300 }: CostCh
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" />
           <YAxis tickFormatter={(value: number) => `$${value}`} />
-          <Tooltip content={CustomTooltip} />
+          <Tooltip content={CustomTooltip as never} />
           <Legend />
           {models.map((model, index) => (
             <Bar

@@ -18,7 +18,7 @@ export function SettingsPage() {
 
   const handleSave = async (newConfig: TlcConfig) => {
     try {
-      await saveConfig(newConfig);
+      await saveConfig(newConfig as Record<string, unknown>);
     } catch {
       // Error is handled by useSettings hook
     }
