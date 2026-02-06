@@ -2249,6 +2249,65 @@ Code committed with design reference
 
 ---
 
+### Phase 63: Tag-Based QA Release Pipeline [>]
+
+**Goal:** Git tag-driven release workflow where developers tag releases, QA reviews deployed previews, and accepted tags are promoted to production.
+
+**Workflow:**
+```
+Developer tags v1.1.0-rc.1
+       ↓
+TLC: security scan + tests + coverage
+       ↓
+Auto-deploy to qa-v1.1.0.example.com
+       ↓
+QA reviews in dashboard → Accept / Reject
+       ↓
+Accept → promote to v1.1.0 (production)
+Reject → developer notified with feedback
+```
+
+**Deliverables:**
+- [ ] Tag classifier (semver parsing, tier detection: rc/beta/release)
+- [ ] Release gate engine (tests, security, coverage, qa-approval)
+- [ ] Tag release orchestrator (full pipeline coordination)
+- [ ] QA release task generator (auto-create QA tasks from tags)
+- [ ] `/tlc:tag` command (create, accept, reject, promote, list, history)
+- [ ] Release configuration schema in `.tlc.json`
+- [ ] Release history & audit trail (append-only, compliance-ready)
+- [ ] Webhook tag handler (GitHub/GitLab tag events → pipeline)
+- [ ] Dashboard release panel (ReleasePanel, ReleaseTimeline, ReleaseGateStatus)
+- [ ] Notification integration (Slack alerts for QA review/accept/reject)
+
+**Builds On:**
+- webhook-listener.js (TAG event detection)
+- branch-deployer.js (subdomain deployments)
+- deployment-approval.js (approval workflows)
+- slack-notifier.js (team notifications)
+- QA dashboard components (QATaskQueue, TestReviewPanel)
+
+**Test Progress:**
+- [ ] tag-classifier: ~20 tests
+- [ ] release-gate: ~25 tests
+- [ ] tag-release: ~25 tests
+- [ ] qa-release-task: ~15 tests
+- [ ] tag-release-command: ~30 tests
+- [ ] release-config: ~15 tests
+- [ ] release-audit: ~20 tests
+- [ ] webhook-tag-handler: ~15 tests
+- [ ] Dashboard components: ~35 tests
+- [ ] release-notifier: ~15 tests
+- Total: ~200 tests
+
+**Success Criteria:**
+- [ ] Tags auto-trigger QA pipeline
+- [ ] QA accepts/rejects from dashboard
+- [ ] Accepted RC auto-promotes to release tag
+- [ ] Full audit trail for compliance
+- [ ] Slack notifications at each stage
+
+---
+
 ## Future Milestones (v3.x)
 
 ### v3.0 - Ecosystem
