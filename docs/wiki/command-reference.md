@@ -141,13 +141,13 @@ Creates `.planning/phases/{N}-CONTEXT.md`.
 Process:
 1. Detect test framework
 2. Analyze task dependencies from PLAN.md
-3. **Auto-parallelize**: Spawn up to 10 agents for independent tasks
+3. **Auto-parallelize**: Spawn agents for independent tasks (one per task, model auto-selected)
 4. Write failing tests for each task
 5. Implement code to pass tests
 6. Commit after each task
 7. Run auto-review
 
-**Automatic Parallelization**: TLC analyzes task dependencies and automatically runs independent tasks in parallel (up to 10 agents). No flag needed - it just works. Use `--sequential` only when you explicitly want one-at-a-time execution.
+**Automatic Parallelization (Opus 4.6)**: TLC analyzes task dependencies and automatically runs independent tasks in parallel with per-task model selection (opus for complex, sonnet for standard, haiku for simple). No flag needed - it just works. Use `--sequential` only when you explicitly want one-at-a-time execution. Use `--model haiku` to force all agents to a specific model for cost control.
 
 ### /tlc:status
 

@@ -49,11 +49,11 @@ tlc
 | `/tlc` | Smart entry point - shows dashboard and status |
 | `/tlc:next` | **Action-oriented** - shows what's next, asks once, then executes |
 | `/tlc:plan` | Plan a phase |
-| `/tlc:build` | Build phase (test-first, auto-parallelizes up to 10 agents) |
+| `/tlc:build` | Build phase (test-first, auto-parallelizes with model selection) |
 | `/tlc:verify` | Human verification |
 | `/tlc:status` | Check test status |
 
-**New in v1.6.1:** `/tlc:build` now automatically parallelizes independent tasks (up to 10 agents). No flags needed.
+**New in v1.6.1:** `/tlc:build` now automatically parallelizes independent tasks with Opus 4.6 model selection (opus/sonnet/haiku per task complexity). No flags needed.
 
 ## For Teams
 

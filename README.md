@@ -72,7 +72,7 @@ Or use `/tlc` for the full dashboard.
 ### For Solo Developers
 
 - **Test-first by default** — Claude writes tests before code
-- **Auto-parallelization** — Up to 10 agents run independent tasks simultaneously
+- **Auto-parallelization** — Agents run independent tasks simultaneously with per-task model selection (Opus 4.6)
 - **`/tlc:next`** — One command to progress. No decisions needed.
 - **Smart dashboard** — See progress, run actions
 - **Coverage gaps** — Find and fix untested code
@@ -103,7 +103,7 @@ Or use `/tlc` for the full dashboard.
 | `/tlc` | Smart dashboard — full status view |
 | `/tlc:new-project` | Start new project with roadmap |
 | `/tlc:init` | Add TLC to existing codebase |
-| `/tlc:build` | Write tests → implement (auto-parallelizes up to 10 agents) |
+| `/tlc:build` | Write tests → implement (auto-parallelizes with model selection) |
 | `/tlc:coverage` | Find and fix untested code |
 | `/tlc:quality` | Test quality scoring |
 | `/tlc:autofix` | Auto-repair failing tests |

@@ -111,7 +111,7 @@ TLC creates `.planning/phases/1-PLAN.md`:
 /tlc:build 1
 ```
 
-TLC starts the test-first process. **New:** Independent tasks run in parallel automatically (up to 10 agents)!
+TLC starts the test-first process. **New:** Independent tasks run in parallel automatically with per-task model selection (Opus 4.6)!
 
 ### 4a. Writing Tests (Red Phase)
 

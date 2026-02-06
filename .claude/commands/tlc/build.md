@@ -166,13 +166,17 @@ Senior engineers know when rules don't apply:
 
 This is the core TLC command. Tests before code, one task at a time.
 
-**Overdrive Mode:** When tasks are independent, TLC auto-detects and offers parallel execution with multiple agents.
+**Overdrive Mode (Opus 4.6):** When tasks are independent, TLC auto-detects and offers parallel execution with multiple agents. Agents are assigned models based on task complexity (opus for heavy, sonnet for standard, haiku for light). Failed agents can be resumed. No arbitrary cap on agent count.
 
 ## Usage
 
 ```
 /tlc:build <phase_number>
-/tlc:build <phase_number> --sequential   # Force sequential mode
+/tlc:build <phase_number> --sequential      # Force sequential mode
+/tlc:build <phase_number> --model sonnet    # Force all agents to use sonnet
+/tlc:build <phase_number> --model haiku     # Force all agents to use haiku (fast/cheap)
+/tlc:build <phase_number> --max-turns 30    # Limit agent execution length
+/tlc:build <phase_number> --agents 5        # Limit parallel agents to 5
 ```
 
 ## Process
@@ -181,7 +185,7 @@ This is the core TLC command. Tests before code, one task at a time.
 
 Read all `.planning/phases/{phase}-*-PLAN.md` files for this phase.
 
-### Step 1a: Overdrive Detection (Auto-Parallel)
+### Step 1a: Overdrive Detection (Auto-Parallel, Opus 4.6)
 
 After loading plans, analyze task dependencies to determine if parallel execution is possible.
 
@@ -200,24 +204,34 @@ After loading plans, analyze task dependencies to determine if parallel executio
 2. Look for dependency markers in task descriptions
 3. Check "## Dependencies" section if present
 4. Identify independent tasks (no dependencies)
+5. Estimate task complexity for model assignment (heavy/standard/light)
 
 **If 2+ independent tasks found:**
 ```
-🚀 Overdrive Mode Available
+🚀 Overdrive Mode Available (Opus 4.6)
 
 Phase 3 has 4 independent tasks that can run in parallel:
-  - Task 1: Create user schema
-  - Task 2: Add validation helpers
-  - Task 3: Write migration scripts
-  - Task 4: Create seed data
+  - Task 1: Create user schema          [opus]   (heavy)
+  - Task 2: Add validation helpers      [sonnet] (standard)
+  - Task 3: Write migration scripts     [sonnet] (standard)
+  - Task 4: Create seed data            [haiku]  (light)
 
-Recommended: 3 agents (optimal parallelism)
+Recommended: 4 agents (one per independent task)
 
 Options:
 1) Overdrive mode (parallel agents) [Recommended]
 2) Sequential mode (one task at a time)
 3) Let me pick which tasks to parallelize
 ```
+
+**Model auto-selection per task complexity:**
+| Complexity | Model | When |
+|-----------|-------|------|
+| Heavy | opus | Architecture, multi-file features, security, auth, database |
+| Standard | sonnet | Normal implementation tasks (default) |
+| Light | haiku | Config, boilerplate, DTOs, enums, constants, seed data |
+
+Override with `--model sonnet` to force all agents to the same model.
 
 **If tasks have dependencies (waterfall):**
 ```
@@ -230,62 +244,87 @@ Phase 3 tasks have dependencies:
 Running in sequential order.
 ```
 
-### Step 1b: Execute Overdrive (if selected)
+### Step 1b: Execute Overdrive (if selected) — Opus 4.6 Multi-Agent
 
-When overdrive mode is selected, spawn parallel agents:
+When overdrive mode is selected, spawn parallel agents with per-task model selection:
 
 ```
-🚀 Launching Overdrive Mode
+🚀 Launching Overdrive Mode (Opus 4.6)
 
-Spawning 3 agents in parallel...
+Spawning 4 agents in parallel...
 
-Agent 1: Task 1 - Create user schema
-Agent 2: Task 2 - Add validation helpers
-Agent 3: Task 3 - Write migration scripts
+Agent 1: Task 1 - Create user schema          [opus]
+Agent 2: Task 2 - Add validation helpers      [sonnet]
+Agent 3: Task 3 - Write migration scripts     [sonnet]
+Agent 4: Task 4 - Create seed data            [haiku]
 
 [All agents spawned - working in background]
-[Task 4 queued for next available agent]
 ```
 
 **Agent execution rules:**
-- Each agent gets one task
+- One agent per independent task (no arbitrary cap)
+- Model assigned per task complexity (override with `--model`)
 - Agents work autonomously (no confirmation prompts)
 - Each agent commits after completing their task
-- When an agent finishes, it can pick up queued tasks
 - All agents follow test-first methodology
+- `max_turns` limits execution length (default: 50, override with `--max-turns`)
 
 **CRITICAL: Spawn all agents in a SINGLE message using multiple Task tool calls.**
 
 ```
-Task(description="Agent 1: Task 1", prompt="...", subagent_type="general-purpose", run_in_background=true)
-Task(description="Agent 2: Task 2", prompt="...", subagent_type="general-purpose", run_in_background=true)
-Task(description="Agent 3: Task 3", prompt="...", subagent_type="general-purpose", run_in_background=true)
+Task(description="Agent 1: Task 1", prompt="...", subagent_type="general-purpose", model="opus", max_turns=50, run_in_background=true)
+Task(description="Agent 2: Task 2", prompt="...", subagent_type="general-purpose", model="sonnet", max_turns=50, run_in_background=true)
+Task(description="Agent 3: Task 3", prompt="...", subagent_type="general-purpose", model="sonnet", max_turns=50, run_in_background=true)
+Task(description="Agent 4: Task 4", prompt="...", subagent_type="general-purpose", model="haiku", max_turns=50, run_in_background=true)
 ```
 
-**Live Progress Monitoring:**
+**Live Progress Monitoring (TaskOutput):**
 
-While agents run in background, show live status using the AgentProgressMonitor:
+Use `TaskOutput` with `block=false` for non-blocking progress checks:
+
+```
+TaskOutput(task_id="AGENT_ID_1", block=false, timeout=5000)
+TaskOutput(task_id="AGENT_ID_2", block=false, timeout=5000)
+```
+
+Or use the AgentProgressMonitor for formatted status:
 
 ```bash
 node -e "
 const { AgentProgressMonitor } = require('./server/lib/agent-progress-monitor.js');
 const monitor = new AgentProgressMonitor('/tmp/claude-1000/-mnt-c-Code-TLC/tasks');
-const agents = ['AGENT_ID_1', 'AGENT_ID_2', 'AGENT_ID_3'];
+const agents = ['AGENT_ID_1', 'AGENT_ID_2', 'AGENT_ID_3', 'AGENT_ID_4'];
 console.log(monitor.formatTable(agents));
 "
 ```
 
 Display format:
 ```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🚀 OVERDRIVE STATUS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-| Agent | Task | Tests | Phase |
-|-------|------|-------|-------|
-| a1b2c3 | README Generator | 29 ✓ | committed |
-| d4e5f6 | Flow Diagrams | 18 ✓ | implementing |
-| g7h8i9 | ADR Generator | - | writing-tests |
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚀 OVERDRIVE STATUS (Opus 4.6)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+| Agent | Task | Model | Tests | Phase |
+|-------|------|-------|-------|-------|
+| a1b2c3 | User Schema | opus | 29 ✓ | committed |
+| d4e5f6 | Validation | sonnet | 18 ✓ | implementing |
+| g7h8i9 | Migrations | sonnet | - | writing-tests |
+| j0k1l2 | Seed Data | haiku | 5 ✓ | committed |
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**Handling Agent Failures (Opus 4.6 Resumption):**
+
+If an agent fails or gets stuck:
+
+```
+# Check if agent is stuck (non-blocking)
+TaskOutput(task_id="AGENT_ID", block=false, timeout=5000)
+
+# Cancel a stuck agent
+TaskStop(task_id="AGENT_ID")
+
+# Resume a failed agent from where it left off (full context preserved)
+Task(resume="AGENT_ID", prompt="Continue from where you left off. Fix any errors and complete the task.")
 ```
 
 **Show status automatically:**
@@ -799,7 +838,7 @@ Writing tests for Task 2: Validation...
 Phase 1 complete. Ready for /tlc:verify 1
 ```
 
-### Overdrive Mode (Independent Tasks)
+### Overdrive Mode (Independent Tasks, Opus 4.6)
 
 ```
 User: /tlc:build 2
@@ -807,15 +846,15 @@ User: /tlc:build 2
 Claude: Loading phase 2 plans...
 Found: 2-PLAN.md (4 tasks)
 
-🚀 Overdrive Mode Available
+🚀 Overdrive Mode Available (Opus 4.6)
 
 Phase 2 has 4 independent tasks:
-  - Task 1: Create API routes
-  - Task 2: Add input validation
-  - Task 3: Write error handlers
-  - Task 4: Add rate limiting
+  - Task 1: Create API routes         [sonnet] (standard)
+  - Task 2: Add input validation      [sonnet] (standard)
+  - Task 3: Write error handlers      [sonnet] (standard)
+  - Task 4: Add rate limiting config  [haiku]  (light)
 
-Recommended: 3 agents
+Recommended: 4 agents (one per task)
 
 Options:
 1) Overdrive mode (parallel) [Recommended]
@@ -824,21 +863,20 @@ Options:
 
 User: 1
 
-Claude: 🚀 Launching Overdrive Mode
+Claude: 🚀 Launching Overdrive Mode (Opus 4.6)
 
-Spawning 3 agents...
-[Agent 1] Task 1: Create API routes - STARTED
-[Agent 2] Task 2: Add input validation - STARTED
-[Agent 3] Task 3: Write error handlers - STARTED
-[Queued] Task 4: Add rate limiting
+Spawning 4 agents...
+[Agent 1] Task 1: Create API routes        [sonnet] - STARTED
+[Agent 2] Task 2: Add input validation     [sonnet] - STARTED
+[Agent 3] Task 3: Write error handlers     [sonnet] - STARTED
+[Agent 4] Task 4: Add rate limiting config [haiku]  - STARTED
 
 ... agents working in background ...
 
-[Agent 2] ✅ Task 2 complete (3 commits)
-[Agent 2] Task 4: Add rate limiting - STARTED
-[Agent 1] ✅ Task 1 complete (4 commits)
-[Agent 3] ✅ Task 3 complete (2 commits)
-[Agent 2] ✅ Task 4 complete (2 commits)
+[Agent 4] ✅ Task 4 complete (1 commit)   [haiku - fast]
+[Agent 2] ✅ Task 2 complete (3 commits)  [sonnet]
+[Agent 1] ✅ Task 1 complete (4 commits)  [sonnet]
+[Agent 3] ✅ Task 3 complete (2 commits)  [sonnet]
 
 All agents complete. Running full test suite...
 ✅ 24 tests passing
@@ -863,18 +901,23 @@ Phase 2 complete. Ready for /tlc:verify 2
 - Suggest running `/tlc:build {phase}` again to retry
 - Or manually fix and run `/tlc:status` to verify
 
-**Overdrive mode issues:**
-- Agent stuck → Check with `TaskOutput` tool
+**Overdrive mode issues (Opus 4.6):**
+- Agent stuck → Check with `TaskOutput(task_id, block=false)`, cancel with `TaskStop(task_id)`
+- Agent failed → Resume with `Task(resume=agent_id)` to continue from where it left off
 - Merge conflicts → Agents working on same files (rare if tasks are truly independent)
-- One agent failed → Other agents continue; fix failed task manually
+- One agent failed → Other agents continue; resume failed agent or fix manually
 - Want sequential instead → Use `--sequential` flag: `/tlc:build 2 --sequential`
+- Cost too high → Use `--model haiku` to force all agents to haiku
+- Agent running too long → Use `--max-turns 30` to limit execution
 
 ## Flags
 
 | Flag | Description |
 |------|-------------|
 | `--sequential` | Force sequential execution even if tasks are independent |
-| `--agents N` | Set max parallel agents (default: 3, max: 10) |
+| `--agents N` | Limit parallel agents to N (default: one per independent task) |
+| `--model MODEL` | Force all agents to use a specific model (opus, sonnet, haiku) |
+| `--max-turns N` | Limit each agent's execution to N turns (default: 50) |
 
 ## When Overdrive is NOT Used
 

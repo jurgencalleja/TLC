@@ -229,7 +229,7 @@ Create `.tlc.json` with all settings:
     "autofix": true,
     "edgeCases": true,
     "prAutoReview": true,
-    "maxAgents": 10
+    "maxAgents": "auto"
   }
 }
 ```

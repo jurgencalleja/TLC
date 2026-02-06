@@ -109,7 +109,7 @@ TLC creates `.planning/phases/1-PLAN.md`:
 /tlc:build 1
 ```
 
-**New:** TLC auto-parallelizes independent tasks (up to 10 agents). No configuration needed.
+**New:** TLC auto-parallelizes independent tasks with per-task model selection (Opus 4.6). No configuration needed.
 
 TLC starts the test-first process:
 

@@ -5,13 +5,98 @@
  * This is NOT a command - it's integrated into /tlc:build
  * When a plan has independent tasks, they run in parallel automatically.
  *
- * Default behavior: Auto-parallelize up to 10 agents based on task dependencies
+ * Default behavior: Auto-parallelize with one agent per independent task
  * Use --sequential to force one-at-a-time execution
  * Use --agents N to limit parallelism to specific number
+ *
+ * Opus 4.6 Multi-Agent Features:
+ * - Model selection per agent (opus/sonnet/haiku) based on task complexity
+ * - Agent resumption via `resume` parameter for retry/continuation
+ * - TaskOutput for non-blocking progress checks on background agents
+ * - TaskStop for cancelling stuck agents
+ * - Specialized agent types: general-purpose, Bash, Explore, Plan
+ * - max_turns to limit agent execution length
  */
 
 const fs = require('fs');
 const path = require('path');
+
+/**
+ * Valid subagent types for the Task tool (Opus 4.6)
+ */
+const AGENT_TYPES = {
+  BUILD: 'general-purpose',
+  SHELL: 'Bash',
+  EXPLORE: 'Explore',
+  PLAN: 'Plan',
+};
+
+/**
+ * Model tiers for cost/capability optimization (Opus 4.6)
+ * Agents are assigned models based on task complexity.
+ */
+const MODEL_TIERS = {
+  HEAVY: 'opus',    // Complex multi-file features, architectural work
+  STANDARD: 'sonnet', // Normal implementation tasks (default)
+  LIGHT: 'haiku',   // Simple tasks: config, boilerplate, single-file changes
+};
+
+/**
+ * Default max turns per agent to prevent runaway execution
+ */
+const DEFAULT_MAX_TURNS = 50;
+
+/**
+ * Estimate task complexity from its description/title
+ * @param {Object} task - Task with id and title
+ * @returns {'heavy'|'standard'|'light'} Complexity tier
+ */
+function estimateTaskComplexity(task) {
+  const title = (task.title || '').toLowerCase();
+
+  const heavyPatterns = [
+    /architect/i, /refactor/i, /migration/i, /redesign/i,
+    /integration/i, /multi.?file/i, /cross.?cutting/i,
+    /security/i, /auth/i, /database/i, /schema/i,
+  ];
+
+  const lightPatterns = [
+    /config/i, /boilerplate/i, /rename/i, /update.*readme/i,
+    /add.*comment/i, /fix.*typo/i, /seed/i, /constant/i,
+    /enum/i, /dto/i, /interface/i,
+  ];
+
+  if (heavyPatterns.some(p => p.test(title))) {
+    return 'heavy';
+  }
+  if (lightPatterns.some(p => p.test(title))) {
+    return 'light';
+  }
+  return 'standard';
+}
+
+/**
+ * Get model for a task based on its complexity
+ * @param {Object} task - Task object
+ * @param {string} [modelOverride] - Force a specific model
+ * @returns {string} Model name (opus, sonnet, haiku)
+ */
+function getModelForTask(task, modelOverride) {
+  if (modelOverride) {
+    return modelOverride;
+  }
+
+  const complexity = estimateTaskComplexity(task);
+
+  switch (complexity) {
+  case 'heavy':
+    return MODEL_TIERS.HEAVY;
+  case 'light':
+    return MODEL_TIERS.LIGHT;
+  default:
+    return MODEL_TIERS.STANDARD;
+  }
+}
 
 /**
  * Parse overdrive command arguments
@@ -21,10 +106,12 @@ const path = require('path');
 function parseOverdriveArgs(args = '') {
   const options = {
     phase: null,
-    agents: 'auto', // Auto-detect based on independent tasks (up to 10)
+    agents: 'auto', // One agent per independent task
     mode: 'build', // build, test, fix
     dryRun: false,
     sequential: false,
+    model: null, // null = auto-select per task complexity
+    maxTurns: DEFAULT_MAX_TURNS,
   };
 
   const parts = args.trim().split(/\s+/).filter(Boolean);
@@ -35,9 +122,16 @@ function parseOverdriveArgs(args = '') {
     if (/^\d+$/.test(part)) {
       options.phase = parseInt(part, 10);
     } else if (part === '--agents' && parts[i + 1]) {
-      options.agents = Math.min(parseInt(parts[++i], 10), 10); // Max 10 agents
+      options.agents = parseInt(parts[++i], 10);
     } else if (part === '--mode' && parts[i + 1]) {
       options.mode = parts[++i];
+    } else if (part === '--model' && parts[i + 1]) {
+      const model = parts[++i].toLowerCase();
+      if (['opus', 'sonnet', 'haiku'].includes(model)) {
+        options.model = model;
+      }
+    } else if (part === '--max-turns' && parts[i + 1]) {
+      options.maxTurns = parseInt(parts[++i], 10);
     } else if (part === '--dry-run') {
       options.dryRun = true;
     } else if (part === '--sequential' || part === '-s') {
@@ -105,13 +199,25 @@ function loadPhaseTasks(projectDir, phase) {
 }
 
 /**
+ * Determine the best agent type for a task
+ * @param {Object} task - Task object
+ * @param {string} mode - Execution mode (build, test, fix)
+ * @returns {string} Agent type for Task tool subagent_type
+ */
+function selectAgentType(task, mode) {
+  // Build/test/fix all require full general-purpose agent
+  // (reads files, writes code, runs tests, commits)
+  return AGENT_TYPES.BUILD;
+}
+
+/**
  * Generate agent prompts for parallel execution
  * @param {Array} tasks - Tasks to distribute
  * @param {Object} options - Generation options
  * @returns {Array} Agent prompts
  */
 function generateAgentPrompts(tasks, options = {}) {
-  const { mode = 'build', projectDir, phase } = options;
+  const { mode = 'build', projectDir, phase, model, maxTurns } = options;
 
   return tasks.map((task, index) => {
     const basePrompt = `You are Agent ${index + 1} working on Phase ${phase}.
@@ -142,7 +248,10 @@ GO. Execute now. No questions.`;
       taskId: task.id,
       taskTitle: task.title,
       prompt: basePrompt,
-      agentType: 'tlc-executor',
+      agentType: selectAgentType(task, mode),
+      model: getModelForTask(task, model),
+      maxTurns: maxTurns || DEFAULT_MAX_TURNS,
+      complexity: estimateTaskComplexity(task),
     };
   });
 }
@@ -171,7 +280,7 @@ function distributeTasks(tasks, agentCount) {
 function formatOverdrivePlan(plan) {
   const lines = [];
 
-  lines.push('# Overdrive Mode');
+  lines.push('# Overdrive Mode (Opus 4.6)');
   lines.push('');
   lines.push(`**Phase:** ${plan.phase}`);
   lines.push(`**Mode:** ${plan.mode}`);
@@ -184,15 +293,23 @@ function formatOverdrivePlan(plan) {
   plan.agentAssignments.forEach((assignment, idx) => {
     lines.push(`### Agent ${idx + 1}`);
     assignment.tasks.forEach(task => {
-      lines.push(`- Task ${task.id}: ${task.title}`);
+      const complexity = estimateTaskComplexity(task);
+      const model = getModelForTask(task, plan.modelOverride);
+      lines.push(`- Task ${task.id}: ${task.title} [${model}] (${complexity})`);
     });
     lines.push('');
   });
 
   lines.push('## Execution');
   lines.push('');
-  lines.push('All agents will be spawned simultaneously using Task tool.');
+  lines.push('All agents spawned simultaneously via Task tool (Opus 4.6 multi-agent).');
   lines.push('Each agent works independently until completion.');
+  lines.push('');
+  lines.push('**Capabilities:**');
+  lines.push('- Model selection per task complexity (opus/sonnet/haiku)');
+  lines.push('- Agent resumption for failed tasks (resume parameter)');
+  lines.push('- Non-blocking progress checks (TaskOutput block=false)');
+  lines.push('- Agent cancellation (TaskStop) for stuck agents');
   lines.push('');
   lines.push('**Rules enforced:**');
   lines.push('- No confirmation prompts');
@@ -204,7 +321,8 @@ function formatOverdrivePlan(plan) {
 }
 
 /**
- * Generate Task tool calls for parallel execution
+ * Generate Task tool calls for parallel execution (Opus 4.6)
+ * Includes model selection, max_turns, and correct subagent_type.
  * @param {Array} prompts - Agent prompts
  * @returns {Array} Task tool call specifications
  */
@@ -216,6 +334,8 @@ function generateTaskCalls(prompts) {
       prompt: p.prompt,
       subagent_type: p.agentType,
       run_in_background: true,
+      model: p.model,
+      max_turns: p.maxTurns,
     },
   }));
 }
@@ -270,12 +390,12 @@ async function executeOverdriveCommand(args = '', context = {}) {
     };
   }
 
-  // Determine agent count: auto = max parallelism based on independent tasks
+  // Determine agent count: auto = one agent per independent task (no cap)
   let agentCount;
   if (options.sequential) {
     agentCount = 1;
   } else if (options.agents === 'auto') {
-    // Auto-detect: use as many agents as there are independent tasks (up to 10)
+    // Auto-detect: one agent per independent task, no arbitrary cap
     let planContent = '';
     try {
       planContent = fs.readFileSync(phaseInfo.planPath, 'utf-8');
@@ -285,7 +405,7 @@ async function executeOverdriveCommand(args = '', context = {}) {
     const depAnalysis = analyzeDependencies(planContent);
     const parallelAnalysis = canParallelize(availableTasks, depAnalysis);
     agentCount = parallelAnalysis.canParallelize
-      ? Math.min(parallelAnalysis.independentTasks.length, 10)
+      ? parallelAnalysis.independentTasks.length
       : 1;
   } else {
     agentCount = Math.min(options.agents, availableTasks.length);
@@ -293,7 +413,7 @@ async function executeOverdriveCommand(args = '', context = {}) {
 
   const taskGroups = distributeTasks(availableTasks, agentCount);
 
-  // Generate prompts
+  // Generate prompts with model selection and max turns
   const agentAssignments = taskGroups.map((tasks, idx) => ({
     agentId: idx + 1,
     tasks,
@@ -301,6 +421,8 @@ async function executeOverdriveCommand(args = '', context = {}) {
       mode: options.mode,
       projectDir,
       phase: options.phase,
+      model: options.model,
+      maxTurns: options.maxTurns,
     }),
   }));
 
@@ -310,6 +432,7 @@ async function executeOverdriveCommand(args = '', context = {}) {
     agentCount,
     totalTasks: availableTasks.length,
     agentAssignments,
+    modelOverride: options.model,
   };
 
   if (options.dryRun) {
@@ -331,7 +454,7 @@ async function executeOverdriveCommand(args = '', context = {}) {
     taskCalls,
     output: formatOverdrivePlan(plan),
     instructions: `
-EXECUTE NOW: Spawn ${agentCount} agents in parallel using the Task tool.
+EXECUTE NOW: Spawn ${agentCount} agents in parallel using the Task tool (Opus 4.6).
 
 ${taskCalls.map((tc, i) => `
 Agent ${i + 1}:
@@ -339,12 +462,18 @@ Task(
   description="${tc.params.description}",
   prompt="${tc.params.prompt.slice(0, 100)}...",
   subagent_type="${tc.params.subagent_type}",
+  model="${tc.params.model}",
+  max_turns=${tc.params.max_turns},
   run_in_background=true
 )
 `).join('\n')}
 
 CRITICAL: Call ALL Task tools in a SINGLE message to run them in parallel.
 Do NOT wait between spawns. Fire them all at once.
+
+MONITORING: Use TaskOutput(task_id, block=false) to check progress.
+STUCK AGENT: Use TaskStop(task_id) to cancel, then resume with Task(resume=agent_id).
+FAILED AGENT: Use Task(resume=agent_id) to continue from where it left off.
 `,
   };
 }
@@ -458,7 +587,7 @@ function canParallelize(tasks, depAnalysis) {
     canParallelize: true,
     independentTasks,
     dependentTasks: tasks.filter(t => dependentTasks.has(t.id)),
-    recommendedAgents: Math.min(independentTasks.length, 10), // Max 10 parallel agents
+    recommendedAgents: independentTasks.length, // One agent per independent task
   };
 }
 
@@ -543,4 +672,11 @@ module.exports = {
   canParallelize,
   shouldUseOverdrive,
   autoParallelize,
+  // Opus 4.6 multi-agent functions
+  estimateTaskComplexity,
+  getModelForTask,
+  selectAgentType,
+  AGENT_TYPES,
+  MODEL_TIERS,
+  DEFAULT_MAX_TURNS,
 };

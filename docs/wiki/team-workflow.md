@@ -33,7 +33,7 @@ TLC (Test-Led Coding) enables teams to use AI coding assistants while maintainin
 7. /tlc:release (if blocked)   # Release if switching
 ```
 
-**New:** `/tlc:build` auto-parallelizes independent tasks (up to 10 agents). No configuration needed.
+**New:** `/tlc:build` auto-parallelizes independent tasks with per-task model selection (Opus 4.6). No configuration needed.
 
 ### Product Owner (1)
 

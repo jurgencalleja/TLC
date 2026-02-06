@@ -96,7 +96,7 @@ For each task:
 2. Implement code to pass tests (Green)
 3. Commit after each task
 
-**Auto-Parallelization:** TLC analyzes task dependencies and automatically runs independent tasks in parallel (up to 10 agents). No configuration needed.
+**Auto-Parallelization:** TLC analyzes task dependencies and automatically runs independent tasks in parallel with per-task model selection (Opus 4.6). No configuration needed.
 
 ![Parallel Build](images/build-parallel.png)
 
