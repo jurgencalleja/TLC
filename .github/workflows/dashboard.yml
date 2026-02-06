@@ -17,7 +17,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/dashboard
+  IMAGE_NAME: jurgencalleja/tlc/dashboard
 
 jobs:
   test:
