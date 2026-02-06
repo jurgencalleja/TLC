@@ -43,7 +43,7 @@ QA rejects → developer notified with feedback
 
 ## Tasks
 
-### Task 1: Tag Classifier [ ]
+### Task 1: Tag Classifier [x]
 
 **Goal:** Parse and classify git tags into release tiers with semantic versioning support.
 
@@ -69,7 +69,7 @@ QA rejects → developer notified with feedback
 
 ---
 
-### Task 2: Release Gate Engine [ ]
+### Task 2: Release Gate Engine [x]
 
 **Goal:** Configurable gates that must pass before a tag can be promoted. Gates run in sequence; any failure blocks promotion.
 
@@ -99,7 +99,7 @@ QA rejects → developer notified with feedback
 
 ---
 
-### Task 3: Tag Release Orchestrator [ ]
+### Task 3: Tag Release Orchestrator [x]
 
 **Goal:** Main orchestration module that coordinates the full tag → QA → production flow.
 
@@ -126,7 +126,7 @@ QA rejects → developer notified with feedback
 
 ---
 
-### Task 4: QA Release Task Generator [ ]
+### Task 4: QA Release Task Generator [x]
 
 **Goal:** Auto-create QA verification tasks when a tag is deployed for review.
 
@@ -152,7 +152,7 @@ QA rejects → developer notified with feedback
 
 ---
 
-### Task 5: Tag Release Command [ ]
+### Task 5: Tag Release Command [x]
 
 **Goal:** CLI command `/tlc:tag` for creating, reviewing, accepting, and managing tagged releases.
 
@@ -185,7 +185,7 @@ QA rejects → developer notified with feedback
 
 ---
 
-### Task 6: Release Configuration Schema [ ]
+### Task 6: Release Configuration Schema [x]
 
 **Goal:** Add release pipeline config to `.tlc.json` schema.
 
@@ -243,7 +243,7 @@ QA rejects → developer notified with feedback
 
 ---
 
-### Task 7: Release History & Audit [ ]
+### Task 7: Release History & Audit [x]
 
 **Goal:** Immutable release history with full audit trail for compliance.
 
@@ -272,7 +272,7 @@ QA rejects → developer notified with feedback
 
 ---
 
-### Task 8: Webhook Tag Handler [ ]
+### Task 8: Webhook Tag Handler [x]
 
 **Goal:** Wire tag events from webhook-listener.js to the release pipeline.
 
@@ -300,7 +300,7 @@ QA rejects → developer notified with feedback
 
 ---
 
-### Task 9: Dashboard Release Panel [ ]
+### Task 9: Dashboard Release Panel [x]
 
 **Goal:** Dashboard component showing release pipeline status and QA actions.
 
@@ -335,7 +335,7 @@ QA rejects → developer notified with feedback
 
 ---
 
-### Task 10: Notification Integration [ ]
+### Task 10: Notification Integration [x]
 
 **Goal:** Notify team members when releases need QA review or are accepted/rejected.
 
