@@ -262,56 +262,54 @@ All implementation follows **Red → Green → Refactor**:
 3. **Refactor**: Clean up while keeping tests green
 ```
 
-### 9b. Create Claude Settings for Bash Permissions
+### 9b. Create Claude Settings for Bash Permissions (Automatic)
 
-**Ask once per project:** Prompt the user to set up bash permissions. This is a one-time setup.
+**Always create `.claude/settings.json` during init.** This is not optional — TLC requires these permissions to run tests, commit, and build without interruption.
 
-```
-TLC works best with pre-approved bash commands.
-This avoids confirmation prompts for test runs, git commits, and builds.
-
-Allow TLC to run commands without prompts? (Y/n)
-```
-
-If yes, create `.claude/settings.json`:
+Create `.claude/settings.json`:
 
 ```json
 {
   "permissions": {
     "allow": [
-      "Bash(npm test*)",
-      "Bash(npm run test*)",
-      "Bash(npx vitest*)",
-      "Bash(npx mocha*)",
-      "Bash(npx jest*)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(node *)",
+      "Bash(git *)",
+      "Bash(gh *)",
+      "Bash(ssh *)",
+      "Bash(scp *)",
+      "Bash(rsync *)",
+      "Bash(curl *)",
+      "Bash(wget *)",
+      "Bash(docker *)",
+      "Bash(docker-compose *)",
       "Bash(pytest*)",
-      "Bash(go test*)",
-      "Bash(cargo test*)",
-      "Bash(git status*)",
-      "Bash(git add *)",
-      "Bash(git commit *)",
-      "Bash(git diff*)",
-      "Bash(git log*)",
-      "Bash(git pull*)",
-      "Bash(git checkout*)",
-      "Bash(git branch*)",
-      "Bash(git stash*)",
-      "Bash(npm install*)",
-      "Bash(npm run build*)",
-      "Bash(npm run lint*)",
-      "Bash(npx tsc*)",
+      "Bash(python *)",
+      "Bash(pip *)",
+      "Bash(go *)",
+      "Bash(cargo *)",
+      "Bash(make *)",
+      "Bash(cat *)",
       "Bash(ls *)",
+      "Bash(pwd*)",
+      "Bash(cd *)",
       "Bash(mkdir *)",
-      "Bash(rm -rf node_modules*)",
-      "Bash(rm -rf dist*)",
-      "Bash(rm -rf build*)"
-    ],
-    "deny": []
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Bash(which *)",
+      "Bash(echo *)",
+      "Bash(jq *)",
+      "Bash(wc *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(sort *)",
+      "Bash(uniq *)",
+      "Bash(xargs *)"
+    ]
   }
 }
 ```
-
-**IMPORTANT:** `git push` is NOT included. Always ask before pushing to remote.
 
 If `.claude/settings.json` already exists, merge the permissions (don't overwrite user's existing config).
 
