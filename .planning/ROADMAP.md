@@ -2362,6 +2362,38 @@ Reject → developer notified with feedback
 
 ---
 
+### Phase 67: Remaining Code Gate Coverage [x]
+
+**Goal:** Close the gap on bugs not caught by Phase 65+66. TypeScript compilation gate (7 bugs), magic number/role detection (2 bugs), client-side pattern checks (2 bugs).
+
+**Deliverables:**
+- [x] TypeScript compilation gate (`tsc --noEmit` integration)
+- [x] Magic number detection (hardcoded timeouts >= 60s)
+- [x] Hardcoded role string detection
+- [x] Zustand persistence check (stores without `persist`)
+- [x] Zod date coercion check (`z.date()` → `z.coerce.date()`)
+
+**Test Coverage:** 36 tests
+
+**Additional Bugs Covered:**
+- [x] Bug #4, #33: Invented enum values (via tsc --noEmit)
+- [x] Bug #7: Wrong API field names (via tsc --noEmit)
+- [x] Bug #8: Date type mismatches (via tsc --noEmit)
+- [x] Bug #31: Undefined variables (via tsc --noEmit)
+- [x] Bug #32: 99 TypeScript errors across 31 files (via tsc --noEmit)
+- [x] Bug #34: Object spread missing required fields (via tsc --noEmit)
+- [x] Bug #12: Missing z.coerce.date() in schemas
+- [x] Bug #13: Zustand state lost on refresh
+- [x] Bug #18: Hardcoded role mappings
+- [x] Bug #23: Magic numbers in code
+
+**Coverage Summary (Phases 65+66+67):**
+- Total bugs from Wall of Shame: 34
+- Now caught by Code Gate: 26/34 (76%)
+- Remaining 8: runtime/UX patterns requiring E2E tests
+
+---
+
 ## Milestone: v3.0 - TLC Standalone
 
 Run TLC without Claude Code. Use any available LLM (Codex CLI, Gemini CLI, API providers, LiteLLM) to execute TLC workflows from the terminal.
