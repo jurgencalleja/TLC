@@ -4,7 +4,7 @@
  * Generate cost reports by various dimensions
  */
 
-const { describe, it, beforeEach } = require('node:test');
+import { describe, it, beforeEach } from 'vitest';
 const assert = require('node:assert');
 
 const {

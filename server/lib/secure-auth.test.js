@@ -4,7 +4,7 @@
  * Secure authentication patterns for code generation
  */
 
-const { describe, it, beforeEach } = require('node:test');
+import { describe, it, beforeEach } from 'vitest';
 const assert = require('node:assert');
 
 const {

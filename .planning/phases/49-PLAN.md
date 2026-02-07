@@ -11,7 +11,7 @@ Production-grade container security following CIS Docker Benchmark and OWASP Doc
 
 ## Tasks
 
-### Task 1: Dockerfile Security Linter [ ]
+### Task 1: Dockerfile Security Linter [x]
 
 **Goal:** Create a Dockerfile linting module to enforce security best practices.
 
@@ -20,13 +20,13 @@ Production-grade container security following CIS Docker Benchmark and OWASP Doc
 - `lib/security/dockerfile-linter.test.js`
 
 **Acceptance Criteria:**
-- [ ] Detects missing USER directive (non-root)
-- [ ] Detects use of `latest` tag
-- [ ] Detects hardcoded secrets in ENV/ARG
-- [ ] Detects COPY/ADD of sensitive files
-- [ ] Detects unnecessary SUID/SGID binaries
-- [ ] Validates multi-stage build usage
-- [ ] Warns on full base images (prefer alpine/distroless)
+- [x] Detects missing USER directive (non-root)
+- [x] Detects use of `latest` tag
+- [x] Detects hardcoded secrets in ENV/ARG
+- [x] Detects COPY/ADD of sensitive files
+- [x] Detects unnecessary SUID/SGID binaries
+- [x] Validates multi-stage build usage
+- [x] Warns on full base images (prefer alpine/distroless)
 
 **Test Cases (~25 tests):**
 - Linter detects USER missing
@@ -37,7 +37,7 @@ Production-grade container security following CIS Docker Benchmark and OWASP Doc
 
 ---
 
-### Task 2: Runtime Security Validator [ ]
+### Task 2: Runtime Security Validator [x]
 
 **Goal:** Create runtime security configuration validator for docker-compose.
 
@@ -46,13 +46,13 @@ Production-grade container security following CIS Docker Benchmark and OWASP Doc
 - `lib/security/container-runtime.test.js`
 
 **Acceptance Criteria:**
-- [ ] Validates cap_drop: ALL present
-- [ ] Validates no privileged: true
-- [ ] Validates read_only: true where possible
-- [ ] Validates no host network mode
-- [ ] Validates user namespace configuration
-- [ ] Validates seccomp/apparmor profiles
-- [ ] Generates security recommendations
+- [x] Validates cap_drop: ALL present
+- [x] Validates no privileged: true
+- [x] Validates read_only: true where possible
+- [x] Validates no host network mode
+- [x] Validates user namespace configuration
+- [x] Validates seccomp/apparmor profiles
+- [x] Generates security recommendations
 
 **Test Cases (~30 tests):**
 - Detects privileged containers
@@ -63,7 +63,7 @@ Production-grade container security following CIS Docker Benchmark and OWASP Doc
 
 ---
 
-### Task 3: Network Security Policies [ ]
+### Task 3: Network Security Policies [x]
 
 **Goal:** Network segmentation and isolation policies.
 
@@ -72,11 +72,11 @@ Production-grade container security following CIS Docker Benchmark and OWASP Doc
 - `lib/security/network-policy.test.js`
 
 **Acceptance Criteria:**
-- [ ] Validates custom networks (no default bridge)
-- [ ] Enforces network isolation between services
-- [ ] Validates internal-only networks for databases
-- [ ] Detects exposed ports that should be internal
-- [ ] Generates network topology report
+- [x] Validates custom networks (no default bridge)
+- [x] Enforces network isolation between services
+- [x] Validates internal-only networks for databases
+- [x] Detects exposed ports that should be internal
+- [x] Generates network topology report
 
 **Test Cases (~20 tests):**
 - Detects default bridge network
@@ -86,7 +86,7 @@ Production-grade container security following CIS Docker Benchmark and OWASP Doc
 
 ---
 
-### Task 4: Secrets Management Validator [ ]
+### Task 4: Secrets Management Validator [x]
 
 **Goal:** Ensure secrets are handled securely, never in images or env vars.
 
@@ -95,11 +95,11 @@ Production-grade container security following CIS Docker Benchmark and OWASP Doc
 - `lib/security/secrets-validator.test.js`
 
 **Acceptance Criteria:**
-- [ ] Detects secrets in environment variables
-- [ ] Validates Docker secrets usage
-- [ ] Detects secrets in Dockerfile COPY
-- [ ] Integrates with secret-detector from Phase 48
-- [ ] Recommends Vault/SOPS integration
+- [x] Detects secrets in environment variables
+- [x] Validates Docker secrets usage
+- [x] Detects secrets in Dockerfile COPY
+- [x] Integrates with secret-detector from Phase 48
+- [x] Recommends Vault/SOPS integration
 
 **Test Cases (~15 tests):**
 - Detects passwords in env vars
@@ -109,7 +109,7 @@ Production-grade container security following CIS Docker Benchmark and OWASP Doc
 
 ---
 
-### Task 5: Vulnerability Scanner Integration [ ]
+### Task 5: Vulnerability Scanner Integration [x]
 
 **Goal:** Trivy integration for image vulnerability scanning.
 
@@ -118,11 +118,11 @@ Production-grade container security following CIS Docker Benchmark and OWASP Doc
 - `lib/security/image-scanner.test.js`
 
 **Acceptance Criteria:**
-- [ ] Wraps Trivy CLI for scanning
-- [ ] Parses Trivy JSON output
-- [ ] Filters by severity (CRITICAL, HIGH, MEDIUM, LOW)
-- [ ] Generates compliance reports
-- [ ] CI/CD gate function (block on critical)
+- [x] Wraps Trivy CLI for scanning
+- [x] Parses Trivy JSON output
+- [x] Filters by severity (CRITICAL, HIGH, MEDIUM, LOW)
+- [x] Generates compliance reports
+- [x] CI/CD gate function (block on critical)
 
 **Test Cases (~15 tests):**
 - Parses Trivy output correctly
@@ -132,7 +132,7 @@ Production-grade container security following CIS Docker Benchmark and OWASP Doc
 
 ---
 
-### Task 6: CIS Docker Benchmark Checker [ ]
+### Task 6: CIS Docker Benchmark Checker [x]
 
 **Goal:** Automated CIS Docker Benchmark Level 1 checks.
 
@@ -141,11 +141,11 @@ Production-grade container security following CIS Docker Benchmark and OWASP Doc
 - `lib/security/cis-benchmark.test.js`
 
 **Acceptance Criteria:**
-- [ ] Host configuration checks
-- [ ] Docker daemon configuration
-- [ ] Container runtime checks
-- [ ] Security operations checks
-- [ ] Generates compliance report
+- [x] Host configuration checks
+- [x] Docker daemon configuration
+- [x] Container runtime checks
+- [x] Security operations checks
+- [x] Generates compliance report
 
 **Test Cases (~20 tests):**
 - Checks daemon config
@@ -155,7 +155,7 @@ Production-grade container security following CIS Docker Benchmark and OWASP Doc
 
 ---
 
-### Task 7: Hardened Dockerfile Templates [ ]
+### Task 7: Hardened Dockerfile Templates [x]
 
 **Goal:** Create secure Dockerfile templates for TLC services.
 
@@ -165,18 +165,18 @@ Production-grade container security following CIS Docker Benchmark and OWASP Doc
 - `docker/.dockerignore`
 
 **Acceptance Criteria:**
-- [ ] Multi-stage builds
-- [ ] Alpine/Distroless base images
-- [ ] Non-root USER directive
-- [ ] Health checks defined
-- [ ] No secrets in image
-- [ ] SBOM labels
+- [x] Multi-stage builds
+- [x] Alpine/Distroless base images
+- [x] Non-root USER directive
+- [x] Health checks defined
+- [x] No secrets in image
+- [x] SBOM labels
 
 **Test Cases:** Validated by Task 1 linter
 
 ---
 
-### Task 8: Hardened Docker Compose [ ]
+### Task 8: Hardened Docker Compose [x]
 
 **Goal:** Create production-secure docker-compose configuration.
 
@@ -185,18 +185,18 @@ Production-grade container security following CIS Docker Benchmark and OWASP Doc
 - `docker-compose.security.yml` (overlay)
 
 **Acceptance Criteria:**
-- [ ] cap_drop: ALL on all services
-- [ ] read_only: true where possible
-- [ ] Custom networks with isolation
-- [ ] Docker secrets for credentials
-- [ ] Resource limits defined
-- [ ] Security-opt configurations
+- [x] cap_drop: ALL on all services
+- [x] read_only: true where possible
+- [x] Custom networks with isolation
+- [x] Docker secrets for credentials
+- [x] Resource limits defined
+- [x] Security-opt configurations
 
 **Test Cases:** Validated by Tasks 2, 3, 4
 
 ---
 
-### Task 9: Container Security Command [ ]
+### Task 9: Container Security Command [x]
 
 **Goal:** CLI command to audit container security.
 
@@ -204,11 +204,11 @@ Production-grade container security following CIS Docker Benchmark and OWASP Doc
 - `commands/container-security.js`
 
 **Acceptance Criteria:**
-- [ ] `tlc security:docker` - audit all Docker configs
-- [ ] Runs all validators (Tasks 1-6)
-- [ ] Generates consolidated report
-- [ ] Exit codes for CI integration
-- [ ] Fix suggestions included
+- [x] `tlc security:docker` - audit all Docker configs
+- [x] Runs all validators (Tasks 1-6)
+- [x] Generates consolidated report
+- [x] Exit codes for CI integration
+- [x] Fix suggestions included
 
 **Test Cases:**
 - Command runs all checks
@@ -217,7 +217,7 @@ Production-grade container security following CIS Docker Benchmark and OWASP Doc
 
 ---
 
-### Task 10: Dashboard Container Security Pane [ ]
+### Task 10: Dashboard Container Security Pane [x]
 
 **Goal:** Dashboard view for container security status.
 
@@ -225,11 +225,11 @@ Production-grade container security following CIS Docker Benchmark and OWASP Doc
 - `dashboard-web/src/components/ContainerSecurityPane.tsx`
 
 **Acceptance Criteria:**
-- [ ] Shows Dockerfile lint results
-- [ ] Shows runtime security status
-- [ ] Shows vulnerability scan results
-- [ ] Shows CIS benchmark score
-- [ ] One-click re-scan button
+- [x] Shows Dockerfile lint results
+- [x] Shows runtime security status
+- [x] Shows vulnerability scan results
+- [x] Shows CIS benchmark score
+- [x] One-click re-scan button
 
 **Test Cases:**
 - Renders security status
@@ -256,8 +256,8 @@ Production-grade container security following CIS Docker Benchmark and OWASP Doc
 
 ## Success Criteria
 
-- [ ] All containers run as non-root
-- [ ] No critical CVEs in production images
-- [ ] Pass CIS Docker Benchmark Level 1
-- [ ] Secrets never visible in logs/env
-- [ ] ~90 tests passing
+- [x] All containers run as non-root
+- [x] No critical CVEs in production images
+- [x] Pass CIS Docker Benchmark Level 1
+- [x] Secrets never visible in logs/env
+- [x] ~90 tests passing

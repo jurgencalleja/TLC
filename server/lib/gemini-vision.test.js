@@ -4,7 +4,7 @@
  * Visual understanding with Gemini 2.0 Flash
  */
 
-const { describe, it, beforeEach } = require('node:test');
+import { describe, it, beforeEach } from 'vitest';
 const assert = require('node:assert');
 
 const {

@@ -1544,7 +1544,7 @@ Developer sees QA feedback
 
 ---
 
-### Phase 49: Container Security Hardening [ ]
+### Phase 49: Container Security Hardening [x]
 
 **Goal:** Production-grade container security following CIS Docker Benchmark.
 
@@ -1553,52 +1553,52 @@ Developer sees QA feedback
 **Deliverables:**
 
 **Image Hardening**
-- [ ] Minimal base images (Alpine/Distroless, not Ubuntu)
-- [ ] Multi-stage builds (build deps not in final image)
-- [ ] Non-root user in all containers (USER directive)
-- [ ] No SUID/SGID binaries
-- [ ] Image signing with Docker Content Trust (DCT)
-- [ ] SBOM generation for each image
+- [x] Minimal base images (Alpine/Distroless, not Ubuntu)
+- [x] Multi-stage builds (build deps not in final image)
+- [x] Non-root user in all containers (USER directive)
+- [x] No SUID/SGID binaries
+- [x] Image signing with Docker Content Trust (DCT)
+- [x] SBOM generation for each image
 
 **Runtime Security**
-- [ ] Drop all capabilities (`--cap-drop ALL`)
-- [ ] Add only required caps (`--cap-add` whitelist)
-- [ ] Read-only root filesystem (`--read-only`)
-- [ ] No privileged containers (block `--privileged`)
-- [ ] User namespace remapping enabled
-- [ ] Seccomp profiles (default or custom)
-- [ ] AppArmor/SELinux profiles
+- [x] Drop all capabilities (`--cap-drop ALL`)
+- [x] Add only required caps (`--cap-add` whitelist)
+- [x] Read-only root filesystem (`--read-only`)
+- [x] No privileged containers (block `--privileged`)
+- [x] User namespace remapping enabled
+- [x] Seccomp profiles (default or custom)
+- [x] AppArmor/SELinux profiles
 
 **Network Security**
-- [ ] Custom bridge networks (no default bridge)
-- [ ] Network segmentation per service
-- [ ] No `--net=host` in production
-- [ ] Internal DNS only for service discovery
+- [x] Custom bridge networks (no default bridge)
+- [x] Network segmentation per service
+- [x] No `--net=host` in production
+- [x] Internal DNS only for service discovery
 
 **Secrets Management**
-- [ ] Docker secrets (not env vars for sensitive data)
-- [ ] No secrets in Dockerfiles or images
-- [ ] Secret rotation support
-- [ ] Vault/SOPS integration option
+- [x] Docker secrets (not env vars for sensitive data)
+- [x] No secrets in Dockerfiles or images
+- [x] Secret rotation support
+- [x] Vault/SOPS integration option
 
 **Scanning & Compliance**
-- [ ] Trivy vulnerability scanning in CI
-- [ ] Block builds with critical/high CVEs
-- [ ] CIS Docker Benchmark audit script
-- [ ] Container drift detection
+- [x] Trivy vulnerability scanning in CI
+- [x] Block builds with critical/high CVEs
+- [x] CIS Docker Benchmark audit script
+- [x] Container drift detection
 
 **Test Coverage:**
-- [ ] Dockerfile linting rules (~25 tests)
-- [ ] Runtime security checks (~30 tests)
-- [ ] Network policy tests (~20 tests)
-- [ ] Secrets handling tests (~15 tests)
+- [x] Dockerfile linting rules (~25 tests)
+- [x] Runtime security checks (~30 tests)
+- [x] Network policy tests (~20 tests)
+- [x] Secrets handling tests (~15 tests)
 - Total: ~90 tests
 
 **Success Criteria:**
-- [ ] All containers run as non-root
-- [ ] No critical CVEs in production images
-- [ ] Pass CIS Docker Benchmark Level 1
-- [ ] Secrets never visible in logs/env
+- [x] All containers run as non-root
+- [x] No critical CVEs in production images
+- [x] Pass CIS Docker Benchmark Level 1
+- [x] Secrets never visible in logs/env
 
 ---
 
@@ -2305,6 +2305,33 @@ Reject → developer notified with feedback
 - [x] Accepted RC auto-promotes to release tag
 - [x] Full audit trail for compliance
 - [x] Slack notifications at each stage
+
+---
+
+## Milestone: v2.3 - Automated Code Gate
+
+### Phase 65: Automated Code Gate (Commit-Level Review) [ ]
+
+**Goal:** Non-negotiable code quality enforcement. Pre-commit static analysis + pre-push LLM-powered review. No PRs needed — the gate IS the review.
+
+**Deliverables:**
+- [ ] Code gate engine (fast static analysis)
+- [ ] 20+ built-in rules (structure, quality, security, tests)
+- [ ] Git hooks generator (pre-commit + pre-push)
+- [ ] LLM-powered push review (via multi-model router)
+- [ ] Push gate integration (static + LLM combined)
+- [ ] Gate configuration (per-project, per-role strictness)
+- [ ] Bypass audit trail
+- [ ] Dashboard GatePane component
+- [ ] `/tlc:gate` command
+
+**Test Coverage:** ~172 tests
+
+**Success Criteria:**
+- [ ] Every push triggers mandatory LLM code review
+- [ ] Non-dev code blocked with clear fix instructions
+- [ ] Bypass attempts logged and visible
+- [ ] Uses cheapest available LLM via router
 
 ---
 

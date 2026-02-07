@@ -4,7 +4,7 @@
  * Real-time cost tracking per agent, session, and day
  */
 
-const { describe, it, beforeEach, afterEach } = require('node:test');
+import { describe, it, beforeEach, afterEach } from 'vitest';
 const assert = require('node:assert');
 
 const {

@@ -1,4 +1,4 @@
-const { describe, it, beforeEach, mock } = require('node:test');
+import { describe, it, beforeEach, vi } from 'vitest';
 const assert = require('node:assert');
 const {
   wrapWithOrchestration,

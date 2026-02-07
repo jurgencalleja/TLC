@@ -4,7 +4,7 @@
  * Tests for configurable quality thresholds per operation
  */
 
-const { describe, it, beforeEach } = require('node:test');
+import { describe, it, beforeEach } from 'vitest';
 const assert = require('node:assert');
 
 const {

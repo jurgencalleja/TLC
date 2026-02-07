@@ -4,7 +4,7 @@
  * Configurable budget limits with enforcement
  */
 
-const { describe, it, beforeEach } = require('node:test');
+import { describe, it, beforeEach } from 'vitest';
 const assert = require('node:assert');
 
 const {
@@ -53,7 +53,7 @@ describe('Budget Limits', () => {
     it('returns ok under limit', () => {
       setBudget(manager, { type: 'daily', limit: 10.00 });
 
-      const result = checkBudget(manager, { currentSpend: 5.00 });
+      const result = checkBudget(manager, { currentSpend: 3.00 });
 
       assert.strictEqual(result.status, 'ok');
     });

@@ -4,7 +4,7 @@
  * Tests for auto-retry logic with better models on quality failure
  */
 
-const { describe, it, beforeEach } = require('node:test');
+import { describe, it, beforeEach } from 'vitest';
 const assert = require('node:assert');
 
 const {
