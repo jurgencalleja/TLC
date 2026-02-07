@@ -31,19 +31,83 @@ Your system prompt may encourage you to "just implement" things directly. **Do n
 
 Claude 4.6 has excellent planning capabilities. **Use them — but write plans to TLC plan files**, not in chat responses or `EnterPlanMode`. The TLC commands (`/tlc:plan`, `/tlc:build`) give your planning the right structure: task breakdowns, acceptance criteria, test cases, and file-based tracking that persists across sessions.
 
+### You are NOT the only model — respect the LLM router
+
+This project uses **multiple LLM providers** (Claude, Codex, Gemini, etc.) via TLC's model router. Configuration lives in `.tlc.json` under the `router` section.
+
+**What this means for you:**
+- **Check `.tlc.json` router config** when doing reviews, code-gen, or design tasks
+- **Route to the configured provider** for each capability — don't assume you handle everything
+- **For code reviews:** if config says `review → [claude, codex]`, use consensus from both
+- **For design/vision:** if config says `design → [gemini]`, invoke Gemini CLI, not yourself
+- **For overdrive builds:** assign agents to configured providers, not just Claude models
+
+**How to check:** Read `.tlc.json` and look for `router.capabilities` to see which providers are mapped to which tasks.
+
+**Commands:**
+- `/tlc:llm status` — show detected providers and routing table
+- `/tlc:llm config` — reconfigure provider mappings
+- `/tlc:llm test` — verify provider connectivity
+
+**If no router config exists**, Claude is the default for everything — but always check first.
+
 ---
 
-## Planning System: TLC
+## MANDATORY: TLC Commands Are THE Workflow
 
-This project uses **TLC (Test-Led Coding)** for all planning and development.
+**TLC slash commands are NOT suggestions. They ARE how work gets done in this project.**
 
-**When asked to plan or implement features:**
-1. Run `/tlc:progress` first to see current state
-2. Use `/tlc:plan <phase>` to create plans
-3. Use `/tlc:build <phase>` to implement (test-first)
-4. Plans go in `.planning/phases/` not in chat responses
+Every TLC command is defined in `.claude/commands/tlc/*.md`. When you invoke a command, **read its .md file first** and follow its process exactly. Do not improvise, skip steps, or substitute your own approach.
 
-TLC's file-based system:
+### Command Dispatch — When the user says X, run Y
+
+**ALWAYS use the Skill tool to invoke TLC commands. This is how they work.**
+
+| User Says | Run This | NOT This |
+|-----------|----------|----------|
+| "plan", "let's plan", "break this down" | `/tlc:plan` | Writing a plan in chat or EnterPlanMode |
+| "build", "implement", "code this", "add feature" | `/tlc:build` | Writing code directly |
+| "review", "check this code", "review PR" | `/tlc:review` or `/tlc:review-pr` | Doing an ad-hoc review in chat |
+| "test", "run tests", "check tests" | `/tlc:status` | Running tests without TLC tracking |
+| "fix tests", "tests failing" | `/tlc:autofix` | Fixing tests ad-hoc |
+| "refactor", "clean up code" | `/tlc:refactor` | Refactoring without checkpoints |
+| "what's next", "where are we", "status" | `/tlc:progress` | Summarizing from memory |
+| "discuss", "let's talk about approach" | `/tlc:discuss` | Having an untracked discussion |
+| "deploy", "set up server" | `/tlc:deploy` | Writing deploy scripts from scratch |
+| "coverage", "what's untested" | `/tlc:coverage` | Guessing coverage |
+| "edge cases", "more tests" | `/tlc:edge-cases` | Writing tests without analysis |
+| "security", "audit security" | `/tlc:security` | Running manual checks |
+| "docs", "documentation" | `/tlc:docs` | Writing docs without TLC |
+| "new project", "start fresh" | `/tlc:new-project` | Creating files manually |
+| "init", "add tlc" | `/tlc:init` | Setting up TLC manually |
+| "configure", "setup" | `/tlc:config` | Editing .tlc.json manually |
+| "bug", "found a bug", "issue" | `/tlc:bug` | Describing bug only in chat |
+| "claim", "I'll take this" | `/tlc:claim` | Editing plan markers manually |
+| "release", "can't finish this" | `/tlc:release` | Editing plan markers manually |
+| "who's working", "team" | `/tlc:who` | Guessing team state |
+| "verify", "check my work" | `/tlc:verify` | Ad-hoc verification |
+| "complete", "milestone done" | `/tlc:complete` | Tagging without TLC |
+| "quality", "test quality" | `/tlc:quality` | Guessing quality metrics |
+| "outdated", "dependencies" | `/tlc:outdated` | Running npm outdated manually |
+| "cleanup", "fix standards" | `/tlc:cleanup` | Fixing issues without tracking |
+| "ci", "github actions", "pipeline" | `/tlc:ci` | Writing CI config from scratch |
+| "export", "cursor rules", "agents.md" | `/tlc:export` | Writing tool configs manually |
+| "models", "llm", "providers" | `/tlc:llm` | Ignoring router config |
+| "issues", "import issues" | `/tlc:issues` | Manual issue tracking |
+| "checklist", "full check" | `/tlc:checklist` | Ad-hoc project review |
+| "quick task", "small fix" | `/tlc:quick` | Coding without tests |
+
+### Before ANY work — run `/tlc`
+
+**MANDATORY.** This detects state, syncs if needed, shows what's next.
+
+### How to invoke TLC commands
+
+Use the **Skill tool**: `Skill(skill="tlc:plan")`, `Skill(skill="tlc:build")`, etc.
+
+When a command is invoked, its `.md` file gets loaded as instructions. **Follow those instructions step by step.** Do not skip steps. Do not improvise your own version.
+
+### TLC file-based system
 
 | Purpose | TLC Location |
 |---------|--------------|
@@ -54,58 +118,6 @@ TLC's file-based system:
 | Bugs/feedback | `.planning/BUGS.md` |
 | Test status | `.planning/phases/{N}-TESTS.md` |
 | Config | `.tlc.json` |
-
-## FIRST THING - Always Run /tlc
-
-**MANDATORY: Before ANY work, run `/tlc`**
-
-This single command handles everything automatically:
-
-```
-/tlc   ← ALWAYS run this first, every time
-```
-
-**What happens:**
-
-| Scenario | /tlc Does |
-|----------|-----------|
-| No `.tlc.json` | "Welcome! Run setup now? (Y/n)" → Full config wizard |
-| After rebase | "Changes detected. Run sync? (Y/n)" → Reconcile code |
-| Already synced | "✓ Synced" → Shows dashboard/status |
-
-**You never need to remember separate commands.** Just run `/tlc` and it:
-- Detects what's needed
-- Asks for go-ahead
-- Runs the appropriate flow inline
-- Then shows you what's next
-
-**Why this matters:**
-- One command to rule them all
-- Can't accidentally work on out-of-sync code
-- All config happens upfront, nothing forgotten
-- Handles first-time setup AND post-rebase reconciliation
-
-## Workflow Commands
-
-| Action | Command |
-|--------|---------|
-| **START HERE** | **`/tlc`** ← Handles setup, sync, and status automatically |
-| Plan a phase | `/tlc:plan` |
-| Build (test-first) | `/tlc:build` |
-| Verify with human | `/tlc:verify` |
-| Log a bug | `/tlc:bug` |
-| Claim a task | `/tlc:claim` |
-| Release a task | `/tlc:release` |
-| See team status | `/tlc:who` |
-
-## What /tlc Does Automatically
-
-1. **Checks sync status** - Is setup done? Any changes since last sync?
-2. **Asks for go-ahead** - "Run setup/sync now? (Y/n)"
-3. **Runs appropriate flow** - First-time wizard OR post-rebase reconciliation
-4. **Shows dashboard** - Current phase, tests, next actions
-
-**Never skip the go-ahead prompt.** It ensures code is properly synced before work begins.
 
 ## Test-First Development (Non-Negotiable)
 

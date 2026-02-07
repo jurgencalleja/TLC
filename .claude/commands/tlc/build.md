@@ -233,6 +233,12 @@ Options:
 
 Override with `--model sonnet` to force all agents to the same model.
 
+**Router-aware model selection:**
+Before assigning models, check `.tlc.json` for `router.providers` and `router.capabilities`. If the project has a router config, respect it:
+- Use configured providers for their assigned capabilities (e.g., Gemini for design tasks)
+- Fall back to the complexity table above only when no router config exists
+- Run `/tlc:llm status` to see current routing
+
 **If tasks have dependencies (waterfall):**
 ```
 📋 Sequential Mode
