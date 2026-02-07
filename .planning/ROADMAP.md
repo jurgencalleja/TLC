@@ -2335,6 +2335,33 @@ Reject → developer notified with feedback
 
 ---
 
+### Phase 66: Battle-Tested Code Gate Rules [x]
+
+**Goal:** Rules derived from 34 real-world bugs and 43 lessons learned from production KashaCH project.
+
+**Deliverables:**
+- [x] Architecture rules (single-writer, fake API, stale re-exports, raw API bypass)
+- [x] Database rules (new Date() in .set(), inline billing math)
+- [x] Docker rules (external volumes, missing names, dangerous commands)
+
+**Test Coverage:** 38 tests
+
+**Real-World Bugs Prevented:**
+- [x] Bug #30: Single-writer violations (7 service-layer bypasses)
+- [x] Bug #1: Fake API calls with setTimeout
+- [x] Bug #29: Missing VAT from copy-paste billing math
+- [x] Bug #27: Docker volume wipe by AI
+- [x] Lesson #3: new Date() vs sql`now()` timestamp drift
+- [x] Lesson #1: Raw apiRequest() bypassing API helpers
+
+**Success Criteria:**
+- [x] Single-writer violations blocked at commit time
+- [x] Timestamp drift prevented in ORM calls
+- [x] Docker data loss patterns caught before push
+- [x] AI code generator anti-patterns detected
+
+---
+
 ## Milestone: v3.0 - TLC Standalone
 
 Run TLC without Claude Code. Use any available LLM (Codex CLI, Gemini CLI, API providers, LiteLLM) to execute TLC workflows from the terminal.
