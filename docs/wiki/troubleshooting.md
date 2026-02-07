@@ -43,7 +43,7 @@ ls ~/.claude/commands/tlc/
 sudo chown -R $(whoami) $(npm config get prefix)/{lib/node_modules,bin,share}
 
 # Option 2: Use nvm
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v1.6.2/install.sh | bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v1.6.3/install.sh | bash
 nvm install node
 ```
 
