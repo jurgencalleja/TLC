@@ -2308,9 +2308,47 @@ Reject → developer notified with feedback
 
 ---
 
-## Future Milestones (v3.x)
+## Milestone: v3.0 - TLC Standalone
 
-### v3.0 - Ecosystem
+Run TLC without Claude Code. Use any available LLM (Codex CLI, Gemini CLI, API providers, LiteLLM) to execute TLC workflows from the terminal.
+
+### Phase 64: TLC Standalone [ ]
+
+**Goal:** Terminal-based TLC runner that uses the LLM router to invoke whatever CLI/API is available locally.
+
+**Problem:** When Claude credits run out, TLC stops working. Codex CLI, Gemini CLI, and other models are available but TLC can't use them.
+
+**Deliverables:**
+- [ ] Provider execution bridge (connect stubs to real CLI/API providers)
+- [ ] Standalone CLI entry point (`tlc` binary)
+- [ ] Prompt builder (TLC commands → provider-agnostic prompts)
+- [ ] Response parser (LLM output → TLC artifacts)
+- [ ] File writer (apply changes safely)
+- [ ] Command handlers (plan, build, status, review, test)
+- [ ] Terminal UI (pure ANSI, no Ink)
+- [ ] Provider health & smart selection
+- [ ] First-run setup and configuration
+- [ ] npm package (`npx tlc-standalone`)
+
+**Builds On:**
+- Phase 33: Model Router (provider interface, CLI detection, routing)
+- Phase 34: Cost Controller (budget tracking)
+- Phase 58: LiteLLM Gateway (unified API proxy)
+
+**Test Coverage:** ~100 tests
+
+**Success Criteria:**
+- [ ] `npx tlc-standalone plan 5` works with Codex CLI
+- [ ] `npx tlc-standalone build 5` enforces test-first with any LLM
+- [ ] Automatic provider selection (best available)
+- [ ] Works when Claude is unavailable
+- [ ] Same `.planning/` artifacts as Claude Code mode
+
+---
+
+## Future Milestones (v3.x+)
+
+### v3.1 - Ecosystem
 - MCP tool publishing
 - Plugin marketplace
 - Custom agent definitions
