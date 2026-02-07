@@ -40,7 +40,7 @@ Non-dev team members are pushing code directly to the branch without review. Sin
 
 ## Tasks
 
-### Task 1: Code Gate Engine [ ]
+### Task 1: Code Gate Engine [x]
 
 **Goal:** Fast static analysis engine that checks changed files against rules.
 
@@ -66,7 +66,7 @@ Non-dev team members are pushing code directly to the branch without review. Sin
 
 ---
 
-### Task 2: Built-in Rule Set [ ]
+### Task 2: Built-in Rule Set [x]
 
 **Goal:** Comprehensive rules based on CODING-STANDARDS.md + best practices.
 
@@ -116,7 +116,7 @@ Test Rules:
 
 ---
 
-### Task 3: Git Hooks Generator [ ]
+### Task 3: Git Hooks Generator [x]
 
 **Goal:** Generate and install git hooks that run the code gate.
 
@@ -143,7 +143,7 @@ Test Rules:
 
 ---
 
-### Task 4: Gate Configuration [ ]
+### Task 4: Gate Configuration [x]
 
 **Goal:** Per-project gate configuration in .tlc.json.
 
@@ -191,7 +191,7 @@ Test Rules:
 
 ---
 
-### Task 5: Gate Report Formatter [ ]
+### Task 5: Gate Report Formatter [x]
 
 **Goal:** Clear, actionable output when gate blocks a commit.
 
@@ -240,7 +240,7 @@ Commit blocked. Fix blocking issues or use --no-verify (logged).
 
 ---
 
-### Task 6: TLC Gate Command [ ]
+### Task 6: TLC Gate Command [x]
 
 **Goal:** `/tlc:gate` command to install, configure, and run the code gate.
 
@@ -263,7 +263,7 @@ Commit blocked. Fix blocking issues or use --no-verify (logged).
 
 ---
 
-### Task 7: Audit Trail for Bypasses [ ]
+### Task 7: Audit Trail for Bypasses [x]
 
 **Goal:** Log when someone uses `--no-verify` to bypass the gate.
 
@@ -286,7 +286,7 @@ Commit blocked. Fix blocking issues or use --no-verify (logged).
 
 ---
 
-### Task 8: Dashboard GatePane Component [ ]
+### Task 8: Dashboard GatePane Component [x]
 
 **Goal:** Dashboard view showing code gate status and history.
 
@@ -309,7 +309,7 @@ Commit blocked. Fix blocking issues or use --no-verify (logged).
 
 ---
 
-### Task 9: LLM-Powered Push Review [ ]
+### Task 9: LLM-Powered Push Review [x]
 
 **Goal:** Mandatory LLM code review before every push, using multi-model router.
 
@@ -364,7 +364,7 @@ Block on: security issues, missing tests, hardcoded secrets, major anti-patterns
 
 ---
 
-### Task 10: Push Gate Integration [ ]
+### Task 10: Push Gate Integration [x]
 
 **Goal:** Wire the LLM reviewer into the pre-push hook as mandatory step.
 

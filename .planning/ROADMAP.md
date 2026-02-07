@@ -2310,28 +2310,28 @@ Reject → developer notified with feedback
 
 ## Milestone: v2.3 - Automated Code Gate
 
-### Phase 65: Automated Code Gate (Commit-Level Review) [ ]
+### Phase 65: Automated Code Gate (Commit-Level Review) [x]
 
 **Goal:** Non-negotiable code quality enforcement. Pre-commit static analysis + pre-push LLM-powered review. No PRs needed — the gate IS the review.
 
 **Deliverables:**
-- [ ] Code gate engine (fast static analysis)
-- [ ] 20+ built-in rules (structure, quality, security, tests)
-- [ ] Git hooks generator (pre-commit + pre-push)
-- [ ] LLM-powered push review (via multi-model router)
-- [ ] Push gate integration (static + LLM combined)
-- [ ] Gate configuration (per-project, per-role strictness)
-- [ ] Bypass audit trail
-- [ ] Dashboard GatePane component
-- [ ] `/tlc:gate` command
+- [x] Code gate engine (fast static analysis)
+- [x] 20+ built-in rules (structure, quality, security, tests)
+- [x] Git hooks generator (pre-commit + pre-push)
+- [x] LLM-powered push review (via multi-model router)
+- [x] Push gate integration (static + LLM combined)
+- [x] Gate configuration (per-project, per-role strictness)
+- [x] Bypass audit trail
+- [x] Dashboard GatePane component
+- [x] `/tlc:gate` command
 
-**Test Coverage:** ~172 tests
+**Test Coverage:** 184 tests
 
 **Success Criteria:**
-- [ ] Every push triggers mandatory LLM code review
-- [ ] Non-dev code blocked with clear fix instructions
-- [ ] Bypass attempts logged and visible
-- [ ] Uses cheapest available LLM via router
+- [x] Every push triggers mandatory LLM code review
+- [x] Non-dev code blocked with clear fix instructions
+- [x] Bypass attempts logged and visible
+- [x] Uses cheapest available LLM via router
 
 ---
 
