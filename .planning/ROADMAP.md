@@ -2394,6 +2394,22 @@ Reject → developer notified with feedback
 
 ---
 
+### Phase 68: Production Lessons Integration [x]
+
+**Goal:** Five features derived from real-world KashaCH project experience: auto-audit on first commit, multi-model reviews, cleanup dry-run, infrastructure templates, and a learning registry.
+
+**Deliverables:**
+- [x] First-Commit Audit Hook — auto-run audit on first gate check
+- [x] Multi-Model Review — send code to 2+ LLMs, aggregate with consensus scoring
+- [x] Cleanup Dry-Run — preview /tlc:cleanup changes without side effects
+- [x] Infrastructure Blueprint Generator — generate docker-compose with selectable services
+- [x] Wall of Shame Registry — document bugs with root causes, suggest gate rules
+
+**Files:** 10 new (5 modules + 5 test files)
+**Tests:** 63
+
+---
+
 ## Milestone: v3.0 - TLC Standalone
 
 Run TLC without Claude Code. Use any available LLM (Codex CLI, Gemini CLI, API providers, LiteLLM) to execute TLC workflows from the terminal.
