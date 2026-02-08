@@ -2410,6 +2410,22 @@ Reject → developer notified with feedback
 
 ---
 
+### Phase 69: Standalone LLM Service [x]
+
+**Goal:** Redesign the LLM router from a CLI-detection config tool into a real execution service. Configure a provider, it works — no Claude dependency.
+
+**Deliverables:**
+- [x] Provider Executor — actually runs CLI/API providers (spawn + HTTP)
+- [x] Provider Registry — live health tracking with cache TTL
+- [x] CLI Adapters — Codex, Gemini, API (OpenAI-compatible)
+- [x] Unified Review Service — router → executor → prompt → parse → findings
+- [x] Integration Wiring — createLLMService(config) → { review, execute, health }
+
+**Files:** 14 new (7 modules + 7 test files)
+**Tests:** 64
+
+---
+
 ## Milestone: v3.0 - TLC Standalone
 
 Run TLC without Claude Code. Use any available LLM (Codex CLI, Gemini CLI, API providers, LiteLLM) to execute TLC workflows from the terminal.
