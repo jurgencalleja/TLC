@@ -1,0 +1,10 @@
+# Only node_modules excluded from npm pack
+# dist/ must NOT be listed here - it's needed in the parent package
+node_modules
+src
+*.test.*
+*.spec.*
+coverage
+.env
+.env.*
+*.local
