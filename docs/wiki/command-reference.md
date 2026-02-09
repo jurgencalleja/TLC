@@ -90,6 +90,38 @@ Detects:
 
 Creates TLC artifacts without disrupting existing setup.
 
+### /tlc:import-project
+
+**Import multi-repo architecture** and analyze coverage across services.
+
+```bash
+/tlc:import-project myorg                          # Scan entire org
+/tlc:import-project myorg/auth,myorg/payments      # Specific repos
+/tlc:import-project --file repos.txt               # From file
+```
+
+Process:
+- Clones repos (shallow `--depth=1`)
+- Detects stack and test framework per repo
+- Runs coverage analysis per repo
+- Identifies critical untested paths (auth, payments, mutations)
+- Generates unified `COVERAGE-REPORT.md` and `BACKLOG.md`
+
+Supports: Node.js, Python, Go, Rust. Requires `gh auth status`.
+
+### /tlc:sync
+
+**Unified entry point** for TLC adoption and codebase synchronization.
+
+```bash
+/tlc:sync
+```
+
+Auto-detects scenario:
+- **First-time adoption** → Complete onboarding questionnaire (frameworks, git, team, quality, CI)
+- **Post-rebase** → Auto-syncs tracking, notes untested code for backlog
+- **Integrate main** → Reads changes from main, rebuilds in branch context
+
 ---
 
 ## Planning
@@ -163,6 +195,22 @@ Shows:
 - Coverage percentage
 - Failed test details
 
+### /tlc:quick
+
+**Quick task with tests** — for ad-hoc work that doesn't need full phase planning.
+
+```bash
+/tlc:quick
+```
+
+Workflow:
+1. Ask what you want to do
+2. Write a failing test for it
+3. Implement to pass the test
+4. Verify test passes
+
+Use for: bug fixes, small features, config changes, one-off tasks.
+
 ---
 
 ## Quality
@@ -221,6 +269,82 @@ Retry loop:
 2. Analyze failures
 3. Apply fixes
 4. Repeat until pass or max attempts
+
+### /tlc:checklist
+
+**Full project checklist** — comprehensive status across all phases.
+
+```bash
+/tlc:checklist
+```
+
+Displays:
+- Project setup status (PROJECT.md, .tlc.json, git, CI)
+- Phase-by-phase completion (discussed, planned, tested, implemented, verified)
+- Skipped steps requiring action
+- Quality metrics summary (coverage, test counts, quality score)
+- Recommended workflow actions
+
+### /tlc:cleanup
+
+**Automatic standards cleanup** — fix all coding standards violations with zero prompts.
+
+```bash
+/tlc:cleanup
+```
+
+Auto-fixes:
+- Hardcoded config → environment variables
+- Flat folders → entity-based structure
+- Inline interfaces → types/ files
+- Magic strings → constants
+- Missing JSDoc → added documentation
+
+Commits after each module fixed. No confirmation needed.
+
+### /tlc:refactor
+
+**Step-by-step standards refactoring** — fix violations with previews and checkpoints.
+
+```bash
+/tlc:refactor
+```
+
+Unlike `/tlc:cleanup` (fully automatic), `/tlc:refactor`:
+- Shows BEFORE/AFTER preview for each change
+- Waits for confirmation (Apply / Skip / Quit)
+- Saves checkpoints for resume later
+- Commits per step
+
+### /tlc:security
+
+**Security audit** on dependencies and code.
+
+```bash
+/tlc:security
+```
+
+Process:
+- Detects package manager (npm, pip, bundler, go, cargo)
+- Runs appropriate audit command
+- Categorizes vulnerabilities by severity (Critical/High/Moderate/Low)
+- Suggests fixes and optionally auto-applies safe updates
+- Runs tests after fixes to verify
+
+### /tlc:outdated
+
+**Check outdated dependencies** and generate safe update plan.
+
+```bash
+/tlc:outdated
+```
+
+Categorizes by update type:
+- **Patch** (1.0.0 → 1.0.1) — bug fixes, safe to apply
+- **Minor** (1.0.0 → 1.1.0) — new features, backwards compatible
+- **Major** (1.0.0 → 2.0.0) — breaking changes, review needed
+
+Supports: npm, pip, bundler, go, cargo. Runs tests after updates.
 
 ---
 
@@ -445,6 +569,47 @@ Interactive setup for:
 - Primary test framework
 - Additional frameworks
 - Custom test commands
+
+### /tlc:llm
+
+**Multi-model configuration** — manage LLM providers and task routing.
+
+```bash
+/tlc:llm status    # Show detected providers and routing table
+/tlc:llm config    # Interactive setup wizard
+/tlc:llm models    # List available models
+/tlc:llm test      # Test all configured providers
+```
+
+Supported providers:
+- Claude (opus, sonnet, haiku)
+- OpenAI/Codex (gpt-5.3-codex, gpt-5, o3)
+- Gemini (gemini-3, gemini-2.5-pro)
+- DeepSeek (deepseek-r1, deepseek-chat)
+
+Configuration stored in `.tlc.json` under `router` section.
+
+---
+
+## Documentation
+
+### /tlc:docs
+
+**Documentation maintenance** — auto-update versions, API docs, screenshots, and wiki.
+
+```bash
+/tlc:docs                # Full update (versions, API, screenshots, links)
+/tlc:docs setup          # First-time setup automation
+/tlc:docs screenshots    # Capture app screenshots via Playwright
+/tlc:docs readme         # Update README
+/tlc:docs api            # Generate API docs (TypeDoc)
+```
+
+Features:
+- Automatic sync to GitHub Wiki via Actions
+- Configurable screenshot URLs in `.tlc.json`
+- TypeDoc auto-detection for TypeScript projects
+- npm run scripts added automatically
 
 ---
 
