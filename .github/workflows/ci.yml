@@ -53,11 +53,15 @@ jobs:
       - name: Install dashboard dependencies
         run: cd dashboard && npm ci
 
-      - name: Build dashboard
-        run: npm run build
+      - name: Install dashboard-web dependencies
+        run: cd dashboard-web && npm ci
+
+      - name: Build dashboards
+        run: npm run build && npm run build:web
 
       - name: Verify package contents
-        run: npm pack --dry-run
+        run: |
+          npm pack --dry-run 2>&1 | grep "dashboard-web/dist" || { echo "ERROR: dashboard-web/dist missing from package"; exit 1; }
 
   publish:
     name: Publish to npm
@@ -86,8 +90,11 @@ jobs:
       - name: Install dashboard dependencies
         run: cd dashboard && npm ci
 
+      - name: Install dashboard-web dependencies
+        run: cd dashboard-web && npm ci
+
       - name: Build
-        run: npm run build
+        run: npm run build && npm run build:web
 
       - name: Publish
         run: npm publish --provenance --access public
