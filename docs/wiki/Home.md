@@ -53,7 +53,7 @@ tlc
 | `/tlc:verify` | Human verification |
 | `/tlc:status` | Check test status |
 
-**New in v1.8.0:** `/tlc:build` now automatically parallelizes independent tasks with Opus 4.6 model selection (opus/sonnet/haiku per task complexity). No flags needed.
+**New in v1.8.1:** `/tlc:build` now automatically parallelizes independent tasks with Opus 4.6 model selection (opus/sonnet/haiku per task complexity). No flags needed.
 
 ## For Teams
 
