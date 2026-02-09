@@ -12,6 +12,8 @@ tlc-start.sh
 
 # Build output
 dashboard/dist/
+dashboard-web/dist/
+dashboard-web/node_modules/
 
 # OS files
 .DS_Store

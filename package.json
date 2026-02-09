@@ -12,6 +12,7 @@
     ".claude/commands/",
     "dashboard/dist/",
     "dashboard/package.json",
+    "dashboard-web/dist/",
     "server/index.js",
     "server/lib/",
     "server/dashboard/",
@@ -31,7 +32,8 @@
   "scripts": {
     "postinstall": "node bin/postinstall.js",
     "build": "cd dashboard && npm run build",
-    "prepublishOnly": "npm run build",
+    "build:web": "cd dashboard-web && npm install && npm run build",
+    "prepublishOnly": "npm run build && npm run build:web",
     "docs": "node scripts/docs-update.js",
     "docs:check": "node scripts/docs-update.js --check",
     "docs:screenshots": "node scripts/generate-screenshots.js",

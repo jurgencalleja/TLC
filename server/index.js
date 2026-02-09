@@ -424,7 +424,16 @@ app.get('/api/roles', (req, res) => {
 });
 
 // Serve static files (after auth middleware)
-app.use(express.static(path.join(__dirname, 'dashboard')));
+// Prefer dashboard-web build (React SPA) over legacy static HTML
+const dashboardWebDist = path.join(__dirname, '..', 'dashboard-web', 'dist');
+const legacyDashboard = path.join(__dirname, 'dashboard');
+if (fs.existsSync(dashboardWebDist)) {
+  app.use(express.static(dashboardWebDist));
+  console.log('[TLC] Serving dashboard from dashboard-web/dist/');
+} else {
+  app.use(express.static(legacyDashboard));
+  console.log('[TLC] Serving legacy dashboard from server/dashboard/');
+}
 
 // Broadcast to all WebSocket clients
 function broadcast(type, data) {
@@ -1348,6 +1357,18 @@ app.post('/api/restart', (req, res) => {
   startApp();
   res.json({ success: true });
 });
+
+// SPA catch-all: serve index.html for client-side routes (React Router)
+// Must be after all API routes, before app proxy
+if (fs.existsSync(dashboardWebDist)) {
+  app.get(/^\/(?!api|app|login).*/, (req, res) => {
+    // Don't catch file requests (has extension)
+    if (path.extname(req.path)) {
+      return res.status(404).end();
+    }
+    res.sendFile(path.join(dashboardWebDist, 'index.html'));
+  });
+}
 
 // Proxy to running app
 app.use('/app', createProxyMiddleware({
