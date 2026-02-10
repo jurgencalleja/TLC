@@ -57,6 +57,7 @@ const EXTERNAL_APP_PORT = parseInt(process.env.TLC_APP_PORT || '5000');
 // State
 let appProcess = null;
 let appPort = 3000;
+let appIsDocker = false; // true when app is Docker-managed (no local process)
 let wsClients = new Set();
 const logs = { app: [], test: [], git: [] };
 const commandHistory = [];
@@ -485,6 +486,19 @@ async function startApp() {
 
   appPort = project.port;
   addLog('app', `Detected: ${project.name}`, 'info');
+
+  // Docker-managed apps: don't spawn, just proxy
+  if (project.type === 'docker') {
+    appIsDocker = true;
+    addLog('app', `App is Docker-managed — proxying to port ${appPort}`, 'info');
+    if (project.url) {
+      addLog('app', `App URL: ${project.url}`, 'info');
+    }
+    addLog('app', 'TLC will not spawn the app. Use Docker to manage it.', 'info');
+    broadcast('app-start', { port: appPort });
+    return;
+  }
+
   addLog('app', `Command: ${project.cmd} ${project.args.join(' ')}`, 'info');
   addLog('app', `Port: ${appPort}`, 'info');
 
@@ -673,7 +687,7 @@ app.get('/api/status', (req, res) => {
   const plan = parsePlan(PROJECT_DIR);
 
   res.json({
-    appRunning: appProcess !== null,
+    appRunning: appProcess !== null || appIsDocker,
     appPort,
     testsPass: plan.testsPass || 0,
     testsFail: plan.testsFail || 0,
@@ -1087,7 +1101,7 @@ app.get('/api/health', (req, res) => {
       heapUsed: memUsage.heapUsed,
       heapTotal: memUsage.heapTotal,
     },
-    appRunning: appProcess !== null,
+    appRunning: appProcess !== null || appIsDocker,
     appPort,
   });
 });
@@ -1486,7 +1500,7 @@ function getHealthData() {
     memory: memUsed,
     cpu: Math.min(cpuPercent, 100),
     uptime: process.uptime(),
-    appRunning: appProcess !== null,
+    appRunning: appProcess !== null || appIsDocker,
     appPort: appPort
   };
 }

@@ -10,6 +10,33 @@ function detectProject(projectDir) {
   if (fs.existsSync(tlcConfigPath)) {
     try {
       const config = JSON.parse(fs.readFileSync(tlcConfigPath, 'utf-8'));
+
+      // Check devServer config (Docker-managed apps)
+      if (config.devServer) {
+        if (config.devServer.type === 'docker') {
+          return {
+            name: 'Docker-managed (' + (config.devServer.containerName || 'docker') + ')',
+            type: 'docker',
+            cmd: null,
+            args: [],
+            port: config.devServer.port || config.devServer.internalPort || 5000,
+            healthCheck: config.devServer.healthCheck || null,
+            url: config.devServer.url || null
+          };
+        }
+        // Non-docker devServer with explicit start command
+        if (config.devServer.startCommand) {
+          const parts = config.devServer.startCommand.split(' ');
+          return {
+            name: 'Custom (.tlc.json devServer)',
+            cmd: parts[0],
+            args: parts.slice(1),
+            port: config.devServer.port || 3000
+          };
+        }
+      }
+
+      // Legacy: check server config
       if (config.server?.startCommand) {
         const parts = config.server.startCommand.split(' ');
         return {
