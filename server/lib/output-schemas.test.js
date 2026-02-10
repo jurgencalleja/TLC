@@ -1,4 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { mkdirSync, writeFileSync, rmSync } from 'fs';
+import { join } from 'path';
 import {
   loadSchema,
   validateOutput,
@@ -9,8 +11,20 @@ import {
   schemaToPromptInstructions,
 } from './output-schemas.js';
 
+const schemasDir = join(process.cwd(), '.tlc', 'schemas');
+const testSchema = { type: 'object', required: ['summary'], properties: { summary: { type: 'string' } } };
+
 describe('Output Schemas', () => {
   describe('loadSchema', () => {
+    beforeEach(() => {
+      mkdirSync(schemasDir, { recursive: true });
+      writeFileSync(join(schemasDir, 'review-result.json'), JSON.stringify(testSchema));
+    });
+
+    afterEach(() => {
+      rmSync(join(schemasDir, 'review-result.json'), { force: true });
+    });
+
     it('reads from file', async () => {
       const schema = await loadSchema('review-result');
       expect(schema).toBeDefined();
