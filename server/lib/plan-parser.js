@@ -18,7 +18,7 @@ function parsePlan(projectDir) {
   if (fs.existsSync(roadmapPath)) {
     const content = fs.readFileSync(roadmapPath, 'utf-8');
 
-    // Find first incomplete phase
+    // Format 1: ## Phase N: Name [x] (heading format)
     const phaseMatches = content.matchAll(/##\s+Phase\s+(\d+)(?:\.(\d+))?[:\s]+(.+?)(?:\s*\[([x ])\])?$/gm);
     for (const match of phaseMatches) {
       const phaseNum = match[2] ? `${match[1]}.${match[2]}` : match[1];
@@ -31,16 +31,42 @@ function parsePlan(projectDir) {
         break;
       }
     }
+
+    // Format 2: Table format | 01 | [Name](link) | status | description |
+    if (!result.currentPhase) {
+      const tableMatches = content.matchAll(/\|\s*(\d+)\s*\|\s*\[([^\]]+)\][^\|]*\|\s*(\w+)\s*\|/g);
+      for (const match of tableMatches) {
+        const phaseNum = match[1].replace(/^0+/, '') || '0'; // strip leading zeros
+        const phaseName = match[2].trim();
+        const status = match[3].trim().toLowerCase();
+        const completed = status === 'complete' || status === 'done' || status === 'verified';
+
+        if (!completed) {
+          result.currentPhase = phaseNum;
+          result.currentPhaseName = phaseName;
+          break;
+        }
+      }
+    }
   }
 
   // Load current phase PLAN.md
   if (result.currentPhase) {
-    const planPath = path.join(
-      projectDir,
-      '.planning',
-      'phases',
-      `${result.currentPhase}-PLAN.md`
-    );
+    const phasesDir = path.join(projectDir, '.planning', 'phases');
+    let planPath = path.join(phasesDir, `${result.currentPhase}-PLAN.md`);
+
+    // Try exact match first, then glob for prefixed names like "06-name-PLAN.md"
+    if (!fs.existsSync(planPath) && fs.existsSync(phasesDir)) {
+      const padded = result.currentPhase.toString().padStart(2, '0');
+      const files = fs.readdirSync(phasesDir);
+      const match = files.find(f =>
+        (f.startsWith(`${padded}-`) || f.startsWith(`${result.currentPhase}-`)) &&
+        f.endsWith('-PLAN.md')
+      );
+      if (match) {
+        planPath = path.join(phasesDir, match);
+      }
+    }
 
     if (fs.existsSync(planPath)) {
       const content = fs.readFileSync(planPath, 'utf-8');

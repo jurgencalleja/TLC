@@ -649,10 +649,22 @@ app.get('/api/project', (req, res) => {
     const roadmapPath = path.join(PROJECT_DIR, '.planning', 'ROADMAP.md');
     if (fs.existsSync(roadmapPath)) {
       const content = fs.readFileSync(roadmapPath, 'utf-8');
-      const phases = content.match(/##\s+Phase\s+\d+/g) || [];
-      totalPhases = phases.length;
-      const completed = content.match(/##\s+Phase\s+\d+[^[]*\[x\]/gi) || [];
-      completedPhases = completed.length;
+
+      // Format 1: ## Phase N heading format
+      const headingPhases = content.match(/##\s+Phase\s+\d+/g) || [];
+      const headingCompleted = content.match(/##\s+Phase\s+\d+[^[]*\[x\]/gi) || [];
+
+      // Format 2: Table format | N | [Name](link) | status |
+      const tablePhases = content.match(/\|\s*\d+\s*\|\s*\[[^\]]+\][^\|]*\|\s*\w+\s*\|/g) || [];
+      const tableCompleted = (content.match(/\|\s*\d+\s*\|\s*\[[^\]]+\][^\|]*\|\s*(?:complete|done|verified)\s*\|/gi) || []);
+
+      if (headingPhases.length > 0) {
+        totalPhases = headingPhases.length;
+        completedPhases = headingCompleted.length;
+      } else if (tablePhases.length > 0) {
+        totalPhases = tablePhases.length;
+        completedPhases = tableCompleted.length;
+      }
     }
 
     // Calculate progress
