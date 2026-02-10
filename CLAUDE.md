@@ -96,6 +96,7 @@ Every TLC command is defined in `.claude/commands/tlc/*.md`. When you invoke a c
 | "issues", "import issues" | `/tlc:issues` | Manual issue tracking |
 | "checklist", "full check" | `/tlc:checklist` | Ad-hoc project review |
 | "quick task", "small fix" | `/tlc:quick` | Coding without tests |
+| "dashboard", "start dashboard", "dashboard container" | `/tlc:dashboard` | Running docker-compose manually |
 
 ### Before ANY work — run `/tlc`
 

@@ -1,0 +1,38 @@
+# TLC Dashboard
+# This file is yours — customize freely. TLC will never overwrite it.
+# Docs: https://github.com/jurgencalleja/TLC/wiki/devserver
+#
+# Usage:
+#   docker compose -f docker-compose.tlc.yml up -d      # start
+#   docker compose -f docker-compose.tlc.yml down        # stop
+#   docker compose -f docker-compose.tlc.yml logs -f     # logs
+#
+# Or use: /tlc:dashboard (start | stop | rebuild | logs | status)
+
+services:
+  dashboard:
+    image: node:20-alpine
+    container_name: tlc-dashboard
+    working_dir: /project
+    command: >
+      sh -c "
+        echo '[TLC] Installing tlc-claude-code...' &&
+        npm install -g tlc-claude-code@latest &&
+        TLC_DIR=$$(npm root -g)/tlc-claude-code &&
+        ls $$TLC_DIR/dashboard-web/dist/index.html && echo '[TLC] React SPA ready' || echo '[TLC] WARNING: dashboard-web/dist not found' &&
+        echo '[TLC] Starting dashboard on port 3147...' &&
+        cd /project && node $$TLC_DIR/server/index.js
+      "
+    environment:
+      - TLC_PORT=3147
+      - TLC_AUTH=false
+      # Uncomment to enable authentication:
+      # - TLC_AUTH=true
+      # - TLC_AUTH_PASSWORD=your-password
+      # Uncomment to proxy your app:
+      # - TLC_APP_PORT=3000
+    ports:
+      - "${DASHBOARD_PORT:-3147}:3147"
+    volumes:
+      - .:/project
+    restart: on-failure

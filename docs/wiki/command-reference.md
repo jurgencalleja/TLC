@@ -526,9 +526,23 @@ Provides:
 - `localhost:5001` - Your app
 - `localhost:8081` - DB Studio (pgweb, or Drizzle/Prisma Studio)
 
+### /tlc:dashboard
+
+**Standalone dashboard container** — runs the React SPA dashboard in any project via Docker.
+
+```bash
+/tlc:dashboard              # Start (generates docker-compose.tlc.yml on first run)
+/tlc:dashboard stop         # Stop the container
+/tlc:dashboard rebuild      # Pull latest TLC and rebuild
+/tlc:dashboard logs         # Tail dashboard logs
+/tlc:dashboard status       # Show container status
+```
+
+On first run, copies `docker-compose.tlc.yml` to your project root. This file is yours — customize ports, environment, volumes freely. TLC will never overwrite it.
+
 ### /tlc:server
 
-**Server management**.
+**Server management** (deprecated — use `/tlc:start` or `/tlc:dashboard`).
 
 ```bash
 /tlc:server status     # Check status
