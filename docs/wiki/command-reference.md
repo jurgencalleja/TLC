@@ -6,13 +6,14 @@ Complete reference for all TLC slash commands.
 
 ### /tlc
 
-**Smart entry point** - Analyzes project state and shows full dashboard.
+**Smart entry point** - Detects state, upgrades config, shows dashboard.
 
 ```bash
 /tlc
 ```
 
 What it does:
+- **TLC upgraded?** → Auto-merges new config sections, syncs commands, offers LLM setup
 - No project? → Offers `/tlc:new-project` or `/tlc:init`
 - No roadmap? → Offers `/tlc:plan`
 - Phase planned? → Offers `/tlc:build`
