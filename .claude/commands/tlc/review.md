@@ -112,6 +112,65 @@ Scan diff for common security issues:
 
 **Fail if:** Any HIGH severity issues found.
 
+### Step 5b: Coding Standards Check
+
+Scan all changed/added files for coding standards violations:
+
+#### File Size Check
+```bash
+# For each changed implementation file
+wc -l <file>
+# >1000 lines = ERROR, 500-1000 = WARNING
+```
+
+#### Folder Size Check
+```bash
+# For each folder containing changed files
+ls <folder> | wc -l
+# >15 files = ERROR, 8-15 = WARNING
+```
+
+#### Strict Typing Check
+```bash
+# Scan changed .ts/.tsx files for `any` type
+grep -n ': any' <file>
+grep -n 'as any' <file>
+grep -n '<any>' <file>
+# Any match = ERROR
+```
+
+#### Return Type Check
+```bash
+# Scan changed .ts/.tsx files for exported functions missing return types
+# Pattern: export function name(params) {   (no : ReturnType before {)
+grep -n 'export function.*)[[:space:]]*{' <file>
+grep -n 'export const.*=.*=>.*{' <file>
+# Missing return type on exported function = WARNING
+```
+
+#### Module Structure Check
+```
+# Flag flat folder anti-patterns in changed files:
+# - src/services/ with >5 unrelated services → should be modules/{entity}/
+# - src/controllers/ with >5 controllers → should be modules/{entity}/
+# - src/interfaces/ at project root → should be per-module interfaces/
+```
+
+**Standards results in report:**
+```
+Coding Standards:
+  File Sizes: ✅ All under 1000 lines
+  Folder Sizes: ✅ All under 15 files
+  Strict Typing: ❌ 3 `any` types found
+  ├── src/api/users.controller.ts:45
+  ├── src/api/users.controller.ts:89
+  └── src/services/email.ts:12
+  Return Types: ⚠️ 2 missing on exports
+  Module Structure: ✅ Domain-grouped
+```
+
+**Fail if:** Any `any` types in new code, or files >1000 lines.
+
 ### Step 6: Invoke External Providers (Codex, Gemini)
 
 **CRITICAL: This step runs automatically when providers are configured.**
@@ -220,6 +279,9 @@ Invoking Codex (GPT-5.2) for review...
 - ✅ All changed files have tests
 - ✅ TDD score: 75%
 - ✅ No security issues detected
+- ✅ All files under 1000 lines
+- ✅ No `any` types
+- ✅ All exports have return types
 
 ## Statistics
 

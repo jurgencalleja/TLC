@@ -34,17 +34,24 @@ const { auditProject, generateReport } = require('./lib/standards/audit-checker'
 
 Run `auditProject(projectPath)` which executes:
 
-| Check | What It Finds |
-|-------|---------------|
-| Standards Files | Missing CLAUDE.md or CODING-STANDARDS.md |
-| Flat Folders | Files in src/services/, src/interfaces/, src/controllers/ |
-| Inline Interfaces | `interface X {` inside *.service.ts files |
-| Hardcoded URLs | http:// or https:// URLs in code |
-| Hardcoded Ports | `const port = 3000` patterns |
-| Magic Strings | `=== 'active'` comparisons without constants |
-| Flat Seeds | Seed files in src/seeds/ instead of src/{entity}/seeds/ |
-| Missing JSDoc | Exported functions without `/**` comments |
-| Deep Imports | `../../../` style imports (3+ levels) |
+| Check | What It Finds | Severity |
+|-------|---------------|----------|
+| Standards Files | Missing CLAUDE.md or CODING-STANDARDS.md | error |
+| Flat Folders | Files in src/services/, src/interfaces/, src/controllers/ | error |
+| Inline Interfaces | `interface X {` inside *.service.ts or *.controller.ts files | error |
+| Inline Constants | `const X =` hardcoded values inside service/controller files | warning |
+| Hardcoded URLs | http:// or https:// URLs in code | error |
+| Hardcoded Ports | `const port = 3000` patterns | error |
+| Magic Strings | `=== 'active'` comparisons without constants | warning |
+| Flat Seeds | Seed files in src/seeds/ instead of src/{entity}/seeds/ | warning |
+| Missing JSDoc | Exported functions without `/**` comments | warning |
+| Deep Imports | `../../../` style imports (3+ levels) | warning |
+| **Oversized Files** | Files exceeding 1000 lines (warn at 500) | error/warning |
+| **Overcrowded Folders** | Folders with >15 files directly inside (warn at 8) | error/warning |
+| **`any` Type Usage** | `any` type annotations in TypeScript files | error |
+| **Missing Return Types** | Exported functions without explicit return type | warning |
+| **Missing Parameter Types** | Function parameters without type annotations | error |
+| **Weak tsconfig** | `strict: true` not enabled in tsconfig.json | warning |
 
 ### Step 3: Generate Report
 
@@ -80,15 +87,27 @@ Status: {PASSED | FAILED}
 TLC Audit Results
 ═══════════════════════════════════════════════════════════════
 
-Status: ✗ FAILED (12 issues found)
+Status: FAILED (18 issues found)
 
-Standards Files:    ✓ PASSED
-Flat Folders:       ✗ 3 issues
-Inline Interfaces:  ✗ 2 issues
-Hardcoded URLs:     ✗ 4 issues
-Magic Strings:      ✗ 2 issues
-JSDoc Coverage:     ✗ 1 issue
-Import Style:       ✓ PASSED
+  STRUCTURE
+  Standards Files:      PASSED
+  Flat Folders:         3 issues
+  Overcrowded Folders:  2 issues (controllers/ has 22 files)
+  Oversized Files:      1 issue  (csp.controller.ts: 2,041 lines)
+
+  TYPES & INTERFACES
+  Inline Interfaces:    2 issues
+  Inline Constants:     3 issues
+  any Type Usage:       5 issues
+  Missing Return Types: 4 issues
+  Missing Param Types:  2 issues
+  Weak tsconfig:        PASSED
+
+  CODE QUALITY
+  Hardcoded URLs:       4 issues
+  Magic Strings:        2 issues
+  JSDoc Coverage:       8 issues (42% of exports undocumented)
+  Import Style:         PASSED
 
 Report saved to: .planning/AUDIT-REPORT.md
 

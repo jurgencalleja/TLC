@@ -12,6 +12,10 @@ Automatically fix all coding standards violations. No prompts - just fixes every
    - Extracts inline interfaces to types/ files
    - Replaces magic strings with constants
    - Adds missing JSDoc comments
+   - **Splits oversized files** (>1000 lines) into focused sub-modules
+   - **Organizes overcrowded folders** (>15 files) into domain subfolders
+   - **Replaces `any` types** with proper interfaces or `unknown`
+   - **Adds missing return types** to exported functions
 4. Commits after each module/entity
 5. Reports results when done
 
@@ -99,6 +103,72 @@ export function getUser(id: string): User { }
  * @returns The user
  */
 export function getUser(id: string): User { }
+```
+
+#### Oversized Files (>1000 lines)
+```
+// Before: csp.controller.ts (2,041 lines)
+// Analyze the file's responsibilities and split by feature:
+
+// After:
+modules/csp/
+  controllers/
+    policy.controller.ts      # Policy CRUD routes
+    report.controller.ts      # Violation report routes
+    directive.controller.ts   # Directive management routes
+  csp.routes.ts               # Thin route registration
+  csp.service.ts              # Shared business logic
+```
+
+**Split strategy:**
+1. Count exported functions/methods and group by feature
+2. Create a controller/service per feature group
+3. Keep a thin "facade" file that re-exports or registers all routes
+4. Move shared helpers to a utils file within the module
+
+#### Overcrowded Folders (>15 files)
+```
+// Before: controllers/ with 22 files
+// Group by domain:
+
+// After:
+modules/
+  auth/       # auth.controller.ts, auth.service.ts
+  user/       # user.controller.ts, user.service.ts
+  billing/    # payment.controller.ts, invoice.controller.ts
+  catalog/    # product.controller.ts, category.controller.ts
+```
+
+#### `any` Type Replacement
+```typescript
+// Before
+function processData(data: any): any {
+  return data.items;
+}
+
+// After
+interface ProcessInput {
+  items: unknown[];
+}
+
+function processData(data: ProcessInput): unknown[] {
+  return data.items;
+}
+```
+
+**Strategy:** Read how the variable is used, infer the shape, create an interface.
+
+#### Missing Return Types
+```typescript
+// Before
+export function calculateTotal(items: CartItem[]) {
+  return items.reduce((sum, item) => sum + item.price, 0);
+}
+
+// After
+export function calculateTotal(items: CartItem[]): number {
+  return items.reduce((sum, item) => sum + item.price, 0);
+}
 ```
 
 ### Step 4: Commit After Each Module

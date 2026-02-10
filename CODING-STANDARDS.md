@@ -588,6 +588,141 @@ Refs: #456
 
 ---
 
+## 18. File Size Limits
+
+Large files are a code smell. They indicate a class or module is doing too much.
+
+| Threshold | Action |
+|---|---|
+| **< 300 lines** | Ideal. No action needed. |
+| **300-500 lines** | Acceptable. Review if it can be split. |
+| **500-1000 lines** | Warning. Should be split into focused sub-modules. |
+| **> 1000 lines** | Violation. MUST be split before merging. |
+
+### How to Split
+
+**Controllers with many routes:**
+```
+# Bad: csp.controller.ts (2,000+ lines)
+# Good: Split by resource/feature:
+modules/csp/
+  controllers/
+    policy.controller.ts      # CRUD for policies
+    report.controller.ts      # CSP violation reports
+    directive.controller.ts   # Directive management
+  csp.routes.ts               # Route registration (thin)
+```
+
+**Services with many methods:**
+```
+# Bad: user.service.ts (1,500 lines)
+# Good: Split by responsibility:
+modules/user/
+  services/
+    user-auth.service.ts      # Login, register, password reset
+    user-profile.service.ts   # Profile CRUD, avatar, preferences
+    user-admin.service.ts     # Admin operations, ban, role changes
+  user.service.ts             # Thin facade re-exporting sub-services
+```
+
+---
+
+## 19. Folder Overcrowding
+
+Too many files in one folder makes navigation difficult. Organize into subfolders by domain.
+
+| Threshold | Action |
+|---|---|
+| **< 8 files** | Fine as-is. |
+| **8-15 files** | Consider grouping into subfolders. |
+| **> 15 files** | MUST be organized into subfolders. |
+
+```
+# Bad: 25 files dumped in controllers/
+controllers/
+  auth.controller.ts
+  user.controller.ts
+  payment.controller.ts
+  invoice.controller.ts
+  product.controller.ts
+  ... (20 more)
+
+# Good: Organized by domain
+modules/
+  auth/auth.controller.ts
+  user/user.controller.ts
+  billing/
+    payment.controller.ts
+    invoice.controller.ts
+  catalog/
+    product.controller.ts
+```
+
+---
+
+## 20. Strict Typing
+
+TypeScript without strict types is just JavaScript with extra steps.
+
+### Rules
+
+1. **No `any` type** - Use `unknown` and narrow, or define a proper interface.
+2. **No implicit `any`** - Enable `noImplicitAny` in tsconfig.
+3. **All functions must have explicit return types** - Not just exported functions.
+4. **All parameters must be typed** - No untyped function parameters.
+5. **Prefer `interface` over `type`** for object shapes - Easier to extend.
+6. **Use `strict: true`** in tsconfig.json.
+
+```typescript
+// Bad: Missing types, implicit any
+function processData(data) {
+  const result = data.items.map(item => item.value);
+  return result;
+}
+
+// Good: Explicit types everywhere
+interface DataPayload {
+  items: Array<{ value: number }>;
+}
+
+function processData(data: DataPayload): number[] {
+  return data.items.map((item) => item.value);
+}
+```
+
+```typescript
+// Bad: any type
+function handleResponse(response: any): any {
+  return response.data;
+}
+
+// Good: Proper types
+interface ApiResponse<T> {
+  data: T;
+  status: number;
+}
+
+function handleResponse<T>(response: ApiResponse<T>): T {
+  return response.data;
+}
+```
+
+### tsconfig.json Requirements
+
+```json
+{
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  }
+}
+```
+
+---
+
 ## AI Instructions
 
 When generating code:
@@ -605,6 +740,10 @@ When generating code:
 11. **Always** add JSDoc to public members
 12. **Always** create index.ts with barrel exports
 13. **Always** verify build passes after changes
+14. **Never** let files exceed 1000 lines - split into sub-modules
+15. **Never** let folders exceed 15 files - organize into subfolders
+16. **Never** use `any` type - use `unknown` or proper interfaces
+17. **Always** add explicit return types to functions
 
 ### Cleanup Tasks
 

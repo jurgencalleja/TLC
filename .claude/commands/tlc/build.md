@@ -692,6 +692,11 @@ git diff --name-status main...HEAD
 1. **Test Coverage** - Every implementation file has a test file
 2. **TDD Compliance** - Commits show test-first pattern (score ≥ 50%)
 3. **Security Scan** - No hardcoded secrets, eval(), innerHTML, etc.
+4. **File Size** - No file exceeds 1000 lines (warning at 500+)
+5. **Folder Size** - No folder exceeds 15 files (warning at 8+)
+6. **Strict Typing** - No `any` types in new/changed files
+7. **Return Types** - All exported functions have explicit return types
+8. **Module Structure** - Files grouped by domain entity, not by type
 
 **Review output:**
 
@@ -702,6 +707,10 @@ git diff --name-status main...HEAD
 Test Coverage: ✅ 5/5 files covered
 TDD Score: 75% ✅
 Security: ✅ No issues
+File Sizes: ✅ All under 1000 lines
+Folder Sizes: ✅ All under 15 files
+Strict Typing: ✅ No `any` found
+Return Types: ✅ All exports typed
 
 Verdict: ✅ APPROVED
 ───────────────────────────────
@@ -721,6 +730,18 @@ TDD Score: 25% ❌ (target: 50%)
 Security: ❌ 1 high severity issue
 └── Hardcoded password in src/config.js
 
+File Sizes: ⚠️ 1 file over limit
+└── src/api/users.controller.ts (1,247 lines) → split by feature
+
+Strict Typing: ❌ 3 `any` types found
+├── src/api/users.controller.ts:45 → define interface
+├── src/api/users.controller.ts:89 → use `unknown`
+└── src/services/email.ts:12 → define `EmailOptions` interface
+
+Return Types: ⚠️ 2 exported functions missing return types
+├── src/utils/helpers.ts:getConfig() → add `: AppConfig`
+└── src/utils/helpers.ts:parseInput() → add `: ParsedInput`
+
 Verdict: ❌ CHANGES REQUESTED
 
 ⚠️ Phase cannot complete until issues are fixed.
@@ -730,7 +751,10 @@ Verdict: ❌ CHANGES REQUESTED
 **Actions on failure:**
 1. Add missing test files
 2. Fix security issues
-3. Re-run `/tlc:build {phase}` to retry
+3. Split oversized files (>1000 lines) into focused sub-modules
+4. Replace `any` types with proper interfaces or `unknown`
+5. Add explicit return types to all exported functions
+6. Re-run `/tlc:build {phase}` to retry
 
 **CRITICAL: Phase is NOT complete until review passes.**
 

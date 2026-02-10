@@ -17,6 +17,12 @@ Research and create implementation plans with clear tasks.
 - **Error boundaries**: Where can failures occur? How are they handled?
 - **Data flow**: How does data enter, transform, and exit the system?
 
+### Code Quality Gates
+- **File size limit**: No file should exceed 1000 lines. Plan splits for large modules.
+- **Folder limit**: No folder should exceed 15 files. Plan domain subfolders.
+- **Strict typing**: Plan interfaces upfront — no `any` types, explicit return types.
+- **Module structure**: Group by domain entity (NestJS-style), not by file type.
+
 ### Task Breakdown
 - **Vertical slices**: Each task delivers testable, visible progress
 - **Risk-first**: Tackle unknowns and integrations early
@@ -61,6 +67,13 @@ Each task should be:
 - **Small** - completable in one focused session
 - **Testable** - has clear pass/fail criteria
 - **Independent** - minimal dependencies on other tasks
+- **Standards-compliant** - won't produce files >1000 lines or folders >15 files
+
+**Before finalizing tasks, check:**
+1. Will any planned file exceed 1000 lines? → Split into sub-modules
+2. Will any folder exceed 15 files? → Plan domain subfolders
+3. Are all interfaces defined? → Add `interfaces/` directory per module
+4. Are types explicit? → Plan typed interfaces, not `any`
 
 #### Task Status Markers (Multi-User)
 
@@ -82,12 +95,15 @@ Use `/tlc:claim` to claim a task, `/tlc:release` to release one.
 **Goal:** Define database schema for users table
 
 **Files:**
-- src/db/schema/users.ts
+- src/modules/user/interfaces/user.interface.ts
+- src/modules/user/user.repository.ts
 
 **Acceptance Criteria:**
 - [ ] Schema has id, email, passwordHash, createdAt
 - [ ] Email is unique
 - [ ] Timestamps auto-populate
+- [ ] All types explicit (no `any`)
+- [ ] Exported functions have return types
 
 **Test Cases:**
 - Schema validates correct user data

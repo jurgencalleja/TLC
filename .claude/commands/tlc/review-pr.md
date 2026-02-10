@@ -42,6 +42,7 @@ Same checks as `/tlc:review`:
 - Test coverage for changed files
 - TDD compliance (commit order)
 - Security scan
+- **Coding standards** (file size, folder size, strict typing, return types, module structure)
 
 ### Step 4: Generate PR Comment
 
@@ -53,12 +54,17 @@ Same checks as `/tlc:review`:
 | Test Coverage | ✅ All files covered |
 | TDD Score | ✅ 75% |
 | Security | ✅ No issues |
+| File Sizes | ✅ All under 1000 lines |
+| Folder Sizes | ✅ All under 15 files |
+| Strict Typing | ✅ No `any` types |
+| Return Types | ✅ All exports typed |
 
 ### Summary
 
 - 8 files changed (5 impl, 3 tests)
 - 4 commits analyzed
 - No security vulnerabilities detected
+- All coding standards met
 
 ### Verdict: ✅ APPROVED
 
@@ -134,6 +140,12 @@ TDD Score: 0% ❌
 Security: ⚠️ 1 medium severity issue
 └── console.log with sensitive data
 
+Coding Standards: ❌ 4 issues
+├── src/auth/login.js (1,247 lines) → split by feature
+├── src/auth/login.js:45 → `any` type found
+├── src/auth/login.js:89 → `any` type found
+└── src/config.js:getConfig() → missing return type
+
 Posting review...
 
 ─────────────────────────────────
@@ -145,6 +157,9 @@ See: https://github.com/org/repo/pull/43#review-123457
 Required actions:
 1. Add/update tests for modified files
 2. Remove console.log with sensitive data
+3. Split oversized file (>1000 lines)
+4. Replace `any` types with proper interfaces
+5. Add return types to exported functions
 ─────────────────────────────────
 ```
 
