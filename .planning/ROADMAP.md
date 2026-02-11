@@ -2426,6 +2426,142 @@ Reject → developer notified with feedback
 
 ---
 
+## Milestone: v2.4 - Workspace Dashboard
+
+### Phase 70: Workspace-Level Dashboard [ ]
+
+**Goal:** Transform dashboard from single-project to multi-project workspace mode. Users configure root folder(s) via dashboard UI, TLC discovers all projects recursively, displays them in a grid with drill-down.
+
+**Deliverables:**
+- [ ] Global TLC config (`~/.tlc/config.json`) for workspace root paths
+- [ ] Recursive project scanner (discovers `.tlc.json`, `.planning/`, `package.json+.git`)
+- [ ] Workspace REST API (`/api/workspace/*`, `/api/projects/:id/*`)
+- [ ] Dashboard setup screen (first-run root folder configuration)
+- [ ] Workspace Zustand store and API client
+- [ ] Project selector and workspace-aware routing
+- [ ] Per-project data loading (hooks accept projectId)
+- [ ] WebSocket project scoping (messages include projectId)
+- [ ] Manual refresh + optional background file watcher
+
+**Test Progress:**
+- [ ] global-config: ~15 tests
+- [ ] project-scanner: ~19 tests
+- [ ] workspace-api: ~16 tests
+- [ ] workspace.store: ~13 tests
+- [ ] SetupScreen: ~12 tests
+- [ ] ProjectSelector: ~12 tests
+- [ ] useWorkspace: ~12 tests
+- [ ] Per-project hooks: ~10 tests
+- [ ] WebSocket scoping: ~6 tests
+- [ ] WorkspaceToolbar: ~9 tests
+- Total: ~160 tests
+
+**Success Criteria:**
+- [ ] First launch shows setup screen asking for root folder
+- [ ] Root folder persists across server restarts
+- [ ] All TLC projects discovered recursively
+- [ ] Projects grid with search/filter/sort
+- [ ] Drill-down into any project (tasks, logs, status)
+- [ ] Manual refresh discovers new projects
+- [ ] Backward compatible with single-project mode
+- [ ] Workspace-aware `/tlc:init` (detects multi-repo folders, creates full structure with `phases/`)
+
+---
+
+### Phase 71: Semantic Memory & Rich Capture [ ]
+
+**Goal:** Transform TLC memory from thin one-liner extraction with text search into rich conversation capture with semantic vector recall. Conversations chunked by topic, stored as detailed markdown, indexed in local sqlite-vec for semantic search. Vectors are derived data — rebuilt per machine from git-tracked text.
+
+**Stack:** `better-sqlite3` + `sqlite-vec` (storage), `Ollama` + `mxbai-embed-large` 1024 dims (embeddings)
+
+**Deliverables:**
+- [ ] Vector database module (sqlite-vec, `~/.tlc/memory/vectors.db`)
+- [ ] Embedding client (Ollama, configurable model, graceful degradation)
+- [ ] Conversation chunker (topic-coherent splits, boundary detection)
+- [ ] Rich capture writer (detailed markdown, not one-liners)
+- [ ] Vector indexer (embed + store, incremental + full rebuild)
+- [ ] Semantic recall (KNN search, project→workspace→global hierarchy)
+- [ ] Enhanced context injection (vector-boosted relevance scoring)
+- [ ] Auto-capture hooks (continuous + TLC command boundaries)
+- [ ] `/tlc:remember` command (permanent, never-pruned capture)
+- [ ] `/tlc:recall` command (semantic memory search)
+
+**Key Architecture:**
+- Text is source of truth (git-tracked in `memory/`)
+- Vectors are derived (`.gitignored`, rebuilt per machine in seconds)
+- New machine: `git clone` → vectors rebuild automatically
+- Continuous autosave (no "session end" event exists)
+- Memory hierarchy: project → workspace → global (query-time filtering)
+
+**Test Progress:**
+- [ ] vector-store: ~17 tests
+- [ ] embedding-client: ~14 tests
+- [ ] conversation-chunker: ~16 tests
+- [ ] rich-capture: ~13 tests
+- [ ] vector-indexer: ~15 tests
+- [ ] semantic-recall: ~15 tests
+- [ ] context-builder updates: ~9 tests
+- [ ] memory-hooks updates: ~14 tests
+- [ ] remember-command: ~9 tests
+- [ ] recall-command: ~11 tests
+- Total: ~150 tests
+
+**Success Criteria:**
+- [ ] `/tlc:recall "caching strategy"` finds related decisions by meaning
+- [ ] Context survives compaction (auto-injected from vectors)
+- [ ] Clone workspace on new Mac → vectors rebuild → full recall
+- [ ] `/tlc:remember` content never pruned
+- [ ] Graceful degradation without Ollama (falls back to text search)
+
+---
+
+### Phase 72: Infra Repo & Workspace Bootstrap [ ]
+
+**Goal:** Workspace = git repo. `projects.json` tracks all repos. Clone on new machine → run bootstrap → entire workspace recreated.
+
+**Deliverables:**
+- [ ] Projects registry (`projects.json` with git URLs, local paths, config)
+- [ ] `/tlc:bootstrap` command (clone all repos, install deps, rebuild vectors)
+- [ ] Workspace snapshot & restore (capture/restore branch state across machines)
+- [ ] Setup script generator (`setup.md` + `setup.sh` for new machine)
+- [ ] Auto-detect & register new repos (filesystem watcher)
+
+**Tests:** ~60
+
+---
+
+### Phase 73: Memory Hierarchy & Inheritance [ ]
+
+**Goal:** Workspace decisions cascade to child projects. Working in `kasha-api/` automatically inherits workspace-level context.
+
+**Deliverables:**
+- [ ] Workspace detector (walk up directory tree, find parent workspace)
+- [ ] Memory inheritance engine (merge workspace + project memory)
+- [ ] CLAUDE.md cascade (workspace conventions injected into child projects)
+- [ ] Inherited vector search (project → workspace auto-widening)
+- [ ] Workspace context in TLC commands (plan/build/discuss receive inherited memory)
+
+**Tests:** ~70
+
+---
+
+### Phase 74: Dashboard Memory & Recall UI [ ]
+
+**Goal:** Memory visualization in dashboard: semantic search, conversation browser, decision list, vector status.
+
+**Deliverables:**
+- [ ] Memory API endpoints (search, conversations, decisions, stats, rebuild)
+- [ ] Recall search panel (semantic search with similarity scores)
+- [ ] Conversation history browser (chronological, filterable, detail view)
+- [ ] Memory dashboard page (tabbed: Recall, Conversations, Decisions, Gotchas)
+- [ ] Memory widget for dashboard home (compact status + quick search)
+
+**Tests:** ~75
+
+---
+
+---
+
 ## Milestone: v3.0 - TLC Standalone
 
 Run TLC without Claude Code. Use any available LLM (Codex CLI, Gemini CLI, API providers, LiteLLM) to execute TLC workflows from the terminal.
