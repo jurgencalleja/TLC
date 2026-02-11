@@ -191,4 +191,109 @@ describe('api/endpoints', () => {
       expect(result).toEqual(history);
     });
   });
+
+  describe('workspace', () => {
+    it('getConfig fetches workspace configuration', async () => {
+      const config = { roots: ['/home/user/projects'] };
+      vi.mocked(mockClient.get).mockResolvedValueOnce(config);
+
+      const result = await endpoints.workspace.getConfig();
+
+      expect(mockClient.get).toHaveBeenCalledWith('/api/workspace/config');
+      expect(result).toEqual(config);
+    });
+
+    it('setConfig updates workspace roots', async () => {
+      const roots = ['/home/user/projects', '/home/user/work'];
+      vi.mocked(mockClient.put).mockResolvedValueOnce({ roots });
+
+      const result = await endpoints.workspace.setConfig(roots);
+
+      expect(mockClient.put).toHaveBeenCalledWith('/api/workspace/config', { roots });
+      expect(result).toEqual({ roots });
+    });
+
+    it('scan triggers workspace scan', async () => {
+      const scanResult = { started: true };
+      vi.mocked(mockClient.post).mockResolvedValueOnce(scanResult);
+
+      const result = await endpoints.workspace.scan();
+
+      expect(mockClient.post).toHaveBeenCalledWith('/api/workspace/scan');
+      expect(result).toEqual(scanResult);
+    });
+
+    it('getProjects fetches all workspace projects', async () => {
+      const projects = [
+        { id: 'proj-1', name: 'Alpha', path: '/projects/alpha' },
+        { id: 'proj-2', name: 'Beta', path: '/projects/beta' },
+      ];
+      vi.mocked(mockClient.get).mockResolvedValueOnce(projects);
+
+      const result = await endpoints.workspace.getProjects();
+
+      expect(mockClient.get).toHaveBeenCalledWith('/api/workspace/projects');
+      expect(result).toEqual(projects);
+    });
+  });
+
+  describe('projects (per-project)', () => {
+    it('getById fetches a single project by id', async () => {
+      const project = { id: 'proj-1', name: 'Alpha', path: '/projects/alpha' };
+      vi.mocked(mockClient.get).mockResolvedValueOnce(project);
+
+      const result = await endpoints.projects.getById('proj-1');
+
+      expect(mockClient.get).toHaveBeenCalledWith('/api/projects/proj-1');
+      expect(result).toEqual(project);
+    });
+
+    it('getStatus fetches project status by id', async () => {
+      const status = { testsPass: 42, testsFail: 0, coverage: 90 };
+      vi.mocked(mockClient.get).mockResolvedValueOnce(status);
+
+      const result = await endpoints.projects.getStatus('proj-1');
+
+      expect(mockClient.get).toHaveBeenCalledWith('/api/projects/proj-1/status');
+      expect(result).toEqual(status);
+    });
+
+    it('getTasks fetches tasks for a specific project', async () => {
+      const tasks = [{ id: 't-1', title: 'Task 1' }];
+      vi.mocked(mockClient.get).mockResolvedValueOnce(tasks);
+
+      const result = await endpoints.projects.getTasks('proj-1');
+
+      expect(mockClient.get).toHaveBeenCalledWith('/api/projects/proj-1/tasks');
+      expect(result).toEqual(tasks);
+    });
+
+    it('getBugs fetches bugs for a specific project', async () => {
+      const bugs = [{ id: 'b-1', description: 'Bug 1', severity: 'high' }];
+      vi.mocked(mockClient.get).mockResolvedValueOnce(bugs);
+
+      const result = await endpoints.projects.getBugs('proj-1');
+
+      expect(mockClient.get).toHaveBeenCalledWith('/api/projects/proj-1/bugs');
+      expect(result).toEqual(bugs);
+    });
+
+    it('includes project ID in per-project API paths', async () => {
+      vi.mocked(mockClient.get).mockResolvedValueOnce({});
+      await endpoints.projects.getById('my-special-project');
+      expect(mockClient.get).toHaveBeenCalledWith('/api/projects/my-special-project');
+
+      vi.mocked(mockClient.get).mockResolvedValueOnce({});
+      await endpoints.projects.getStatus('my-special-project');
+      expect(mockClient.get).toHaveBeenCalledWith('/api/projects/my-special-project/status');
+
+      vi.mocked(mockClient.get).mockResolvedValueOnce({});
+      await endpoints.projects.getTasks('my-special-project');
+      expect(mockClient.get).toHaveBeenCalledWith('/api/projects/my-special-project/tasks');
+
+      vi.mocked(mockClient.get).mockResolvedValueOnce({});
+      await endpoints.projects.getBugs('my-special-project');
+      expect(mockClient.get).toHaveBeenCalledWith('/api/projects/my-special-project/bugs');
+    });
+  });
 });

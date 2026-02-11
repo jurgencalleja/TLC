@@ -14,3 +14,4 @@ export {
   MAX_LOGS,
 } from './log.store';
 export { useWebSocketStore, type ConnectionStatus } from './websocket.store';
+export { useWorkspaceStore, type WorkspaceProject } from './workspace.store';

@@ -1,5 +1,6 @@
 import type { ApiClient } from './client';
 import type { ProjectInfo, ProjectStatus, Task, LogEntry, LogType } from '../stores';
+import type { WorkspaceProject } from '../stores/workspace.store';
 
 export interface Agent {
   id: string;
@@ -90,6 +91,18 @@ export interface ApiEndpoints {
     getConfig(): Promise<Record<string, unknown>>;
     saveConfig(config: Record<string, unknown>): Promise<void>;
   };
+  workspace: {
+    getConfig(): Promise<{ roots: string[] }>;
+    setConfig(roots: string[]): Promise<{ roots: string[] }>;
+    scan(): Promise<{ started: boolean }>;
+    getProjects(): Promise<WorkspaceProject[]>;
+  };
+  projects: {
+    getById(id: string): Promise<WorkspaceProject>;
+    getStatus(id: string): Promise<ProjectStatus>;
+    getTasks(id: string): Promise<Task[]>;
+    getBugs(id: string): Promise<Bug[]>;
+  };
 }
 
 export function createApiEndpoints(client: ApiClient): ApiEndpoints {
@@ -175,6 +188,36 @@ export function createApiEndpoints(client: ApiClient): ApiEndpoints {
       },
       saveConfig(config: Record<string, unknown>) {
         return client.put('/api/config', config);
+      },
+    },
+
+    workspace: {
+      getConfig() {
+        return client.get<{ roots: string[] }>('/api/workspace/config');
+      },
+      setConfig(roots: string[]) {
+        return client.put<{ roots: string[] }>('/api/workspace/config', { roots });
+      },
+      scan() {
+        return client.post<{ started: boolean }>('/api/workspace/scan');
+      },
+      getProjects() {
+        return client.get<WorkspaceProject[]>('/api/workspace/projects');
+      },
+    },
+
+    projects: {
+      getById(id: string) {
+        return client.get<WorkspaceProject>(`/api/projects/${id}`);
+      },
+      getStatus(id: string) {
+        return client.get<ProjectStatus>(`/api/projects/${id}/status`);
+      },
+      getTasks(id: string) {
+        return client.get<Task[]>(`/api/projects/${id}/tasks`);
+      },
+      getBugs(id: string) {
+        return client.get<Bug[]>(`/api/projects/${id}/bugs`);
       },
     },
   };
