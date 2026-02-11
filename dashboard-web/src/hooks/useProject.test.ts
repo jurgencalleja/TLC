@@ -10,6 +10,10 @@ vi.mock('../api', () => ({
       getProject: vi.fn(),
       getStatus: vi.fn(),
     },
+    projects: {
+      getById: vi.fn(),
+      getStatus: vi.fn(),
+    },
   },
 }));
 
@@ -101,6 +105,102 @@ describe('useProject', () => {
 
       expect(api.project.getProject).toHaveBeenCalled();
       expect(api.project.getStatus).toHaveBeenCalled();
+    });
+  });
+
+  describe('per-project fetching (with projectId)', () => {
+    it('fetches from per-project endpoint when projectId is provided', async () => {
+      const projectData = { id: 'proj-1', name: 'My Project', path: '/projects/my-project' };
+      vi.mocked(api.projects.getById).mockResolvedValueOnce(projectData);
+
+      const { result } = renderHook(() => useProject('proj-1'));
+
+      await act(async () => {
+        await result.current.fetchProject();
+      });
+
+      expect(api.projects.getById).toHaveBeenCalledWith('proj-1');
+      expect(api.project.getProject).not.toHaveBeenCalled();
+      expect(result.current.project).toEqual(projectData);
+    });
+
+    it('without projectId falls back to legacy endpoint', async () => {
+      const projectData = { name: 'TLC', phase: 62, phaseName: 'Dashboard' };
+      vi.mocked(api.project.getProject).mockResolvedValueOnce(projectData);
+
+      const { result } = renderHook(() => useProject());
+
+      await act(async () => {
+        await result.current.fetchProject();
+      });
+
+      expect(api.project.getProject).toHaveBeenCalled();
+      expect(api.projects.getById).not.toHaveBeenCalled();
+      expect(result.current.project).toEqual(projectData);
+    });
+
+    it('fetches status from per-project endpoint when projectId is provided', async () => {
+      const statusData = { testsPass: 42, testsFail: 3, coverage: 90 };
+      vi.mocked(api.projects.getStatus).mockResolvedValueOnce(statusData);
+
+      const { result } = renderHook(() => useProject('proj-1'));
+
+      await act(async () => {
+        await result.current.fetchStatus();
+      });
+
+      expect(api.projects.getStatus).toHaveBeenCalledWith('proj-1');
+      expect(api.project.getStatus).not.toHaveBeenCalled();
+      expect(result.current.status).toEqual(statusData);
+    });
+
+    it('handles errors from per-project endpoint', async () => {
+      vi.mocked(api.projects.getById).mockRejectedValueOnce(new Error('Project not found'));
+
+      const { result } = renderHook(() => useProject('nonexistent'));
+
+      await act(async () => {
+        await result.current.fetchProject();
+      });
+
+      expect(result.current.error).toBe('Project not found');
+    });
+
+    it('sets loading state during per-project fetch', async () => {
+      let resolvePromise: (value: { id: string; name: string; path: string }) => void;
+      vi.mocked(api.projects.getById).mockImplementation(
+        () => new Promise((resolve) => { resolvePromise = resolve; })
+      );
+
+      const { result } = renderHook(() => useProject('proj-1'));
+
+      act(() => {
+        result.current.fetchProject();
+      });
+
+      expect(result.current.loading).toBe(true);
+
+      await act(async () => {
+        resolvePromise!({ id: 'proj-1', name: 'Project', path: '/p' });
+      });
+
+      expect(result.current.loading).toBe(false);
+    });
+
+    it('refresh with projectId uses per-project endpoints', async () => {
+      vi.mocked(api.projects.getById).mockResolvedValueOnce({ id: 'proj-1', name: 'P', path: '/p' });
+      vi.mocked(api.projects.getStatus).mockResolvedValueOnce({ testsPass: 10 });
+
+      const { result } = renderHook(() => useProject('proj-1'));
+
+      await act(async () => {
+        await result.current.refresh();
+      });
+
+      expect(api.projects.getById).toHaveBeenCalledWith('proj-1');
+      expect(api.projects.getStatus).toHaveBeenCalledWith('proj-1');
+      expect(api.project.getProject).not.toHaveBeenCalled();
+      expect(api.project.getStatus).not.toHaveBeenCalled();
     });
   });
 });

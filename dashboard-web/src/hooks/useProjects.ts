@@ -49,6 +49,29 @@ export function useProjects() {
     }
   }, []);
 
+  const fetchWorkspaceProjects = useCallback(async () => {
+    setLocalLoading(true);
+    setLocalError(null);
+    try {
+      const workspaceProjects = await api.workspace.getProjects();
+      const mapped: Project[] = workspaceProjects.map((wp) => ({
+        id: wp.id,
+        name: wp.name,
+        branch: 'main',
+        status: 'unknown' as const,
+        tests: { passed: 0, failed: 0, total: 0 },
+        coverage: 0,
+        lastActivity: new Date().toISOString(),
+      }));
+      setProjects(mapped);
+    } catch (err) {
+      setLocalError(err instanceof Error ? err.message : 'Failed to fetch workspace projects');
+      setProjects([]);
+    } finally {
+      setLocalLoading(false);
+    }
+  }, []);
+
   const refresh = useCallback(async () => {
     await fetchProjects();
   }, [fetchProjects]);
@@ -58,6 +81,7 @@ export function useProjects() {
     loading,
     error,
     fetchProjects,
+    fetchWorkspaceProjects,
     refresh,
   };
 }

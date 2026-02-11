@@ -14,6 +14,9 @@ vi.mock('../api', () => ({
       getProject: vi.fn(),
       getStatus: vi.fn().mockResolvedValue({ testsPass: 0, testsFail: 0, coverage: 0 }),
     },
+    workspace: {
+      getProjects: vi.fn(),
+    },
   },
 }));
 
@@ -179,6 +182,82 @@ describe('useProjects', () => {
 
       expect(api.project.getProject).toHaveBeenCalled();
       expect(result.current.projects).toHaveLength(1);
+    });
+  });
+
+  describe('workspace-level fetching', () => {
+    it('fetches from workspace endpoint when available', async () => {
+      const workspaceProjects = [
+        { id: 'proj-1', name: 'Project One', path: '/projects/one' },
+        { id: 'proj-2', name: 'Project Two', path: '/projects/two' },
+      ];
+      vi.mocked(api.workspace.getProjects).mockResolvedValueOnce(workspaceProjects);
+
+      const { result } = renderHook(() => useProjects());
+
+      await act(async () => {
+        await result.current.fetchWorkspaceProjects();
+      });
+
+      expect(api.workspace.getProjects).toHaveBeenCalled();
+      expect(result.current.projects).toHaveLength(2);
+      expect(result.current.projects[0].name).toBe('Project One');
+      expect(result.current.projects[1].name).toBe('Project Two');
+    });
+
+    it('handles errors from workspace endpoint', async () => {
+      vi.mocked(api.workspace.getProjects).mockRejectedValueOnce(
+        new Error('Workspace not configured')
+      );
+
+      const { result } = renderHook(() => useProjects());
+
+      await act(async () => {
+        await result.current.fetchWorkspaceProjects();
+      });
+
+      expect(result.current.error).toBe('Workspace not configured');
+      expect(result.current.projects).toEqual([]);
+    });
+
+    it('sets loading state during workspace fetch', async () => {
+      let resolvePromise: (value: Array<{ id: string; name: string; path: string }>) => void;
+      vi.mocked(api.workspace.getProjects).mockImplementation(
+        () => new Promise((resolve) => { resolvePromise = resolve; })
+      );
+
+      const { result } = renderHook(() => useProjects());
+
+      act(() => {
+        result.current.fetchWorkspaceProjects();
+      });
+
+      expect(result.current.loading).toBe(true);
+
+      await act(async () => {
+        resolvePromise!([{ id: 'proj-1', name: 'P', path: '/p' }]);
+      });
+
+      expect(result.current.loading).toBe(false);
+    });
+
+    it('transforms workspace projects to Project format', async () => {
+      const workspaceProjects = [
+        { id: 'proj-1', name: 'Project One', path: '/projects/one' },
+      ];
+      vi.mocked(api.workspace.getProjects).mockResolvedValueOnce(workspaceProjects);
+
+      const { result } = renderHook(() => useProjects());
+
+      await act(async () => {
+        await result.current.fetchWorkspaceProjects();
+      });
+
+      const project = result.current.projects[0];
+      expect(project.id).toBe('proj-1');
+      expect(project.name).toBe('Project One');
+      expect(project.status).toBeDefined();
+      expect(project.tests).toBeDefined();
     });
   });
 });
