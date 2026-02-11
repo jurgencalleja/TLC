@@ -6,11 +6,13 @@ import type { LogEntry } from '../stores/log.store';
 export interface WebSocketMessage {
   type: string;
   payload?: unknown;
+  projectId?: string;
 }
 
 export interface UseWebSocketOptions {
   url: string;
   autoConnect?: boolean;
+  projectId?: string;
   onMessage?: (message: WebSocketMessage) => void;
   onOpen?: () => void;
   onClose?: () => void;
@@ -25,7 +27,7 @@ export interface UseWebSocketReturn {
 }
 
 export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
-  const { url, autoConnect = true, onMessage, onOpen, onClose, onError } = options;
+  const { url, autoConnect = true, projectId, onMessage, onOpen, onClose, onError } = options;
 
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -36,6 +38,12 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
   useEffect(() => {
     urlRef.current = url;
   }, [url]);
+
+  // Store ref for projectId filter
+  const projectIdRef = useRef(projectId);
+  useEffect(() => {
+    projectIdRef.current = projectId;
+  }, [projectId]);
 
   // Store refs for callbacks to avoid dependency issues
   const onMessageRef = useRef(onMessage);
@@ -96,6 +104,13 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
     ws.onmessage = (event: MessageEvent) => {
       try {
         const message = JSON.parse(event.data) as WebSocketMessage;
+
+        // Filter by projectId if a filter is active
+        // Messages with a different projectId are skipped
+        // Messages without projectId (workspace-level) are always processed
+        if (projectIdRef.current && message.projectId && message.projectId !== projectIdRef.current) {
+          return;
+        }
 
         // Handle log messages automatically
         if (message.type === 'log' && message.payload) {

@@ -238,6 +238,133 @@ describe('useWebSocket', () => {
     });
   });
 
+  describe('project scoping', () => {
+    it('processes messages matching the active projectId', () => {
+      const onMessage = vi.fn();
+      renderHook(() =>
+        useWebSocket({ url: 'ws://localhost:3001', onMessage, projectId: 'project-1' })
+      );
+
+      act(() => {
+        MockWebSocket.instances[0].simulateOpen();
+        MockWebSocket.instances[0].simulateMessage({
+          type: 'update',
+          projectId: 'project-1',
+          payload: { data: 'test' },
+        });
+      });
+
+      expect(onMessage).toHaveBeenCalledWith({
+        type: 'update',
+        projectId: 'project-1',
+        payload: { data: 'test' },
+      });
+    });
+
+    it('filters out messages with a different projectId', () => {
+      const onMessage = vi.fn();
+      renderHook(() =>
+        useWebSocket({ url: 'ws://localhost:3001', onMessage, projectId: 'project-1' })
+      );
+
+      act(() => {
+        MockWebSocket.instances[0].simulateOpen();
+        MockWebSocket.instances[0].simulateMessage({
+          type: 'update',
+          projectId: 'project-2',
+          payload: { data: 'test' },
+        });
+      });
+
+      expect(onMessage).not.toHaveBeenCalled();
+    });
+
+    it('processes messages without projectId (workspace-level) regardless of filter', () => {
+      const onMessage = vi.fn();
+      renderHook(() =>
+        useWebSocket({ url: 'ws://localhost:3001', onMessage, projectId: 'project-1' })
+      );
+
+      act(() => {
+        MockWebSocket.instances[0].simulateOpen();
+        MockWebSocket.instances[0].simulateMessage({
+          type: 'workspace-update',
+          payload: { status: 'scanning' },
+        });
+      });
+
+      expect(onMessage).toHaveBeenCalledWith({
+        type: 'workspace-update',
+        payload: { status: 'scanning' },
+      });
+    });
+
+    it('when no projectId filter set, processes all messages', () => {
+      const onMessage = vi.fn();
+      renderHook(() =>
+        useWebSocket({ url: 'ws://localhost:3001', onMessage })
+      );
+
+      act(() => {
+        MockWebSocket.instances[0].simulateOpen();
+        MockWebSocket.instances[0].simulateMessage({
+          type: 'update',
+          projectId: 'project-1',
+          payload: { data: 'test' },
+        });
+        MockWebSocket.instances[0].simulateMessage({
+          type: 'update',
+          projectId: 'project-2',
+          payload: { data: 'test2' },
+        });
+      });
+
+      expect(onMessage).toHaveBeenCalledTimes(2);
+    });
+
+    it('backward compat: messages without projectId field still processed when filter is set', () => {
+      const onMessage = vi.fn();
+      renderHook(() =>
+        useWebSocket({ url: 'ws://localhost:3001', onMessage, projectId: 'project-1' })
+      );
+
+      act(() => {
+        MockWebSocket.instances[0].simulateOpen();
+        MockWebSocket.instances[0].simulateMessage({
+          type: 'log',
+          payload: { id: 'log-1', text: 'Hello', level: 'info', type: 'app' },
+        });
+      });
+
+      expect(onMessage).toHaveBeenCalledTimes(1);
+      // Also verify the log was still added to the store
+      const logs = useLogStore.getState().logs.app;
+      expect(logs).toHaveLength(1);
+    });
+
+    it('filters out log messages with non-matching projectId', () => {
+      const onMessage = vi.fn();
+      renderHook(() =>
+        useWebSocket({ url: 'ws://localhost:3001', onMessage, projectId: 'project-1' })
+      );
+
+      act(() => {
+        MockWebSocket.instances[0].simulateOpen();
+        MockWebSocket.instances[0].simulateMessage({
+          type: 'log',
+          projectId: 'project-2',
+          payload: { id: 'log-1', text: 'Filtered log', level: 'info', type: 'app' },
+        });
+      });
+
+      // Should not call onMessage
+      expect(onMessage).not.toHaveBeenCalled();
+      // Should not add to log store either
+      const logs = useLogStore.getState().logs.app;
+      expect(logs).toHaveLength(0);
+    });
+  });
+
   describe('return value', () => {
     it('returns connection status', () => {
       const { result } = renderHook(() => useWebSocket({ url: 'ws://localhost:3001' }));
