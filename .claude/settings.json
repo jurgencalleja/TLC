@@ -36,5 +36,41 @@
       "Bash(uniq *)",
       "Bash(xargs *)"
     ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "EnterPlanMode|TaskCreate|TaskUpdate|TaskList|TaskGet|ExitPlanMode",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/tlc-block-tools.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/tlc-prompt-guard.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/tlc-session-init.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
   }
 }
