@@ -54,6 +54,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const intentionalCloseRef = useRef(false);
+  const mountedRef = useRef(false);
   const urlRef = useRef(url);
 
   // Update URL ref when it changes
@@ -88,7 +89,8 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
 
 
   const connect = useCallback(() => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
+    if (wsRef.current?.readyState === WebSocket.OPEN ||
+        wsRef.current?.readyState === WebSocket.CONNECTING) {
       return;
     }
 
@@ -99,6 +101,10 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
     wsRef.current = ws;
 
     ws.onopen = () => {
+      if (!mountedRef.current) {
+        ws.close();
+        return;
+      }
       useWebSocketStore.getState().setStatus('connected');
       onOpenRef.current?.();
     };
@@ -107,14 +113,14 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
       useWebSocketStore.getState().setStatus('disconnected');
       onCloseRef.current?.();
 
-      // Attempt reconnection if it wasn't intentional
-      if (!intentionalCloseRef.current) {
+      // Attempt reconnection if it wasn't intentional and still mounted
+      if (!intentionalCloseRef.current && mountedRef.current) {
         const state = useWebSocketStore.getState();
         if (state.shouldReconnect) {
           useWebSocketStore.getState().incrementReconnectAttempts();
           const delay = useWebSocketStore.getState().reconnectDelay;
           reconnectTimeoutRef.current = setTimeout(() => {
-            connect();
+            if (mountedRef.current) connect();
           }, delay);
         }
       }
@@ -130,8 +136,6 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
         const message = JSON.parse(event.data) as WebSocketMessage;
 
         // Filter by projectId if a filter is active
-        // Messages with a different projectId are skipped
-        // Messages without projectId (workspace-level) are always processed
         if (projectIdRef.current && message.projectId && message.projectId !== projectIdRef.current) {
           return;
         }
@@ -163,7 +167,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
           }
         }
 
-        // Handle log messages automatically
+        // Handle typed log messages (app-log, test-log, git-log, system-log)
         const logType = logTypeFromMessage(message.type);
         if (logType) {
           const payload = (message.data ?? message.payload) as { data?: string; level?: string } | undefined;
@@ -178,13 +182,32 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
           }
         }
 
+        // Handle legacy 'log' type with embedded log type in payload
+        if (message.type === 'log') {
+          const payload = (message.payload ?? message.data) as {
+            id?: string; text?: string; level?: string; type?: string;
+          } | undefined;
+          if (payload?.text) {
+            const pType = (payload.type === 'app' || payload.type === 'test' ||
+              payload.type === 'git' || payload.type === 'system')
+              ? payload.type as LogType : 'app';
+            addLog({
+              id: payload.id ?? '',
+              text: payload.text,
+              level: normalizeLogLevel(payload.level),
+              timestamp: new Date().toISOString(),
+              type: pType,
+            });
+          }
+        }
+
         // Call user callback
         onMessageRef.current?.(message);
       } catch {
         // Non-JSON message, ignore or handle as needed
       }
     };
-  }, [addLog, addBatchLogs, logTypeFromMessage, normalizeLogLevel]);
+  }, [addLog, addBatchLogs]);
 
   const disconnect = useCallback(() => {
     intentionalCloseRef.current = true;
@@ -194,10 +217,20 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
       reconnectTimeoutRef.current = null;
     }
 
-    if (wsRef.current) {
-      wsRef.current.close();
+    const ws = wsRef.current;
+    if (ws) {
+      // Suppress onerror/onclose handlers to avoid noise during teardown
+      ws.onopen = null;
+      ws.onclose = null;
+      ws.onerror = null;
+      ws.onmessage = null;
+      if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+        ws.close();
+      }
       wsRef.current = null;
     }
+
+    useWebSocketStore.getState().setStatus('disconnected');
   }, []);
 
   const send = useCallback((data: unknown) => {
@@ -208,16 +241,18 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
 
   // Auto-connect on mount and reconnect when URL or projectId changes
   useEffect(() => {
+    mountedRef.current = true;
     if (!autoConnect) return;
     connect();
     return () => {
+      mountedRef.current = false;
       disconnect();
     };
   }, [autoConnect, connect, disconnect, url, projectId]);
 
   // Notify server about project scope if supported
   useEffect(() => {
-    if (projectId) {
+    if (projectId && wsRef.current?.readyState === WebSocket.OPEN) {
       send({ type: 'subscribe', projectId });
     }
   }, [projectId, send]);
