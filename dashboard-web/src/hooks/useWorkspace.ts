@@ -23,6 +23,7 @@ export function useWorkspace() {
   } = useWorkspaceStore();
 
   const [error, setError] = useState<string | null>(null);
+  const [projectsLoaded, setProjectsLoaded] = useState(false);
 
   // Fetch config on mount and restore selected project
   useEffect(() => {
@@ -46,15 +47,18 @@ export function useWorkspace() {
           return api.workspace.getProjects();
         }
         setProjects([]);
+        setProjectsLoaded(true);
         return null;
       })
       .then((fetchedProjects) => {
         if (fetchedProjects) {
           setProjects(fetchedProjects);
+          setProjectsLoaded(true);
         }
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : 'Failed to fetch workspace config');
+        setProjectsLoaded(true);
       });
   }, [setRoots, setProjects, restoreSelectedProject, setLastScan]);
 
@@ -65,11 +69,13 @@ export function useWorkspace() {
     [storeSelectProject]
   );
 
+  // Only clear invalid selection after projects have actually been fetched
   useEffect(() => {
-    if (selectedProjectId && !projects.some((p) => p.id === selectedProjectId)) {
+    if (projectsLoaded && selectedProjectId && projects.length > 0 &&
+        !projects.some((p) => p.id === selectedProjectId)) {
       storeSelectProject(null);
     }
-  }, [projects, selectedProjectId, storeSelectProject]);
+  }, [projectsLoaded, projects, selectedProjectId, storeSelectProject]);
 
   const scan = useCallback(async () => {
     setError(null);

@@ -71,7 +71,7 @@ describe('ProjectCard', () => {
   it('is clickable and navigates to project', () => {
     renderWithRouter(<ProjectCard project={mockProject} />);
     const card = screen.getByTestId('project-card');
-    expect(card.closest('a')).toHaveAttribute('href', '/project/test-project');
+    expect(card.closest('a')).toHaveAttribute('href', '/projects/test-project');
   });
 
   it('calls onClick when provided', () => {

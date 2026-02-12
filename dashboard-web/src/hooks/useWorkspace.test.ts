@@ -96,7 +96,8 @@ describe('useWorkspace', () => {
       result.current.selectProject('p1');
     });
 
-    expect(result.current.selectedProject).toBe('p1');
+    // selectedProject is null because no projects are loaded, but the store id is set
+    expect(result.current.selectedProject).toBeNull();
     expect(useWorkspaceStore.getState().selectedProjectId).toBe('p1');
   });
 
@@ -165,8 +166,10 @@ describe('useWorkspace', () => {
 
     const { result } = renderHook(() => useWorkspace());
 
+    // selectedProject is null because no matching project in store,
+    // but the store id is restored from localStorage
     await waitFor(() => {
-      expect(result.current.selectedProject).toBe('saved-project');
+      expect(useWorkspaceStore.getState().selectedProjectId).toBe('saved-project');
     });
   });
 });

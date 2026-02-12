@@ -53,7 +53,7 @@ describe('api/endpoints', () => {
         { id: '1', title: 'Task 1' },
         { id: '2', title: 'Task 2' },
       ];
-      vi.mocked(mockClient.get).mockResolvedValueOnce(tasks);
+      vi.mocked(mockClient.get).mockResolvedValueOnce({ items: tasks });
 
       const result = await endpoints.tasks.getTasks();
 
@@ -228,7 +228,7 @@ describe('api/endpoints', () => {
         { id: 'proj-1', name: 'Alpha', path: '/projects/alpha' },
         { id: 'proj-2', name: 'Beta', path: '/projects/beta' },
       ];
-      vi.mocked(mockClient.get).mockResolvedValueOnce(projects);
+      vi.mocked(mockClient.get).mockResolvedValueOnce({ projects });
 
       const result = await endpoints.workspace.getProjects();
 
@@ -240,7 +240,7 @@ describe('api/endpoints', () => {
   describe('projects (per-project)', () => {
     it('getById fetches a single project by id', async () => {
       const project = { id: 'proj-1', name: 'Alpha', path: '/projects/alpha' };
-      vi.mocked(mockClient.get).mockResolvedValueOnce(project);
+      vi.mocked(mockClient.get).mockResolvedValueOnce({ project });
 
       const result = await endpoints.projects.getById('proj-1');
 
@@ -250,7 +250,7 @@ describe('api/endpoints', () => {
 
     it('getStatus fetches project status by id', async () => {
       const status = { testsPass: 42, testsFail: 0, coverage: 90 };
-      vi.mocked(mockClient.get).mockResolvedValueOnce(status);
+      vi.mocked(mockClient.get).mockResolvedValueOnce({ status });
 
       const result = await endpoints.projects.getStatus('proj-1');
 
@@ -260,7 +260,7 @@ describe('api/endpoints', () => {
 
     it('getTasks fetches tasks for a specific project', async () => {
       const tasks = [{ id: 't-1', title: 'Task 1' }];
-      vi.mocked(mockClient.get).mockResolvedValueOnce(tasks);
+      vi.mocked(mockClient.get).mockResolvedValueOnce({ tasks });
 
       const result = await endpoints.projects.getTasks('proj-1');
 
@@ -270,7 +270,7 @@ describe('api/endpoints', () => {
 
     it('getBugs fetches bugs for a specific project', async () => {
       const bugs = [{ id: 'b-1', description: 'Bug 1', severity: 'high' }];
-      vi.mocked(mockClient.get).mockResolvedValueOnce(bugs);
+      vi.mocked(mockClient.get).mockResolvedValueOnce({ bugs });
 
       const result = await endpoints.projects.getBugs('proj-1');
 
@@ -279,19 +279,19 @@ describe('api/endpoints', () => {
     });
 
     it('includes project ID in per-project API paths', async () => {
-      vi.mocked(mockClient.get).mockResolvedValueOnce({});
+      vi.mocked(mockClient.get).mockResolvedValueOnce({ project: {} });
       await endpoints.projects.getById('my-special-project');
       expect(mockClient.get).toHaveBeenCalledWith('/api/projects/my-special-project');
 
-      vi.mocked(mockClient.get).mockResolvedValueOnce({});
+      vi.mocked(mockClient.get).mockResolvedValueOnce({ status: {} });
       await endpoints.projects.getStatus('my-special-project');
       expect(mockClient.get).toHaveBeenCalledWith('/api/projects/my-special-project/status');
 
-      vi.mocked(mockClient.get).mockResolvedValueOnce({});
+      vi.mocked(mockClient.get).mockResolvedValueOnce({ tasks: [] });
       await endpoints.projects.getTasks('my-special-project');
       expect(mockClient.get).toHaveBeenCalledWith('/api/projects/my-special-project/tasks');
 
-      vi.mocked(mockClient.get).mockResolvedValueOnce({});
+      vi.mocked(mockClient.get).mockResolvedValueOnce({ bugs: [] });
       await endpoints.projects.getBugs('my-special-project');
       expect(mockClient.get).toHaveBeenCalledWith('/api/projects/my-special-project/bugs');
     });

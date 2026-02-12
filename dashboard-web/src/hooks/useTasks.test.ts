@@ -13,6 +13,9 @@ vi.mock('../api', () => ({
       updateTask: vi.fn(),
       deleteTask: vi.fn(),
     },
+    projects: {
+      getTasks: vi.fn(),
+    },
   },
 }));
 
@@ -28,19 +31,32 @@ describe('useTasks', () => {
 
   describe('fetchTasks', () => {
     it('fetches and stores tasks', async () => {
-      const tasks = [
+      const rawTasks = [
         { id: '1', title: 'Task 1', status: 'pending' },
-        { id: '2', title: 'Task 2', status: 'completed' },
+        { id: '2', title: 'Task 2', status: 'done' },
       ];
-      vi.mocked(api.tasks.getTasks).mockResolvedValueOnce(tasks);
+      vi.mocked(api.projects.getTasks).mockResolvedValueOnce(rawTasks);
 
-      const { result } = renderHook(() => useTasks());
+      const { result } = renderHook(() => useTasks('proj-1'));
 
       await act(async () => {
         await result.current.fetchTasks();
       });
 
       expect(result.current.tasks).toHaveLength(2);
+      // Implementation maps 'done' -> 'completed' and adds priority/owner/subject
+      expect(result.current.tasks[0]).toMatchObject({
+        id: '1',
+        title: 'Task 1',
+        status: 'pending',
+        priority: 'medium',
+      });
+      expect(result.current.tasks[1]).toMatchObject({
+        id: '2',
+        title: 'Task 2',
+        status: 'completed',
+        priority: 'medium',
+      });
     });
   });
 
@@ -61,8 +77,11 @@ describe('useTasks', () => {
 
   describe('updateTask', () => {
     it('updates task in store', async () => {
-      const tasks = [{ id: '1', title: 'Task 1', status: 'pending' }];
-      vi.mocked(api.tasks.getTasks).mockResolvedValueOnce(tasks);
+      // Pre-populate store directly since fetchTasks requires projectId
+      // but updateTask rejects when projectId is set (read-only mode)
+      useTaskStore.getState().setTasks([
+        { id: '1', title: 'Task 1', status: 'pending', priority: 'medium' },
+      ]);
       vi.mocked(api.tasks.updateTask).mockResolvedValueOnce({
         id: '1',
         title: 'Task 1',
@@ -72,7 +91,6 @@ describe('useTasks', () => {
       const { result } = renderHook(() => useTasks());
 
       await act(async () => {
-        await result.current.fetchTasks();
         await result.current.updateTask('1', { status: 'completed' });
       });
 
@@ -82,17 +100,17 @@ describe('useTasks', () => {
 
   describe('deleteTask', () => {
     it('removes task from store', async () => {
-      const tasks = [
-        { id: '1', title: 'Task 1', status: 'pending' },
-        { id: '2', title: 'Task 2', status: 'pending' },
-      ];
-      vi.mocked(api.tasks.getTasks).mockResolvedValueOnce(tasks);
+      // Pre-populate store directly since fetchTasks requires projectId
+      // but deleteTask rejects when projectId is set (read-only mode)
+      useTaskStore.getState().setTasks([
+        { id: '1', title: 'Task 1', status: 'pending', priority: 'medium' },
+        { id: '2', title: 'Task 2', status: 'pending', priority: 'medium' },
+      ]);
       vi.mocked(api.tasks.deleteTask).mockResolvedValueOnce(undefined);
 
       const { result } = renderHook(() => useTasks());
 
       await act(async () => {
-        await result.current.fetchTasks();
         await result.current.deleteTask('1');
       });
 
@@ -103,16 +121,19 @@ describe('useTasks', () => {
 
   describe('filtering', () => {
     it('filters tasks by status', async () => {
-      const tasks = [
+      const rawTasks = [
         { id: '1', title: 'Task 1', status: 'pending' },
-        { id: '2', title: 'Task 2', status: 'completed' },
+        { id: '2', title: 'Task 2', status: 'done' },
       ];
-      vi.mocked(api.tasks.getTasks).mockResolvedValueOnce(tasks);
+      vi.mocked(api.projects.getTasks).mockResolvedValueOnce(rawTasks);
 
-      const { result } = renderHook(() => useTasks());
+      const { result } = renderHook(() => useTasks('proj-1'));
 
       await act(async () => {
         await result.current.fetchTasks();
+      });
+
+      await act(async () => {
         result.current.setFilter('status', 'pending');
       });
 
