@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { Routes, Route, useNavigate, useParams } from 'react-router-dom';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { Shell } from './components/layout';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { CommandPalette, type Command } from './components/settings/CommandPalette';
@@ -21,8 +21,25 @@ import { SetupScreen } from './components/workspace/SetupScreen';
 import { WorkspaceToolbar } from './components/workspace/WorkspaceToolbar';
 import { ProjectSelector } from './components/workspace/ProjectSelector';
 
-const API_BASE = import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.host}`;
-const WS_URL = API_BASE.replace(/^http/, 'ws') + '/ws';
+const resolveWsUrl = (apiBase?: string, projectId?: string | null) => {
+  const base =
+    apiBase && apiBase.trim().length > 0
+      ? apiBase
+      : `${window.location.protocol}//${window.location.host}`;
+  let resolved: URL;
+  try {
+    resolved = new URL(base, window.location.origin);
+  } catch {
+    resolved = new URL(`${window.location.protocol}//${window.location.host}`);
+  }
+  const protocol = resolved.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsBase = `${protocol}//${resolved.host}`;
+  const wsUrl = new URL('/ws', wsBase);
+  if (projectId) {
+    wsUrl.searchParams.set('projectId', projectId);
+  }
+  return wsUrl.toString();
+};
 
 function AppContent() {
   const navigate = useNavigate();
@@ -35,8 +52,13 @@ function AppContent() {
   }, [initFromStorage]);
 
   // Connect to WebSocket for real-time updates
+  const wsUrl = useMemo(
+    () => resolveWsUrl(import.meta.env.VITE_API_URL, workspace.selectedProject?.id),
+    [workspace.selectedProject?.id]
+  );
+
   useWebSocket({
-    url: WS_URL,
+    url: wsUrl,
     autoConnect: true,
     projectId: workspace.selectedProject?.id,
   });

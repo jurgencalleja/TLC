@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { useLogStore, type LogType } from '../stores/log.store';
+import { useLogStore, type LogType, type LogLevel } from '../stores/log.store';
 import { api } from '../api';
 
 export function useLogs() {
@@ -26,7 +26,16 @@ export function useLogs() {
       setError(null);
       try {
         const data = await api.logs.getLogs(logType);
-        addBatchLogs(data);
+        const mapped = data.map((entry: { text?: string; level?: string; time?: string }) => ({
+          id: '',
+          text: entry.text ?? '',
+          level: (['error', 'warn', 'info', 'debug'].includes(entry.level ?? '')
+            ? entry.level
+            : 'info') as LogLevel,
+          timestamp: entry.time ?? new Date().toISOString(),
+          type: logType,
+        }));
+        addBatchLogs(mapped);
       } catch (err) {
         console.error('Failed to fetch logs:', err);
         setError('Failed to fetch logs');

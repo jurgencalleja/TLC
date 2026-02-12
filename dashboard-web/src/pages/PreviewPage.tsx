@@ -1,8 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
 import { Smartphone, Tablet, Monitor, RefreshCw, ExternalLink } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Dropdown, type DropdownItem } from '../components/ui/Dropdown';
 import { useUIStore } from '../stores';
+import { useWorkspaceStore } from '../stores/workspace.store';
 
 type DeviceType = 'phone' | 'tablet' | 'desktop';
 
@@ -32,6 +34,9 @@ const DEVICES: DeviceConfig[] = [
 
 export function PreviewPage({ defaultUrl = 'http://localhost:3000', services }: PreviewPageProps) {
   const setActiveView = useUIStore((state) => state.setActiveView);
+  const { projectId: urlProjectId } = useParams<{ projectId: string }>();
+  const selectProject = useWorkspaceStore((s) => s.selectProject);
+  const storeProjectId = useWorkspaceStore((s) => s.selectedProjectId);
   const [activeDevice, setActiveDevice] = useState<DeviceType>('desktop');
   const [currentUrl, setCurrentUrl] = useState(defaultUrl);
   const [iframeKey, setIframeKey] = useState(0);
@@ -42,6 +47,12 @@ export function PreviewPage({ defaultUrl = 'http://localhost:3000', services }: 
   useEffect(() => {
     setActiveView('preview');
   }, [setActiveView]);
+
+  useEffect(() => {
+    if (urlProjectId && urlProjectId !== storeProjectId) {
+      selectProject(urlProjectId);
+    }
+  }, [urlProjectId, storeProjectId, selectProject]);
 
   useEffect(() => {
     if (selectedService) {

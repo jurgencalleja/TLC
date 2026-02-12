@@ -57,6 +57,9 @@ export function useProjects() {
       const mapped: Project[] = workspaceProjects.map((wp) => ({
         id: wp.id,
         name: wp.name,
+        description: wp.phaseName
+          ? `Phase ${wp.phase ?? 0}: ${wp.phaseName}`
+          : wp.path,
         branch: 'main',
         status: 'unknown' as const,
         tests: { passed: 0, failed: 0, total: 0 },

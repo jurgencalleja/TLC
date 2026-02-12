@@ -133,7 +133,7 @@ export function ProjectCard({ project, onClick, className = '' }: ProjectCardPro
   }
 
   return (
-    <Link to={`/project/${project.id}`} className="block">
+    <Link to={`/projects/${project.id}`} className="block">
       {content}
     </Link>
   );

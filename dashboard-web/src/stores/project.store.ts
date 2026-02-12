@@ -1,19 +1,36 @@
 import { create } from 'zustand';
 
 export interface ProjectInfo {
+  id?: string;
   name: string;
   description?: string;
+  path?: string;
+  hasTlc?: boolean;
+  hasPlanning?: boolean;
+  version?: string;
   phase?: number;
   phaseName?: string;
   branch?: string;
   totalPhases?: number;
+  completedPhases?: number;
 }
 
 export interface ProjectStatus {
   testsPass?: number;
   testsFail?: number;
   coverage?: number;
+  appRunning?: boolean;
+  appPort?: number;
+  tasks?: number;
+  bugsOpen?: number;
   phase?: number;
+  phaseName?: string;
+  exists?: boolean;
+  hasTlc?: boolean;
+  hasPlanning?: boolean;
+  currentPhase?: number | null;
+  totalPhases?: number;
+  completedPhases?: number;
 }
 
 interface ProjectState {

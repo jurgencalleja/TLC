@@ -92,9 +92,9 @@ export interface ApiEndpoints {
     saveConfig(config: Record<string, unknown>): Promise<void>;
   };
   workspace: {
-    getConfig(): Promise<{ roots: string[] }>;
+    getConfig(): Promise<{ roots: string[]; lastScans?: Record<string, number> }>;
     setConfig(roots: string[]): Promise<{ roots: string[] }>;
-    scan(): Promise<{ started: boolean }>;
+    scan(): Promise<{ projects: WorkspaceProject[]; scannedAt: number }>;
     getProjects(): Promise<WorkspaceProject[]>;
   };
   projects: {
@@ -121,7 +121,9 @@ export function createApiEndpoints(client: ApiClient): ApiEndpoints {
 
     tasks: {
       getTasks() {
-        return client.get<Task[]>('/api/tasks');
+        return client
+          .get<{ items?: Task[] }>('/api/tasks')
+          .then((res) => res.items ?? []);
       },
       getTask(id: string) {
         return client.get<Task>(`/api/tasks/${id}`);
@@ -193,13 +195,17 @@ export function createApiEndpoints(client: ApiClient): ApiEndpoints {
 
     workspace: {
       getConfig() {
-        return client.get<{ roots: string[] }>('/api/workspace/config');
+        return client.get<{ roots: string[]; lastScans?: Record<string, number> }>(
+          '/api/workspace/config'
+        );
       },
       setConfig(roots: string[]) {
         return client.put<{ roots: string[] }>('/api/workspace/config', { roots });
       },
       scan() {
-        return client.post<{ started: boolean }>('/api/workspace/scan');
+        return client.post<{ projects: WorkspaceProject[]; scannedAt: number }>(
+          '/api/workspace/scan'
+        );
       },
       async getProjects() {
         const res = await client.get<{ projects: WorkspaceProject[] }>('/api/workspace/projects');

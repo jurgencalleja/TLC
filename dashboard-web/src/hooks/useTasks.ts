@@ -25,23 +25,20 @@ export function useTasks(projectId?: string) {
   const fetchTasks = useCallback(async () => {
     setLoading(true);
     try {
-      let data: Task[];
-      if (projectId) {
-        const raw = await api.projects.getTasks(projectId);
-        // Handle both array and {tasks: []} response shapes
-        const projectTasks = Array.isArray(raw) ? raw : (raw as any)?.tasks ?? [];
-        data = projectTasks.map((t: any) => ({
-          id: String(t.num),
-          title: t.title,
-          subject: t.title,
-          status: t.status === 'done' ? 'completed' : t.status,
-          owner: t.owner,
-          priority: 'medium',
-        }));
-      } else {
-        const raw = await api.tasks.getTasks();
-        data = Array.isArray(raw) ? raw : (raw as any)?.items ?? [];
+      if (!projectId) {
+        setTasks([]);
+        return;
       }
+      const raw = await api.projects.getTasks(projectId);
+      const projectTasks = Array.isArray(raw) ? raw : [];
+      const data: Task[] = projectTasks.map((t) => ({
+        id: String(t.num ?? t.number ?? t.id ?? ''),
+        title: t.title ?? t.subject ?? 'Untitled',
+        subject: t.title ?? t.subject ?? 'Untitled',
+        status: t.status === 'done' ? 'completed' : t.status ?? 'pending',
+        owner: t.owner ?? null,
+        priority: 'medium',
+      }));
       setTasks(data);
     } catch (err) {
       console.error('Failed to fetch tasks:', err);

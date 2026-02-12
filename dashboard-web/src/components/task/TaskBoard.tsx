@@ -5,7 +5,7 @@ import { ListTodo } from 'lucide-react';
 
 export interface TaskBoardProps {
   tasks: Task[];
-  onTaskMove: (taskId: string, newStatus: TaskStatus) => void;
+  onTaskMove?: (taskId: string, newStatus: TaskStatus) => void;
   onTaskClick?: (task: Task) => void;
   isLoading?: boolean;
   className?: string;
@@ -55,7 +55,7 @@ export function TaskBoard({
   const handleDrop = (e: React.DragEvent, status: TaskStatus) => {
     e.preventDefault();
     const taskId = e.dataTransfer.getData('text/plain');
-    if (taskId) {
+    if (taskId && onTaskMove) {
       onTaskMove(taskId, status);
     }
     setDragOverColumn(null);
@@ -196,7 +196,7 @@ export function TaskBoard({
                     task={task}
                     onClick={onTaskClick}
                     onDragStart={handleDragStart}
-                    isDraggable
+                    isDraggable={Boolean(onTaskMove)}
                     isDragging={isTaskDragging}
                     className={isTaskFocused ? 'ring-2 ring-primary' : ''}
                   />

@@ -33,22 +33,8 @@ export function DashboardPage() {
   const [activitiesLoading, setActivitiesLoading] = useState(true);
 
   const fetchActivities = useCallback(async () => {
-    setActivitiesLoading(true);
-    try {
-      const data = await api.project.getChangelog();
-      const items: ActivityItem[] = (data || []).slice(0, 10).map((commit: { hash?: string; message?: string; time?: string; author?: string }, i: number) => ({
-        id: commit.hash || String(i),
-        type: 'commit' as const,
-        user: commit.author || 'Developer',
-        message: commit.message || '',
-        timestamp: commit.time || new Date().toISOString(),
-      }));
-      setActivities(items);
-    } catch {
-      setActivities([]);
-    } finally {
-      setActivitiesLoading(false);
-    }
+    setActivities([]);
+    setActivitiesLoading(false);
   }, []);
 
   useEffect(() => {
@@ -56,7 +42,12 @@ export function DashboardPage() {
     fetchProject();
     fetchStatus();
     fetchTasks();
-    fetchActivities();
+    if (projectId) {
+      fetchActivities();
+    } else {
+      setActivities([]);
+      setActivitiesLoading(false);
+    }
   }, [setActiveView, fetchProject, fetchStatus, fetchTasks, fetchActivities, projectId]);
 
   // Calculate test totals

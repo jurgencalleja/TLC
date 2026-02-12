@@ -31,9 +31,21 @@ export function useWorkspace() {
     api.workspace.getConfig()
       .then((config) => {
         setRoots(config.roots);
+        if (config.lastScans && Object.keys(config.lastScans).length > 0) {
+          const scanValues = Object.values(config.lastScans).filter(
+            (value): value is number => typeof value === 'number'
+          );
+          if (scanValues.length > 0) {
+            const latestScan = Math.max(...scanValues);
+            if (!Number.isNaN(latestScan)) {
+              setLastScan(new Date(latestScan).toISOString());
+            }
+          }
+        }
         if (config.roots.length > 0) {
           return api.workspace.getProjects();
         }
+        setProjects([]);
         return null;
       })
       .then((fetchedProjects) => {
@@ -44,7 +56,7 @@ export function useWorkspace() {
       .catch((err) => {
         setError(err instanceof Error ? err.message : 'Failed to fetch workspace config');
       });
-  }, [setRoots, setProjects, restoreSelectedProject]);
+  }, [setRoots, setProjects, restoreSelectedProject, setLastScan]);
 
   const selectProject = useCallback(
     (id: string) => {
@@ -53,14 +65,28 @@ export function useWorkspace() {
     [storeSelectProject]
   );
 
+  useEffect(() => {
+    if (selectedProjectId && !projects.some((p) => p.id === selectedProjectId)) {
+      storeSelectProject(null);
+    }
+  }, [projects, selectedProjectId, storeSelectProject]);
+
   const scan = useCallback(async () => {
     setError(null);
     setIsScanning(true);
     try {
-      await api.workspace.scan();
-      const updatedProjects = await api.workspace.getProjects();
-      setProjects(updatedProjects);
-      setLastScan(new Date().toISOString());
+      const result = await api.workspace.scan();
+      if (result?.projects) {
+        setProjects(result.projects);
+      } else {
+        const updatedProjects = await api.workspace.getProjects();
+        setProjects(updatedProjects);
+      }
+      if (result?.scannedAt) {
+        setLastScan(new Date(result.scannedAt).toISOString());
+      } else {
+        setLastScan(new Date().toISOString());
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Scan failed');
     } finally {

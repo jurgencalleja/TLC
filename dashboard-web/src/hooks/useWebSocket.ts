@@ -1,11 +1,33 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useWebSocketStore } from '../stores/websocket.store';
 import { useLogStore } from '../stores/log.store';
-import type { LogEntry } from '../stores/log.store';
+import type { LogEntry, LogLevel, LogType } from '../stores/log.store';
+
+const normalizeLogLevel = (level?: string): LogLevel => {
+  switch (level) {
+    case 'debug':
+    case 'info':
+    case 'warn':
+    case 'error':
+      return level;
+    default:
+      return 'info';
+  }
+};
+
+const logTypeFromMessage = (type: string): LogType | null => {
+  if (!type.endsWith('-log')) return null;
+  const raw = type.replace('-log', '');
+  if (raw === 'app' || raw === 'test' || raw === 'git' || raw === 'system') {
+    return raw as LogType;
+  }
+  return null;
+};
 
 export interface WebSocketMessage {
   type: string;
   payload?: unknown;
+  data?: unknown;
   projectId?: string;
 }
 
@@ -62,6 +84,8 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
   // Get store functions directly (stable references)
   const isConnected = useWebSocketStore((state) => state.isConnected);
   const addLog = useLogStore((state) => state.addLog);
+  const addBatchLogs = useLogStore((state) => state.addBatchLogs);
+
 
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -112,10 +136,46 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
           return;
         }
 
+        // Handle init logs
+        if (message.type === 'init' && message.data) {
+          const data = message.data as {
+            logs?: Record<string, Array<{ text?: string; level?: string; time?: string }>>;
+          };
+          if (data.logs) {
+            const entries: LogEntry[] = [];
+            for (const [type, logs] of Object.entries(data.logs)) {
+              if (type !== 'app' && type !== 'test' && type !== 'git' && type !== 'system') {
+                continue;
+              }
+              for (const log of logs) {
+                entries.push({
+                  id: '',
+                  text: log.text ?? '',
+                  level: normalizeLogLevel(log.level),
+                  timestamp: log.time ?? new Date().toISOString(),
+                  type: type as LogType,
+                });
+              }
+            }
+            if (entries.length > 0) {
+              addBatchLogs(entries);
+            }
+          }
+        }
+
         // Handle log messages automatically
-        if (message.type === 'log' && message.payload) {
-          const logEntry = message.payload as LogEntry;
-          addLog(logEntry);
+        const logType = logTypeFromMessage(message.type);
+        if (logType) {
+          const payload = (message.data ?? message.payload) as { data?: string; level?: string } | undefined;
+          if (payload?.data) {
+            addLog({
+              id: '',
+              text: payload.data,
+              level: normalizeLogLevel(payload.level),
+              timestamp: new Date().toISOString(),
+              type: logType,
+            });
+          }
         }
 
         // Call user callback
@@ -124,7 +184,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
         // Non-JSON message, ignore or handle as needed
       }
     };
-  }, [addLog]);
+  }, [addLog, addBatchLogs, logTypeFromMessage, normalizeLogLevel]);
 
   const disconnect = useCallback(() => {
     intentionalCloseRef.current = true;
@@ -146,16 +206,21 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
     }
   }, []);
 
-  // Auto-connect on mount
+  // Auto-connect on mount and reconnect when URL or projectId changes
   useEffect(() => {
-    if (autoConnect) {
-      connect();
-    }
-
+    if (!autoConnect) return;
+    connect();
     return () => {
       disconnect();
     };
-  }, [autoConnect, connect, disconnect]);
+  }, [autoConnect, connect, disconnect, url, projectId]);
+
+  // Notify server about project scope if supported
+  useEffect(() => {
+    if (projectId) {
+      send({ type: 'subscribe', projectId });
+    }
+  }, [projectId, send]);
 
   return {
     isConnected,

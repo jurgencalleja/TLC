@@ -14,6 +14,7 @@ export interface Task {
   goal?: string;
   owner?: string | null;
   number?: number;
+  num?: number;
   // Common fields
   status: TaskStatus | string;
   priority?: TaskPriority;

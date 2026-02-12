@@ -6,6 +6,13 @@ export interface WorkspaceProject {
   id: string;
   name: string;
   path: string;
+  hasTlc?: boolean;
+  hasPlanning?: boolean;
+  version?: string;
+  phase?: number | null;
+  phaseName?: string | null;
+  totalPhases?: number;
+  completedPhases?: number;
 }
 
 interface WorkspaceState {

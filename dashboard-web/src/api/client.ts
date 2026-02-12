@@ -37,13 +37,21 @@ export function createApiClient(options: ApiClientOptions = {}): ApiClient {
     ...options.headers,
   };
 
+  const joinUrl = (base: string, path: string) => {
+    if (!base) return path;
+    if (base.endsWith('/') && path.startsWith('/')) {
+      return `${base.slice(0, -1)}${path}`;
+    }
+    return `${base}${path}`;
+  };
+
   async function request<T>(
     method: string,
     path: string,
     body?: unknown,
     requestOptions?: RequestOptions
   ): Promise<T> {
-    const url = `${baseUrl}${path}`;
+    const url = joinUrl(baseUrl, path);
     const headers = {
       ...defaultHeaders,
       ...requestOptions?.headers,
