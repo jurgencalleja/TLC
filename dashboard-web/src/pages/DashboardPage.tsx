@@ -161,7 +161,7 @@ export function DashboardPage() {
           aria-valuenow={currentPhase}
           aria-valuemin={0}
           aria-valuemax={totalPhases}
-          className="h-2 bg-surface-secondary rounded-full overflow-hidden"
+          className="h-2 bg-bg-tertiary rounded-full overflow-hidden"
         >
           <div
             className="h-full bg-primary transition-all duration-300"
@@ -175,31 +175,40 @@ export function DashboardPage() {
         <Card className="p-4">
           <div className="text-sm text-text-secondary">Tests Passing</div>
           <div className="text-3xl font-bold text-success mt-2">
-            {testsPass}
+            {totalTests > 0 ? testsPass : '—'}
           </div>
+          {totalTests === 0 && (
+            <div className="text-xs text-text-muted mt-1">Run tests to see results</div>
+          )}
         </Card>
 
         <Card className="p-4">
           <div className="text-sm text-text-secondary">Tests Failing</div>
           <div className="text-3xl font-bold text-danger mt-2">
-            {testsFail}
+            {totalTests > 0 ? testsFail : '—'}
           </div>
+          {totalTests === 0 && (
+            <div className="text-xs text-text-muted mt-1">No test results yet</div>
+          )}
         </Card>
 
         <Card className="p-4">
           <div className="text-sm text-text-secondary">Coverage</div>
           <div className="text-3xl font-bold text-primary mt-2">
-            {coverage}%
+            {totalTests > 0 ? `${coverage}%` : '—'}
           </div>
+          {totalTests === 0 && (
+            <div className="text-xs text-text-muted mt-1">Not measured</div>
+          )}
         </Card>
 
         <Card className="p-4">
           <div className="text-sm text-text-secondary">Total Tests</div>
           <div className="text-3xl font-bold text-text-primary mt-2">
-            {totalTests}
+            {totalTests > 0 ? totalTests : '—'}
           </div>
           <div className="text-xs text-text-muted mt-1">
-            {totalTests} total tests
+            {totalTests > 0 ? `${totalTests} total tests` : 'No test data available'}
           </div>
         </Card>
       </div>
@@ -212,7 +221,7 @@ export function DashboardPage() {
           <Card className="p-4">
             <h3 className="font-medium text-text-primary mb-4">Task Summary</h3>
             <div className="grid grid-cols-3 gap-4">
-              <div className="text-center p-3 bg-surface-secondary rounded-lg">
+              <div className="text-center p-3 bg-bg-tertiary rounded-lg">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-text-secondary">Pending</span>
                   <Badge variant="warning" size="sm">{pendingTasks}</Badge>
@@ -220,7 +229,7 @@ export function DashboardPage() {
                 <div className="text-xs text-text-muted">Tasks waiting to be started</div>
               </div>
 
-              <div className="text-center p-3 bg-surface-secondary rounded-lg">
+              <div className="text-center p-3 bg-bg-tertiary rounded-lg">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-text-secondary">In Progress</span>
                   <Badge variant="primary" size="sm">{inProgressTasks}</Badge>
@@ -228,7 +237,7 @@ export function DashboardPage() {
                 <div className="text-xs text-text-muted">Tasks being worked on</div>
               </div>
 
-              <div className="text-center p-3 bg-surface-secondary rounded-lg">
+              <div className="text-center p-3 bg-bg-tertiary rounded-lg">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-text-secondary">Completed</span>
                   <Badge variant="success" size="sm">{completedTasks}</Badge>
