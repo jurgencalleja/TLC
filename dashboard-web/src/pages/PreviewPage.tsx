@@ -148,20 +148,33 @@ export function PreviewPage({ defaultUrl = 'http://localhost:3000', services }: 
       </div>
 
       {/* Preview Content */}
-      <div className="flex-1 overflow-hidden bg-surface-secondary p-4 flex justify-center">
-        <div
-          data-testid="iframe-container"
-          className="h-full bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-300"
-          style={{ width: deviceWidth, maxWidth: '100%' }}
-        >
-          <iframe
-            key={iframeKey}
-            src={currentUrl}
-            title="App Preview"
-            className="w-full h-full border-0"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-          />
-        </div>
+      <div className="flex-1 overflow-hidden bg-bg-tertiary p-4 flex justify-center">
+        {!services?.length && currentUrl === defaultUrl ? (
+          <div className="flex flex-col items-center justify-center text-center">
+            <p className="text-text-secondary mb-2">No preview configured</p>
+            <p className="text-sm text-text-muted mb-4">
+              Configure a <code className="px-1 py-0.5 bg-bg-elevated rounded">start</code> command
+              in <code className="px-1 py-0.5 bg-bg-elevated rounded">.tlc.json</code> to enable live preview.
+            </p>
+            <p className="text-sm text-text-muted">
+              Currently pointing to: <code className="px-1 py-0.5 bg-bg-elevated rounded">{currentUrl}</code>
+            </p>
+          </div>
+        ) : (
+          <div
+            data-testid="iframe-container"
+            className="h-full bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-300"
+            style={{ width: deviceWidth, maxWidth: '100%' }}
+          >
+            <iframe
+              key={iframeKey}
+              src={currentUrl}
+              title="App Preview"
+              className="w-full h-full border-0"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+            />
+          </div>
+        )}
       </div>
     </div>
   );

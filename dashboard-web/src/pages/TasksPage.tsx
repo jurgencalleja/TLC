@@ -82,6 +82,9 @@ export function TasksPage() {
     }
   }, [urlProjectId, storeProjectId, selectProject]);
 
+  const selectedProject = useWorkspaceStore((s) =>
+    s.projects.find((p) => p.id === (urlProjectId ?? storeProjectId))
+  );
   const { tasks: storeTasks, loading, fetchTasks, updateTask, isReadOnly } = useTasks(projectId);
   const [selectedTask, setSelectedTask] = useState<ComponentTask | null>(null);
   const [filters, setFilters] = useState<TaskFilterValues>({ assignees: [], priorities: [] });
@@ -169,10 +172,26 @@ export function TasksPage() {
         <div className="flex-1 overflow-auto p-4">
           {tasks.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center">
-              <p className="text-text-secondary mb-2">No tasks found</p>
-              <p className="text-sm text-text-muted">
-                Tasks are loaded from .planning/phases/*-PLAN.md files
-              </p>
+              {selectedProject && !selectedProject.hasPlanning ? (
+                <>
+                  <p className="text-text-secondary mb-2">No TLC planning configured</p>
+                  <p className="text-sm text-text-muted mb-4">
+                    This project doesn&apos;t have a <code className="px-1 py-0.5 bg-bg-tertiary rounded">.planning/</code> directory.
+                  </p>
+                  <p className="text-sm text-text-muted">
+                    Run <code className="px-1 py-0.5 bg-bg-tertiary rounded">/tlc:init</code> in the project to start tracking tasks.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-text-secondary mb-2">No tasks found</p>
+                  <p className="text-sm text-text-muted">
+                    {selectedProject?.hasPlanning
+                      ? 'No tasks in current phase plan files (.planning/phases/*-PLAN.md)'
+                      : 'Select a project with TLC configured to view tasks'}
+                  </p>
+                </>
+              )}
             </div>
           ) : (
             <TaskBoard
