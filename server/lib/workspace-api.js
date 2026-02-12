@@ -165,15 +165,14 @@ function readProjectTasks(projectPath, phase) {
 
   try {
     const content = fs.readFileSync(planPath, 'utf-8');
-
-    // Parse checkbox-style tasks: - [ ] Task, - [x] Done, - [>@user] In progress
-    const checkboxRegex = /^[-*]\s*\[([^\]]*)\]\s*(.+)$/gm;
     let match;
-    let num = 1;
 
-    while ((match = checkboxRegex.exec(content)) !== null) {
-      const statusMarker = match[1];
+    // Primary: ### Task N: Title [status] format (TLC plan headings)
+    const taskRegex = /###\s+Task\s+(\d+)[:\s]+(.+?)\s*\[([^\]]*)\]/g;
+    while ((match = taskRegex.exec(content)) !== null) {
+      const taskNum = parseInt(match[1], 10);
       const title = match[2].trim();
+      const statusMarker = match[3];
 
       let status = 'pending';
       let owner = null;
@@ -188,16 +187,21 @@ function readProjectTasks(projectPath, phase) {
         if (ownerMatch) owner = ownerMatch[1];
       }
 
-      tasks.push({ num: num++, title, status, owner });
+      tasks.push({ num: taskNum, title, status, owner });
     }
 
-    // Fallback: ### Task N: Title [status] format
+    // Fallback: checkbox-style tasks under ## Tasks heading only
     if (tasks.length === 0) {
-      const taskRegex = /###\s+Task\s+(\d+)[:\s]+(.+?)\s*\[([^\]]*)\]/g;
-      while ((match = taskRegex.exec(content)) !== null) {
-        const taskNum = parseInt(match[1], 10);
+      // Extract only the ## Tasks section to avoid matching acceptance criteria
+      const tasksSectionMatch = content.match(/^## Tasks\s*\n([\s\S]*?)(?=\n## [^#]|\n---|\Z)/m);
+      const tasksSection = tasksSectionMatch ? tasksSectionMatch[1] : content;
+
+      const checkboxRegex = /^[-*]\s*\[([^\]]*)\]\s*(.+)$/gm;
+      let num = 1;
+
+      while ((match = checkboxRegex.exec(tasksSection)) !== null) {
+        const statusMarker = match[1];
         const title = match[2].trim();
-        const statusMarker = match[3];
 
         let status = 'pending';
         let owner = null;
@@ -212,7 +216,7 @@ function readProjectTasks(projectPath, phase) {
           if (ownerMatch) owner = ownerMatch[1];
         }
 
-        tasks.push({ num: taskNum, title, status, owner });
+        tasks.push({ num: num++, title, status, owner });
       }
     }
   } catch {
@@ -317,9 +321,9 @@ function createWorkspaceRouter(options = {}) {
   });
 
   // =========================================================================
-  // POST /config - Sets root paths, validates each path first
+  // POST/PUT /config - Sets root paths, validates each path first
   // =========================================================================
-  router.post('/config', (req, res) => {
+  function handleSetConfig(req, res) {
     try {
       const { roots } = req.body;
 
@@ -369,7 +373,9 @@ function createWorkspaceRouter(options = {}) {
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
-  });
+  }
+  router.post('/config', handleSetConfig);
+  router.put('/config', handleSetConfig);
 
   // =========================================================================
   // DELETE /roots/:index - Removes a root by index

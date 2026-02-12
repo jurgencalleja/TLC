@@ -15,6 +15,10 @@ dashboard/dist/
 dashboard-web/dist/
 dashboard-web/node_modules/
 
+# Environment (local port overrides)
+.env
+!.env.example
+
 # OS files
 .DS_Store
 Thumbs.db

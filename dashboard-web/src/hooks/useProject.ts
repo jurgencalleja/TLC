@@ -7,22 +7,42 @@ export function useProject(projectId?: string) {
     useProjectStore();
 
   const fetchProject = useCallback(async () => {
+    setProject(null);
+    setStatus(null);
     setLoading(true);
     try {
-      const data = projectId
-        ? await api.projects.getById(projectId)
-        : await api.project.getProject();
-      setProject(data);
+      if (projectId) {
+        // Workspace mode: merge project + status into expected shapes
+        const [projectData, statusData] = await Promise.all([
+          api.projects.getById(projectId),
+          api.projects.getStatus(projectId).catch(() => null),
+        ]);
+        const s = statusData as any;
+        setProject({
+          name: (projectData as any).name ?? 'Unknown',
+          phase: s?.currentPhase ?? 0,
+          phaseName: s?.phaseName ?? undefined,
+          totalPhases: s?.totalPhases ?? 0,
+        });
+        setStatus({
+          phase: s?.currentPhase ?? 0,
+          testsPass: s?.testsPass ?? 0,
+          testsFail: s?.testsFail ?? 0,
+          coverage: s?.coverage ?? 0,
+        });
+      } else {
+        const data = await api.project.getProject();
+        setProject(data);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch project');
     }
-  }, [projectId, setLoading, setProject, setError]);
+  }, [projectId, setLoading, setProject, setStatus, setError]);
 
   const fetchStatus = useCallback(async () => {
+    if (projectId) return; // Already fetched in fetchProject for workspace mode
     try {
-      const data = projectId
-        ? await api.projects.getStatus(projectId)
-        : await api.project.getStatus();
+      const data = await api.project.getStatus();
       setStatus(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch status');

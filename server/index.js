@@ -21,6 +21,9 @@ const chokidar = require('chokidar');
 const { detectProject } = require('./lib/project-detector');
 const { parsePlan, parseBugs } = require('./lib/plan-parser');
 const { autoProvision, stopDatabase } = require('./lib/auto-database');
+const { GlobalConfig } = require('./lib/global-config');
+const { ProjectScanner } = require('./lib/project-scanner');
+const { createWorkspaceRouter } = require('./lib/workspace-api');
 const {
   createUserStore,
   createAuthMiddleware,
@@ -71,6 +74,16 @@ const wss = new WebSocketServer({ server });
 app.use(express.json());
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
+const cors = require('cors');
+app.use(cors({ origin: true, credentials: true }));
+
+// Workspace API
+const globalConfig = new GlobalConfig();
+const projectScanner = new ProjectScanner();
+const workspaceRouter = createWorkspaceRouter({ globalConfig, projectScanner });
+app.use('/api/workspace', workspaceRouter);
+// Also mount project-level routes at /api/projects for per-project endpoints
+app.use('/api', workspaceRouter);
 
 // ============================================
 // Authentication Setup

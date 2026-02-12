@@ -1,4 +1,4 @@
-import { forwardRef, type HTMLAttributes } from 'react';
+import { forwardRef, useMemo, type HTMLAttributes } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Eye,
 } from 'lucide-react';
+import { useWorkspaceStore } from '../../stores/workspace.store';
 
 interface SidebarProps extends HTMLAttributes<HTMLElement> {
   collapsed?: boolean;
@@ -22,18 +23,19 @@ interface NavItem {
   icon: React.ReactNode;
 }
 
-const navItems: NavItem[] = [
-  { path: '/', label: 'Dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
-  { path: '/projects', label: 'Projects', icon: <FolderKanban className="h-5 w-5" /> },
-  { path: '/tasks', label: 'Tasks', icon: <CheckSquare className="h-5 w-5" /> },
-  { path: '/logs', label: 'Logs', icon: <ScrollText className="h-5 w-5" /> },
-  { path: '/preview', label: 'Preview', icon: <Eye className="h-5 w-5" /> },
-  { path: '/settings', label: 'Settings', icon: <Settings className="h-5 w-5" /> },
-];
-
 export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
   ({ collapsed = false, onToggle, className = '', ...props }, ref) => {
+    const pid = useWorkspaceStore((s) => s.selectedProjectId);
     const sidebarWidth = collapsed ? 'w-16' : 'w-60';
+
+    const navItems: NavItem[] = useMemo(() => [
+      { path: pid ? `/projects/${pid}` : '/', label: 'Dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
+      { path: '/projects', label: 'Projects', icon: <FolderKanban className="h-5 w-5" /> },
+      { path: pid ? `/projects/${pid}/tasks` : '/tasks', label: 'Tasks', icon: <CheckSquare className="h-5 w-5" /> },
+      { path: pid ? `/projects/${pid}/logs` : '/logs', label: 'Logs', icon: <ScrollText className="h-5 w-5" /> },
+      { path: pid ? `/projects/${pid}/preview` : '/preview', label: 'Preview', icon: <Eye className="h-5 w-5" /> },
+      { path: '/settings', label: 'Settings', icon: <Settings className="h-5 w-5" /> },
+    ], [pid]);
 
     return (
       <aside
@@ -70,6 +72,7 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
               <li key={item.path}>
                 <NavLink
                   to={item.path}
+                  end
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-3 py-2 rounded-md transition-colors
                     ${

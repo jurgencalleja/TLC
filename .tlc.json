@@ -28,6 +28,20 @@
   "team": {
     "enabled": false
   },
+  "ports": {
+    "docker": {
+      "dashboard": 3147,
+      "postgres": 5433,
+      "app": 5001,
+      "dbadmin": 8081,
+      "minio": 9000,
+      "minioConsole": 9001
+    },
+    "local": {
+      "server": 3148,
+      "vite": 4000
+    }
+  },
   "git": {
     "mainBranch": "main"
   },

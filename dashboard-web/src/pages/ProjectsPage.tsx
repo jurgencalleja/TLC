@@ -1,17 +1,21 @@
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ProjectGrid } from '../components/project/ProjectGrid';
 import { useUIStore } from '../stores';
 import { useProjects } from '../hooks';
+import { useWorkspaceStore } from '../stores/workspace.store';
 import { Skeleton } from '../components/ui/Skeleton';
 
 export function ProjectsPage() {
+  const navigate = useNavigate();
   const setActiveView = useUIStore((state) => state.setActiveView);
-  const { projects, loading, error, fetchProjects } = useProjects();
+  const { projects, loading, error, fetchWorkspaceProjects } = useProjects();
+  const selectProject = useWorkspaceStore((s) => s.selectProject);
 
   useEffect(() => {
     setActiveView('projects');
-    fetchProjects();
-  }, [setActiveView, fetchProjects]);
+    fetchWorkspaceProjects();
+  }, [setActiveView, fetchWorkspaceProjects]);
 
   if (error) {
     return (
@@ -42,6 +46,10 @@ export function ProjectsPage() {
         <ProjectGrid
           projects={projects}
           isLoading={false}
+          onProjectClick={(project) => {
+            selectProject(project.id);
+            navigate(`/projects/${project.id}`);
+          }}
         />
       )}
     </div>

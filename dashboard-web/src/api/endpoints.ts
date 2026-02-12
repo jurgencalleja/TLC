@@ -201,23 +201,28 @@ export function createApiEndpoints(client: ApiClient): ApiEndpoints {
       scan() {
         return client.post<{ started: boolean }>('/api/workspace/scan');
       },
-      getProjects() {
-        return client.get<WorkspaceProject[]>('/api/workspace/projects');
+      async getProjects() {
+        const res = await client.get<{ projects: WorkspaceProject[] }>('/api/workspace/projects');
+        return res.projects;
       },
     },
 
     projects: {
-      getById(id: string) {
-        return client.get<WorkspaceProject>(`/api/projects/${id}`);
+      async getById(id: string) {
+        const res = await client.get<{ project: WorkspaceProject }>(`/api/projects/${id}`);
+        return res.project;
       },
-      getStatus(id: string) {
-        return client.get<ProjectStatus>(`/api/projects/${id}/status`);
+      async getStatus(id: string) {
+        const res = await client.get<{ status: ProjectStatus }>(`/api/projects/${id}/status`);
+        return res.status;
       },
-      getTasks(id: string) {
-        return client.get<Task[]>(`/api/projects/${id}/tasks`);
+      async getTasks(id: string) {
+        const res = await client.get<{ tasks: Task[] }>(`/api/projects/${id}/tasks`);
+        return res.tasks;
       },
-      getBugs(id: string) {
-        return client.get<Bug[]>(`/api/projects/${id}/bugs`);
+      async getBugs(id: string) {
+        const res = await client.get<{ bugs: Bug[] }>(`/api/projects/${id}/bugs`);
+        return res.bugs;
       },
     },
   };

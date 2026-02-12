@@ -13,11 +13,13 @@ export function useWorkspace() {
     projects,
     selectedProjectId,
     isScanning,
+    lastScan,
     setRoots,
     setProjects,
     selectProject: storeSelectProject,
     restoreSelectedProject,
     setIsScanning,
+    setLastScan,
   } = useWorkspaceStore();
 
   const [error, setError] = useState<string | null>(null);
@@ -58,20 +60,24 @@ export function useWorkspace() {
       await api.workspace.scan();
       const updatedProjects = await api.workspace.getProjects();
       setProjects(updatedProjects);
+      setLastScan(new Date().toISOString());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Scan failed');
     } finally {
       setIsScanning(false);
     }
-  }, [setIsScanning, setProjects]);
+  }, [setIsScanning, setProjects, setLastScan]);
+
+  const selectedProject = projects.find((p) => p.id === selectedProjectId) ?? null;
 
   return {
     isConfigured,
     projects,
-    selectedProject: selectedProjectId,
+    selectedProject,
     selectProject,
     scan,
     isScanning,
+    lastScan: lastScan ? new Date(lastScan).getTime() : null,
     error,
   };
 }

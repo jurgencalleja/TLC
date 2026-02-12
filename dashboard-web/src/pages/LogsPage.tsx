@@ -1,7 +1,9 @@
 import { useEffect, useMemo } from 'react';
+import { useParams } from 'react-router-dom';
 import { LogStream, type LogEntry as StreamLogEntry } from '../components/logs/LogStream';
 import { LogSearch } from '../components/logs/LogSearch';
 import { useLogStore, useUIStore } from '../stores';
+import { useWorkspaceStore } from '../stores/workspace.store';
 import { Button } from '../components/ui/Button';
 import type { LogType } from '../stores/log.store';
 
@@ -24,10 +26,20 @@ export function LogsPage() {
     setAutoScroll,
   } = useLogStore();
   const setActiveView = useUIStore((state) => state.setActiveView);
+  const { projectId: urlProjectId } = useParams<{ projectId: string }>();
+  const selectProject = useWorkspaceStore((s) => s.selectProject);
+  const storeProjectId = useWorkspaceStore((s) => s.selectedProjectId);
 
   useEffect(() => {
     setActiveView('logs');
   }, [setActiveView]);
+
+  // Sync URL project ID to store
+  useEffect(() => {
+    if (urlProjectId && urlProjectId !== storeProjectId) {
+      selectProject(urlProjectId);
+    }
+  }, [urlProjectId, storeProjectId, selectProject]);
 
   // Map store log entries to component log entries
   const streamLogs: StreamLogEntry[] = useMemo(() => {

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Play, FileText, ListTodo, Settings, GitBranch, FolderOpen } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -8,12 +8,25 @@ import { Skeleton } from '../components/ui/Skeleton';
 import { ActivityFeed, type ActivityItem } from '../components/team/ActivityFeed';
 import { useProject, useTasks } from '../hooks';
 import { useUIStore } from '../stores';
+import { useWorkspaceStore } from '../stores/workspace.store';
 import { api } from '../api';
 
 export function DashboardPage() {
   const navigate = useNavigate();
-  const { project, status, loading, fetchProject, fetchStatus } = useProject();
-  const { tasks, fetchTasks } = useTasks();
+  const { projectId: urlProjectId } = useParams<{ projectId: string }>();
+  const selectProject = useWorkspaceStore((s) => s.selectProject);
+  const storeProjectId = useWorkspaceStore((s) => s.selectedProjectId);
+
+  // URL takes precedence; sync to store
+  const projectId = urlProjectId ?? storeProjectId ?? undefined;
+  useEffect(() => {
+    if (urlProjectId && urlProjectId !== storeProjectId) {
+      selectProject(urlProjectId);
+    }
+  }, [urlProjectId, storeProjectId, selectProject]);
+
+  const { project, status, loading, fetchProject, fetchStatus } = useProject(projectId);
+  const { tasks, fetchTasks } = useTasks(projectId);
   const setActiveView = useUIStore((state) => state.setActiveView);
   const [runningTests, setRunningTests] = useState(false);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
@@ -44,7 +57,7 @@ export function DashboardPage() {
     fetchStatus();
     fetchTasks();
     fetchActivities();
-  }, [setActiveView, fetchProject, fetchStatus, fetchTasks, fetchActivities]);
+  }, [setActiveView, fetchProject, fetchStatus, fetchTasks, fetchActivities, projectId]);
 
   // Calculate test totals
   const testsPass = status?.testsPass ?? 0;
@@ -74,8 +87,8 @@ export function DashboardPage() {
     }
   };
 
-  const handleViewLogs = () => navigate('/logs');
-  const handleViewTasks = () => navigate('/tasks');
+  const handleViewLogs = () => navigate(projectId ? `/projects/${projectId}/logs` : '/logs');
+  const handleViewTasks = () => navigate(projectId ? `/projects/${projectId}/tasks` : '/tasks');
   const handleSettings = () => navigate('/settings');
   const handleSelectProject = () => navigate('/projects');
 

@@ -1,4 +1,10 @@
 # TLC Server Helm Chart Values
+#
+# Port Registry (must match .tlc.json and .env):
+#   3147 - TLC Dashboard (Docker + K8s)
+#   3148 - TLC Server (local dev, outside Docker)
+#   4000 - Vite dev server (local dev only)
+#   5433 - PostgreSQL (Docker, mapped from 5432)
 
 # Domain configuration
 domain: ""  # Required: e.g., project.example.com

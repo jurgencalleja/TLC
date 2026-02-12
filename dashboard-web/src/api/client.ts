@@ -28,7 +28,7 @@ export interface ApiClient {
   delete<T = unknown>(path: string, options?: RequestOptions): Promise<T>;
 }
 
-const DEFAULT_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3147';
+const DEFAULT_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export function createApiClient(options: ApiClientOptions = {}): ApiClient {
   const baseUrl = options.baseUrl || DEFAULT_BASE_URL;

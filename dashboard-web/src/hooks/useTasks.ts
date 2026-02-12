@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useTaskStore, type Task } from '../stores/task.store';
 import { api } from '../api';
 
-export function useTasks() {
+export function useTasks(projectId?: string) {
   const {
     tasks,
     selectedTask,
@@ -20,18 +20,42 @@ export function useTasks() {
     setLoading,
   } = useTaskStore();
 
+  const isReadOnly = Boolean(projectId);
+
   const fetchTasks = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await api.tasks.getTasks();
+      let data: Task[];
+      if (projectId) {
+        const raw = await api.projects.getTasks(projectId);
+        // Handle both array and {tasks: []} response shapes
+        const projectTasks = Array.isArray(raw) ? raw : (raw as any)?.tasks ?? [];
+        data = projectTasks.map((t: any) => ({
+          id: String(t.num),
+          title: t.title,
+          subject: t.title,
+          status: t.status === 'done' ? 'completed' : t.status,
+          owner: t.owner,
+          priority: 'medium',
+        }));
+      } else {
+        const raw = await api.tasks.getTasks();
+        data = Array.isArray(raw) ? raw : (raw as any)?.items ?? [];
+      }
       setTasks(data);
     } catch (err) {
       console.error('Failed to fetch tasks:', err);
+      setTasks([]);
     }
-  }, [setLoading, setTasks]);
+  }, [projectId, setLoading, setTasks]);
 
   const createTask = useCallback(
     async (taskData: Partial<Task>) => {
+      if (projectId) {
+        const err = new Error('Tasks are read-only in workspace mode.');
+        console.warn(err.message);
+        return Promise.reject(err);
+      }
       try {
         const created = await api.tasks.createTask(taskData);
         addTask(created);
@@ -41,11 +65,16 @@ export function useTasks() {
         throw err;
       }
     },
-    [addTask]
+    [addTask, projectId]
   );
 
   const updateTask = useCallback(
     async (id: string, updates: Partial<Task>) => {
+      if (projectId) {
+        const err = new Error('Tasks are read-only in workspace mode.');
+        console.warn(err.message);
+        return Promise.reject(err);
+      }
       try {
         const updated = await api.tasks.updateTask(id, updates);
         storeUpdateTask(id, updated);
@@ -55,11 +84,16 @@ export function useTasks() {
         throw err;
       }
     },
-    [storeUpdateTask]
+    [storeUpdateTask, projectId]
   );
 
   const deleteTask = useCallback(
     async (id: string) => {
+      if (projectId) {
+        const err = new Error('Tasks are read-only in workspace mode.');
+        console.warn(err.message);
+        return Promise.reject(err);
+      }
       try {
         await api.tasks.deleteTask(id);
         removeTask(id);
@@ -68,7 +102,7 @@ export function useTasks() {
         throw err;
       }
     },
-    [removeTask]
+    [removeTask, projectId]
   );
 
   return {
@@ -76,6 +110,7 @@ export function useTasks() {
     selectedTask,
     filters,
     loading,
+    isReadOnly,
     filteredTasks,
     tasksByStatus,
     fetchTasks,

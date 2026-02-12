@@ -1,8 +1,10 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useParams } from 'react-router-dom';
 import { TaskBoard } from '../components/task/TaskBoard';
 import { TaskFilter, type TaskFilterValues, type Assignee } from '../components/task/TaskFilter';
 import { TaskDetail, type AcceptanceCriterion, type ActivityItem } from '../components/task/TaskDetail';
 import { useUIStore } from '../stores';
+import { useWorkspaceStore } from '../stores/workspace.store';
 import { useTasks } from '../hooks/useTasks';
 import type { Task as ComponentTask, TaskStatus } from '../components/task/TaskCard';
 import type { Task as StoreTask } from '../stores/task.store';
@@ -68,14 +70,26 @@ function getAcceptanceCriteria(task: ComponentTask, storeTasks: StoreTask[]): Ac
 
 export function TasksPage() {
   const setActiveView = useUIStore((state) => state.setActiveView);
-  const { tasks: storeTasks, loading, fetchTasks, updateTask } = useTasks();
+  const { projectId: urlProjectId } = useParams<{ projectId: string }>();
+  const selectProject = useWorkspaceStore((s) => s.selectProject);
+  const storeProjectId = useWorkspaceStore((s) => s.selectedProjectId);
+
+  // URL takes precedence; sync to store
+  const projectId = urlProjectId ?? storeProjectId ?? undefined;
+  useEffect(() => {
+    if (urlProjectId && urlProjectId !== storeProjectId) {
+      selectProject(urlProjectId);
+    }
+  }, [urlProjectId, storeProjectId, selectProject]);
+
+  const { tasks: storeTasks, loading, fetchTasks, updateTask, isReadOnly } = useTasks(projectId);
   const [selectedTask, setSelectedTask] = useState<ComponentTask | null>(null);
   const [filters, setFilters] = useState<TaskFilterValues>({ assignees: [], priorities: [] });
 
   useEffect(() => {
     setActiveView('tasks');
     fetchTasks();
-  }, [setActiveView, fetchTasks]);
+  }, [setActiveView, fetchTasks, projectId]);
 
   // Transform store tasks to component tasks
   const tasks = useMemo(() => {
@@ -163,7 +177,7 @@ export function TasksPage() {
           ) : (
             <TaskBoard
               tasks={filteredTasks}
-              onTaskMove={handleTaskMove}
+              onTaskMove={isReadOnly ? undefined : handleTaskMove}
               onTaskClick={handleTaskClick}
             />
           )}
