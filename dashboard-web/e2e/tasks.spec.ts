@@ -19,37 +19,46 @@ test.describe('Tasks', () => {
       await expect(page.locator('text=Done')).toBeVisible();
     } else {
       // Board may not render without API data; verify page loaded
-      await expect(page.getByTestId('sidebar')).toBeVisible();
+      // Use .first() because both desktop and mobile sidebars have data-testid="sidebar"
+      await expect(page.getByTestId('sidebar').first()).toBeVisible();
     }
   });
 
   test('task filter controls are present', async ({ page }) => {
     await page.waitForLoadState('networkidle');
 
-    // Look for filter controls on the tasks page
-    const filterSection = page.getByTestId('task-filter');
-    const hasFilter = await filterSection.isVisible().catch(() => false);
+    // The TaskFilter component renders data-testid="task-filter" on the filter button itself.
+    // Clicking it opens a dropdown panel with assignee and priority checkboxes.
+    const filterButton = page.getByTestId('task-filter');
+    const hasFilter = await filterButton.isVisible().catch(() => false);
 
     if (hasFilter) {
-      // Filter should have status filter options
-      const statusFilter = page.locator('[data-testid="task-filter"] select, [data-testid="task-filter"] button');
-      const hasStatusFilter = await statusFilter.first().isVisible().catch(() => false);
-      expect(hasStatusFilter).toBeTruthy();
+      // The filter button should be clickable
+      await expect(filterButton).toBeEnabled();
+
+      // Click to open the filter panel
+      await filterButton.click();
+      await page.waitForTimeout(100);
+
+      // The filter panel should appear with filter options
+      const filterPanel = page.getByTestId('filter-panel');
+      const hasPanelVisible = await filterPanel.isVisible().catch(() => false);
+      expect(hasPanelVisible).toBeTruthy();
     }
   });
 
   test('clicking a task opens detail view', async ({ page }) => {
     await page.waitForLoadState('networkidle');
 
-    // Find task cards
-    const taskCards = page.locator('[data-testid^="task-card-"]');
+    // TaskCard uses data-testid="task-card" (not "task-card-{id}")
+    const taskCards = page.locator('[data-testid="task-card"]');
     const cardCount = await taskCards.count();
 
     if (cardCount > 0) {
       // Click the first task card
       await taskCards.first().click();
 
-      // A detail modal or panel should appear
+      // A detail panel should appear on the right side
       const detail = page.getByTestId('task-detail');
       const hasDetail = await detail.isVisible().catch(() => false);
       expect(hasDetail).toBeTruthy();
@@ -58,13 +67,15 @@ test.describe('Tasks', () => {
 
   test('tasks page is accessible via direct URL', async ({ page }) => {
     await expect(page).toHaveURL('/tasks');
-    await expect(page.getByTestId('sidebar')).toBeVisible();
+    // Use .first() because both desktop and mobile sidebars have data-testid="sidebar"
+    await expect(page.getByTestId('sidebar').first()).toBeVisible();
   });
 
   test('filter by status reduces visible tasks', async ({ page }) => {
     await page.waitForLoadState('networkidle');
 
-    const taskCards = page.locator('[data-testid^="task-card-"]');
+    // TaskCard uses data-testid="task-card" (not "task-card-{id}")
+    const taskCards = page.locator('[data-testid="task-card"]');
     const initialCount = await taskCards.count();
 
     if (initialCount > 1) {
