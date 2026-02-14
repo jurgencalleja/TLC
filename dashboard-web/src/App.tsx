@@ -12,6 +12,7 @@ import {
   TeamPage,
   HealthPage,
   PreviewPage,
+  TestSuitePage,
 } from './pages';
 import { useUIStore } from './stores';
 import { useWebSocket } from './hooks';
@@ -73,6 +74,7 @@ function AppContent() {
     { id: 'nav-team', label: 'Go to Team', shortcut: 'g m', action: () => { navigate('/team'); closeCommandPalette(); } },
     { id: 'nav-health', label: 'Go to Health', shortcut: 'g h', action: () => { navigate('/health'); closeCommandPalette(); } },
     { id: 'nav-preview', label: 'Go to Preview', shortcut: 'g v', action: () => { navigate(pid ? `/projects/${pid}/preview` : '/preview'); closeCommandPalette(); } },
+    { id: 'nav-tests', label: 'Go to Tests', shortcut: 'g x', action: () => { navigate(pid ? `/projects/${pid}/test-suite` : '/test-suite'); closeCommandPalette(); } },
     { id: 'nav-setup', label: 'Workspace Setup', shortcut: 'g w', action: () => { navigate('/setup'); closeCommandPalette(); } },
     { id: 'toggle-theme', label: 'Toggle Theme', shortcut: 't', action: () => { toggleTheme(); closeCommandPalette(); } },
   ], [navigate, closeCommandPalette, toggleTheme, pid]);
@@ -118,6 +120,7 @@ function AppContent() {
               <Route path="/projects/:projectId/tasks" element={<TasksPage />} />
               <Route path="/projects/:projectId/logs" element={<LogsPage />} />
               <Route path="/projects/:projectId/preview" element={<PreviewPage />} />
+              <Route path="/projects/:projectId/test-suite" element={<TestSuitePage />} />
               {/* Global routes */}
               <Route path="/" element={<DashboardPage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
@@ -128,6 +131,7 @@ function AppContent() {
               <Route path="/team" element={<TeamPage />} />
               <Route path="/health" element={<HealthPage />} />
               <Route path="/preview" element={<PreviewPage />} />
+              <Route path="/test-suite" element={<TestSuitePage />} />
             </Routes>
           </Shell>
         } />
