@@ -8,6 +8,11 @@ export type {
   HealthStatus,
   CommandResult,
   CommandHistoryEntry,
+  RoadmapPhase,
+  RoadmapMilestone,
+  RoadmapData,
+  TestInventoryGroup,
+  TestInventoryData,
 } from './endpoints';
 
 import { apiClient } from './client';

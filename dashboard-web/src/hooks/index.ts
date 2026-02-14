@@ -9,6 +9,8 @@ export { useProject } from './useProject';
 export { useProjects } from './useProjects';
 export { useTasks } from './useTasks';
 export { useSettings } from './useSettings';
+export { useRoadmap } from './useRoadmap';
+export { useTestSuite } from './useTestSuite';
 export { fuzzyMatch, createCommandRegistry } from './useCommandPalette';
 export type {
   CommandCategory,

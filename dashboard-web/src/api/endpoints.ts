@@ -54,6 +54,49 @@ export interface ChangelogEntry {
   author?: string;
 }
 
+export interface RoadmapPhase {
+  number: number;
+  name: string;
+  goal: string;
+  status: 'done' | 'in_progress' | 'pending';
+  deliverables: { text: string; done: boolean }[];
+  taskCount: number;
+  completedTaskCount: number;
+  testCount: number;
+  testFileCount: number;
+  hasTests: boolean;
+  verified: boolean;
+}
+
+export interface RoadmapMilestone {
+  name: string;
+  phases: RoadmapPhase[];
+}
+
+export interface RoadmapData {
+  milestones: RoadmapMilestone[];
+  currentPhase: { number: number; name: string } | null;
+  totalPhases: number;
+  completedPhases: number;
+  testSummary: { totalFiles: number; totalTests: number };
+  recentCommits: { hash: string; message: string; date: string; author: string }[];
+  projectInfo: { name: string; version: string; description: string };
+}
+
+export interface TestInventoryGroup {
+  name: string;
+  fileCount: number;
+  testCount: number;
+  files: { relativePath: string; testCount: number }[];
+}
+
+export interface TestInventoryData {
+  totalFiles: number;
+  totalTests: number;
+  groups: TestInventoryGroup[];
+  lastRun?: { timestamp: string; passed: number; failed: number; total: number; duration: number } | null;
+}
+
 export interface ApiEndpoints {
   project: {
     getProject(): Promise<ProjectInfo>;
@@ -102,6 +145,9 @@ export interface ApiEndpoints {
     getStatus(id: string): Promise<ProjectStatus>;
     getTasks(id: string): Promise<Task[]>;
     getBugs(id: string): Promise<Bug[]>;
+    getRoadmap(id: string): Promise<RoadmapData>;
+    getTestInventory(id: string): Promise<TestInventoryData>;
+    runTests(id: string): Promise<{ started: boolean; message: string }>;
   };
 }
 
@@ -229,6 +275,15 @@ export function createApiEndpoints(client: ApiClient): ApiEndpoints {
       async getBugs(id: string) {
         const res = await client.get<{ bugs: Bug[] }>(`/api/projects/${id}/bugs`);
         return res.bugs;
+      },
+      async getRoadmap(id: string) {
+        return client.get<RoadmapData>(`/api/projects/${id}/roadmap`);
+      },
+      async getTestInventory(id: string) {
+        return client.get<TestInventoryData>(`/api/projects/${id}/tests`);
+      },
+      async runTests(id: string) {
+        return client.post<{ started: boolean; message: string }>(`/api/projects/${id}/tests/run`);
       },
     },
   };
