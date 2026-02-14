@@ -1,724 +1,258 @@
 /**
- * DashboardPage Tests
- * TDD: Tests written first to define expected behavior
+ * DashboardPage Tests — Project Overview Page
+ * TDD: Tests written first to define expected behavior (RED phase)
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { BrowserRouter, MemoryRouter } from 'react-router-dom';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { DashboardPage } from './DashboardPage';
-import { useProjectStore } from '../stores/project.store';
-import { useTaskStore } from '../stores/task.store';
-import { useUIStore } from '../stores/ui.store';
 
-// Mock the api module
-vi.mock('../api', () => ({
-  api: {
-    project: {
-      getProject: vi.fn().mockResolvedValue({ name: 'Test' }),
-      getStatus: vi.fn().mockResolvedValue({}),
-      getChangelog: vi.fn().mockResolvedValue([
-        { hash: 'abc123', message: 'test commit', time: new Date().toISOString(), author: 'Dev' },
-      ]),
-    },
-    commands: {
-      runCommand: vi.fn().mockResolvedValue({ success: true }),
-    },
-  },
-}));
-
-// Mock the hooks
+// Mock hooks
 vi.mock('../hooks', () => ({
-  useProject: vi.fn(() => ({
-    project: null,
-    status: null,
-    loading: false,
-    error: null,
-    fetchProject: vi.fn(),
-    fetchStatus: vi.fn(),
-    refresh: vi.fn(),
-  })),
-  useTasks: vi.fn(() => ({
-    tasks: [],
-    fetchTasks: vi.fn(),
-  })),
+  useProject: vi.fn(),
+  useTasks: vi.fn(),
+  useRoadmap: vi.fn(),
 }));
 
-// Mock react-router-dom's useNavigate
+// Mock stores
+vi.mock('../stores', () => {
+  const storeData = { setActiveView: vi.fn() };
+  return {
+    useUIStore: vi.fn((selector?: (s: typeof storeData) => unknown) =>
+      selector ? selector(storeData) : storeData
+    ),
+  };
+});
+
+vi.mock('../stores/workspace.store', () => {
+  const storeData = { selectedProjectId: 'proj-1', selectProject: vi.fn() };
+  return {
+    useWorkspaceStore: vi.fn((selector?: (s: typeof storeData) => unknown) =>
+      selector ? selector(storeData) : storeData
+    ),
+  };
+});
+
+// Mock react-router-dom navigate
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return {
     ...actual,
     useNavigate: () => mockNavigate,
+    useParams: () => ({ projectId: 'proj-1' }),
   };
 });
 
-import { useProject, useTasks } from '../hooks';
+import { useProject, useTasks, useRoadmap } from '../hooks';
 
-// Mock global fetch for test runner button
-globalThis.fetch = vi.fn().mockResolvedValue({ ok: true });
-
-const renderWithRouter = (ui: React.ReactElement) => {
-  return render(<BrowserRouter>{ui}</BrowserRouter>);
+const mockRoadmap = {
+  milestones: [
+    {
+      name: 'v1.0 - Team Release',
+      phases: [
+        {
+          number: 1, name: 'Core Infrastructure', goal: 'Establish TLC as source of truth',
+          status: 'done' as const, deliverables: [{ text: 'CLAUDE.md enforcement', done: true }],
+          taskCount: 3, completedTaskCount: 3, testCount: 47, testFileCount: 3, hasTests: true, verified: true,
+        },
+        {
+          number: 2, name: 'Test Quality', goal: 'Improve test quality',
+          status: 'in_progress' as const, deliverables: [{ text: 'Quality scoring', done: true }, { text: 'Edge cases', done: false }],
+          taskCount: 5, completedTaskCount: 3, testCount: 30, testFileCount: 2, hasTests: true, verified: false,
+        },
+      ],
+    },
+    {
+      name: 'v2.0 - Standalone',
+      phases: [
+        {
+          number: 3, name: 'LLM Router', goal: 'Multi-model support',
+          status: 'pending' as const, deliverables: [{ text: 'Model routing', done: false }],
+          taskCount: 4, completedTaskCount: 0, testCount: 0, testFileCount: 0, hasTests: false, verified: false,
+        },
+      ],
+    },
+  ],
+  currentPhase: { number: 2, name: 'Test Quality' },
+  totalPhases: 3,
+  completedPhases: 1,
+  testSummary: { totalFiles: 5, totalTests: 77 },
+  recentCommits: [
+    { hash: 'abc1234', message: 'feat: add quality scoring', date: '2026-02-09', author: 'Jurgen' },
+    { hash: 'def5678', message: 'fix: edge case detection', date: '2026-02-08', author: 'Jurgen' },
+  ],
+  projectInfo: { name: 'TLC', version: '1.8.0', description: 'Test-Led Coding framework' },
 };
 
-describe('DashboardPage', () => {
+const defaultProjectMock = {
+  project: { name: 'TLC', hasTlc: true, hasPlanning: true, phase: 2, phaseName: 'Test Quality', totalPhases: 3, version: '1.8.0', path: '/projects/tlc', branch: 'main' },
+  status: null,
+  loading: false,
+  error: null,
+  fetchProject: vi.fn(),
+  fetchStatus: vi.fn(),
+  refresh: vi.fn(),
+};
+
+const defaultTasksMock = {
+  tasks: [],
+  fetchTasks: vi.fn(),
+};
+
+const defaultRoadmapMock = {
+  roadmap: mockRoadmap,
+  loading: false,
+  error: null,
+  refresh: vi.fn(),
+};
+
+function renderPage() {
+  return render(
+    <MemoryRouter initialEntries={['/projects/proj-1']}>
+      <DashboardPage />
+    </MemoryRouter>
+  );
+}
+
+describe('DashboardPage — Project Overview', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    useProjectStore.getState().reset();
-    useTaskStore.getState().reset();
-    useUIStore.getState().reset();
+    vi.mocked(useProject).mockReturnValue(defaultProjectMock as ReturnType<typeof useProject>);
+    vi.mocked(useTasks).mockReturnValue(defaultTasksMock as ReturnType<typeof useTasks>);
+    vi.mocked(useRoadmap).mockReturnValue(defaultRoadmapMock);
   });
 
-  afterEach(() => {
-    vi.clearAllMocks();
+  it('renders project name and version', () => {
+    renderPage();
+    expect(screen.getByTestId('project-name')).toHaveTextContent('TLC');
+    expect(screen.getByTestId('project-version')).toHaveTextContent('1.8.0');
   });
 
-  describe('Loading State', () => {
-    it('renders loading state initially', () => {
-      vi.mocked(useProject).mockReturnValue({
-        project: null,
-        status: null,
-        loading: true,
-        error: null,
-        fetchProject: vi.fn(),
-        fetchStatus: vi.fn(),
-        refresh: vi.fn(),
-      });
-
-      renderWithRouter(<DashboardPage />);
-
-      // Should show skeleton loaders
-      expect(screen.getAllByTestId('skeleton').length).toBeGreaterThan(0);
-    });
-
-    it('shows loading skeletons for stats cards', () => {
-      vi.mocked(useProject).mockReturnValue({
-        project: null,
-        status: null,
-        loading: true,
-        error: null,
-        fetchProject: vi.fn(),
-        fetchStatus: vi.fn(),
-        refresh: vi.fn(),
-      });
-
-      renderWithRouter(<DashboardPage />);
-
-      // Should have skeleton placeholders for stat cards
-      const skeletons = screen.getAllByTestId('skeleton');
-      expect(skeletons.length).toBeGreaterThanOrEqual(4);
-    });
+  it('shows stat cards with correct numbers', () => {
+    renderPage();
+    expect(screen.getByTestId('stat-phases')).toHaveTextContent('1/3');
+    expect(screen.getByTestId('stat-tests')).toHaveTextContent('77');
+    expect(screen.getByTestId('stat-files')).toHaveTextContent('5');
+    expect(screen.getByTestId('stat-current-phase')).toHaveTextContent('#2');
   });
 
-  describe('Project Overview', () => {
-    it('displays project name from store', () => {
-      vi.mocked(useProject).mockReturnValue({
-        project: {
-          name: 'My Test Project',
-          description: 'A test project',
-          phase: 3,
-          phaseName: 'Phase 3: Testing',
-        },
-        status: { testsPass: 10, testsFail: 2, coverage: 80 },
-        loading: false,
-        error: null,
-        fetchProject: vi.fn(),
-        fetchStatus: vi.fn(),
-        refresh: vi.fn(),
-      });
-
-      vi.mocked(useTasks).mockReturnValue({
-        tasks: [],
-        fetchTasks: vi.fn(),
-        selectedTask: null,
-        filters: { status: null, assignee: null, phase: null, priority: null },
-        loading: false,
-        filteredTasks: [],
-        tasksByStatus: { pending: [], in_progress: [], completed: [] },
-        createTask: vi.fn(),
-        updateTask: vi.fn(),
-        deleteTask: vi.fn(),
-        selectTask: vi.fn(),
-        setFilter: vi.fn(),
-        clearFilters: vi.fn(),
-      });
-
-      renderWithRouter(<DashboardPage />);
-
-      expect(screen.getByText('My Test Project')).toBeInTheDocument();
-    });
-
-    it('shows project status badge', () => {
-      vi.mocked(useProject).mockReturnValue({
-        project: {
-          name: 'Test Project',
-          phase: 2,
-          phaseName: 'Phase 2: Development',
-        },
-        status: { testsPass: 5, testsFail: 0 },
-        loading: false,
-        error: null,
-        fetchProject: vi.fn(),
-        fetchStatus: vi.fn(),
-        refresh: vi.fn(),
-      });
-
-      vi.mocked(useTasks).mockReturnValue({
-        tasks: [],
-        fetchTasks: vi.fn(),
-        selectedTask: null,
-        filters: { status: null, assignee: null, phase: null, priority: null },
-        loading: false,
-        filteredTasks: [],
-        tasksByStatus: { pending: [], in_progress: [], completed: [] },
-        createTask: vi.fn(),
-        updateTask: vi.fn(),
-        deleteTask: vi.fn(),
-        selectTask: vi.fn(),
-        setFilter: vi.fn(),
-        clearFilters: vi.fn(),
-      });
-
-      renderWithRouter(<DashboardPage />);
-
-      // Should show phase badge (using getAllByText since phase appears in multiple places)
-      const phaseElements = screen.getAllByText(/Phase 2/);
-      expect(phaseElements.length).toBeGreaterThan(0);
-      // Verify the badge specifically exists
-      expect(screen.getByText('Phase 2: Development')).toBeInTheDocument();
-    });
-
-    it('shows branch information when available', () => {
-      vi.mocked(useProject).mockReturnValue({
-        project: {
-          name: 'Test Project',
-          phase: 1,
-          branch: 'main',
-        },
-        status: null,
-        loading: false,
-        error: null,
-        fetchProject: vi.fn(),
-        fetchStatus: vi.fn(),
-        refresh: vi.fn(),
-      });
-
-      vi.mocked(useTasks).mockReturnValue({
-        tasks: [],
-        fetchTasks: vi.fn(),
-        selectedTask: null,
-        filters: { status: null, assignee: null, phase: null, priority: null },
-        loading: false,
-        filteredTasks: [],
-        tasksByStatus: { pending: [], in_progress: [], completed: [] },
-        createTask: vi.fn(),
-        updateTask: vi.fn(),
-        deleteTask: vi.fn(),
-        selectTask: vi.fn(),
-        setFilter: vi.fn(),
-        clearFilters: vi.fn(),
-      });
-
-      renderWithRouter(<DashboardPage />);
-
-      expect(screen.getByText(/main/)).toBeInTheDocument();
-    });
+  it('milestone headers rendered', () => {
+    renderPage();
+    const headers = screen.getAllByTestId('milestone-header');
+    expect(headers).toHaveLength(2);
+    expect(headers[0]).toHaveTextContent('v1.0 - Team Release');
+    expect(headers[1]).toHaveTextContent('v2.0 - Standalone');
   });
 
-  describe('Test Status Summary', () => {
-    it('shows correct test pass/fail counts', () => {
-      vi.mocked(useProject).mockReturnValue({
-        project: { name: 'Test Project', phase: 1 },
-        status: { testsPass: 42, testsFail: 8, coverage: 85 },
-        loading: false,
-        error: null,
-        fetchProject: vi.fn(),
-        fetchStatus: vi.fn(),
-        refresh: vi.fn(),
-      });
+  it('phase list shows all phases with correct status chips', () => {
+    renderPage();
+    const rows = screen.getAllByTestId('phase-row');
+    expect(rows).toHaveLength(3);
 
-      vi.mocked(useTasks).mockReturnValue({
-        tasks: [],
-        fetchTasks: vi.fn(),
-        selectedTask: null,
-        filters: { status: null, assignee: null, phase: null, priority: null },
-        loading: false,
-        filteredTasks: [],
-        tasksByStatus: { pending: [], in_progress: [], completed: [] },
-        createTask: vi.fn(),
-        updateTask: vi.fn(),
-        deleteTask: vi.fn(),
-        selectTask: vi.fn(),
-        setFilter: vi.fn(),
-        clearFilters: vi.fn(),
-      });
+    const chips = screen.getAllByTestId('phase-status');
+    expect(chips[0]).toHaveTextContent('done');
+    expect(chips[1]).toHaveTextContent('in_progress');
+    expect(chips[2]).toHaveTextContent('pending');
 
-      renderWithRouter(<DashboardPage />);
-
-      expect(screen.getByText('42')).toBeInTheDocument();
-      expect(screen.getByText('8')).toBeInTheDocument();
-    });
-
-    it('shows coverage percentage', () => {
-      vi.mocked(useProject).mockReturnValue({
-        project: { name: 'Test Project', phase: 1 },
-        status: { testsPass: 10, testsFail: 2, coverage: 75 },
-        loading: false,
-        error: null,
-        fetchProject: vi.fn(),
-        fetchStatus: vi.fn(),
-        refresh: vi.fn(),
-      });
-
-      vi.mocked(useTasks).mockReturnValue({
-        tasks: [],
-        fetchTasks: vi.fn(),
-        selectedTask: null,
-        filters: { status: null, assignee: null, phase: null, priority: null },
-        loading: false,
-        filteredTasks: [],
-        tasksByStatus: { pending: [], in_progress: [], completed: [] },
-        createTask: vi.fn(),
-        updateTask: vi.fn(),
-        deleteTask: vi.fn(),
-        selectTask: vi.fn(),
-        setFilter: vi.fn(),
-        clearFilters: vi.fn(),
-      });
-
-      renderWithRouter(<DashboardPage />);
-
-      expect(screen.getByText('75%')).toBeInTheDocument();
-    });
-
-    it('shows total tests count', () => {
-      vi.mocked(useProject).mockReturnValue({
-        project: { name: 'Test Project', phase: 1 },
-        status: { testsPass: 30, testsFail: 10, coverage: 80 },
-        loading: false,
-        error: null,
-        fetchProject: vi.fn(),
-        fetchStatus: vi.fn(),
-        refresh: vi.fn(),
-      });
-
-      vi.mocked(useTasks).mockReturnValue({
-        tasks: [],
-        fetchTasks: vi.fn(),
-        selectedTask: null,
-        filters: { status: null, assignee: null, phase: null, priority: null },
-        loading: false,
-        filteredTasks: [],
-        tasksByStatus: { pending: [], in_progress: [], completed: [] },
-        createTask: vi.fn(),
-        updateTask: vi.fn(),
-        deleteTask: vi.fn(),
-        selectTask: vi.fn(),
-        setFilter: vi.fn(),
-        clearFilters: vi.fn(),
-      });
-
-      renderWithRouter(<DashboardPage />);
-
-      // Total = 30 + 10 = 40
-      expect(screen.getByText(/40.*total/i)).toBeInTheDocument();
-    });
+    // done = success variant (green)
+    expect(chips[0].className).toMatch(/success/);
+    // in_progress = primary variant (blue)
+    expect(chips[1].className).toMatch(/primary/);
+    // pending = neutral variant (gray)
+    expect(chips[2].className).toMatch(/neutral/);
   });
 
-  describe('Phase Progress', () => {
-    it('shows phase progress bar', () => {
-      vi.mocked(useProject).mockReturnValue({
-        project: {
-          name: 'Test Project',
-          phase: 3,
-          totalPhases: 5,
-        },
-        status: null,
-        loading: false,
-        error: null,
-        fetchProject: vi.fn(),
-        fetchStatus: vi.fn(),
-        refresh: vi.fn(),
-      });
-
-      vi.mocked(useTasks).mockReturnValue({
-        tasks: [],
-        fetchTasks: vi.fn(),
-        selectedTask: null,
-        filters: { status: null, assignee: null, phase: null, priority: null },
-        loading: false,
-        filteredTasks: [],
-        tasksByStatus: { pending: [], in_progress: [], completed: [] },
-        createTask: vi.fn(),
-        updateTask: vi.fn(),
-        deleteTask: vi.fn(),
-        selectTask: vi.fn(),
-        setFilter: vi.fn(),
-        clearFilters: vi.fn(),
-      });
-
-      renderWithRouter(<DashboardPage />);
-
-      expect(screen.getByRole('progressbar')).toBeInTheDocument();
-    });
-
-    it('displays current phase / total phases', () => {
-      vi.mocked(useProject).mockReturnValue({
-        project: {
-          name: 'Test Project',
-          phase: 3,
-          totalPhases: 5,
-        },
-        status: null,
-        loading: false,
-        error: null,
-        fetchProject: vi.fn(),
-        fetchStatus: vi.fn(),
-        refresh: vi.fn(),
-      });
-
-      vi.mocked(useTasks).mockReturnValue({
-        tasks: [],
-        fetchTasks: vi.fn(),
-        selectedTask: null,
-        filters: { status: null, assignee: null, phase: null, priority: null },
-        loading: false,
-        filteredTasks: [],
-        tasksByStatus: { pending: [], in_progress: [], completed: [] },
-        createTask: vi.fn(),
-        updateTask: vi.fn(),
-        deleteTask: vi.fn(),
-        selectTask: vi.fn(),
-        setFilter: vi.fn(),
-        clearFilters: vi.fn(),
-      });
-
-      renderWithRouter(<DashboardPage />);
-
-      expect(screen.getByText(/3.*of.*5/i)).toBeInTheDocument();
-    });
+  it('current phase highlighted with accent', () => {
+    renderPage();
+    const rows = screen.getAllByTestId('phase-row');
+    // Phase 2 (index 1) is in_progress / current
+    expect(rows[1].className).toMatch(/current-phase/);
+    // Others should not have it
+    expect(rows[0].className).not.toMatch(/current-phase/);
+    expect(rows[2].className).not.toMatch(/current-phase/);
   });
 
-  describe('Quick Actions', () => {
-    beforeEach(() => {
-      vi.mocked(useProject).mockReturnValue({
-        project: { name: 'Test Project', phase: 1 },
-        status: { testsPass: 10, testsFail: 2 },
-        loading: false,
-        error: null,
-        fetchProject: vi.fn(),
-        fetchStatus: vi.fn(),
-        refresh: vi.fn(),
-      });
+  it('click phase expands to show goal and deliverables', () => {
+    renderPage();
+    // Initially no goal visible
+    expect(screen.queryByTestId('phase-goal')).not.toBeInTheDocument();
 
-      vi.mocked(useTasks).mockReturnValue({
-        tasks: [],
-        fetchTasks: vi.fn(),
-        selectedTask: null,
-        filters: { status: null, assignee: null, phase: null, priority: null },
-        loading: false,
-        filteredTasks: [],
-        tasksByStatus: { pending: [], in_progress: [], completed: [] },
-        createTask: vi.fn(),
-        updateTask: vi.fn(),
-        deleteTask: vi.fn(),
-        selectTask: vi.fn(),
-        setFilter: vi.fn(),
-        clearFilters: vi.fn(),
-      });
-    });
+    // Click phase 2 row (index 1)
+    const rows = screen.getAllByTestId('phase-row');
+    fireEvent.click(rows[1]);
 
-    it('shows quick action buttons', () => {
-      renderWithRouter(<DashboardPage />);
-
-      expect(screen.getByRole('button', { name: /run tests/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /view logs/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /view tasks/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /settings/i })).toBeInTheDocument();
-    });
-
-    it('View Logs navigates to logs route', () => {
-      renderWithRouter(<DashboardPage />);
-
-      fireEvent.click(screen.getByRole('button', { name: /view logs/i }));
-      expect(mockNavigate).toHaveBeenCalledWith('/logs');
-    });
-
-    it('View Tasks navigates to tasks route', () => {
-      renderWithRouter(<DashboardPage />);
-
-      fireEvent.click(screen.getByRole('button', { name: /view tasks/i }));
-      expect(mockNavigate).toHaveBeenCalledWith('/tasks');
-    });
-
-    it('Settings navigates to settings route', () => {
-      renderWithRouter(<DashboardPage />);
-
-      fireEvent.click(screen.getByRole('button', { name: /settings/i }));
-      expect(mockNavigate).toHaveBeenCalledWith('/settings');
-    });
+    expect(screen.getByTestId('phase-goal')).toHaveTextContent('Improve test quality');
+    expect(screen.getByTestId('phase-deliverables')).toBeInTheDocument();
   });
 
-  describe('Recent Activity', () => {
-    it('shows recent activity feed', () => {
-      vi.mocked(useProject).mockReturnValue({
-        project: { name: 'Test Project', phase: 1 },
-        status: null,
-        loading: false,
-        error: null,
-        fetchProject: vi.fn(),
-        fetchStatus: vi.fn(),
-        refresh: vi.fn(),
-      });
+  it('deliverables show checkmark for completed items', () => {
+    renderPage();
+    // Expand phase 2
+    const rows = screen.getAllByTestId('phase-row');
+    fireEvent.click(rows[1]);
 
-      vi.mocked(useTasks).mockReturnValue({
-        tasks: [],
-        fetchTasks: vi.fn(),
-        selectedTask: null,
-        filters: { status: null, assignee: null, phase: null, priority: null },
-        loading: false,
-        filteredTasks: [],
-        tasksByStatus: { pending: [], in_progress: [], completed: [] },
-        createTask: vi.fn(),
-        updateTask: vi.fn(),
-        deleteTask: vi.fn(),
-        selectTask: vi.fn(),
-        setFilter: vi.fn(),
-        clearFilters: vi.fn(),
-      });
-
-      renderWithRouter(<DashboardPage />);
-
-      expect(screen.getByText(/recent activity/i)).toBeInTheDocument();
-    });
-
-    it('limits activity feed to 5 items', async () => {
-      vi.mocked(useProject).mockReturnValue({
-        project: { name: 'Test Project', phase: 1 },
-        status: null,
-        loading: false,
-        error: null,
-        fetchProject: vi.fn(),
-        fetchStatus: vi.fn(),
-        refresh: vi.fn(),
-      });
-
-      vi.mocked(useTasks).mockReturnValue({
-        tasks: [],
-        fetchTasks: vi.fn(),
-        selectedTask: null,
-        filters: { status: null, assignee: null, phase: null, priority: null },
-        loading: false,
-        filteredTasks: [],
-        tasksByStatus: { pending: [], in_progress: [], completed: [] },
-        createTask: vi.fn(),
-        updateTask: vi.fn(),
-        deleteTask: vi.fn(),
-        selectTask: vi.fn(),
-        setFilter: vi.fn(),
-        clearFilters: vi.fn(),
-      });
-
-      renderWithRouter(<DashboardPage />);
-
-      // Wait for async activity fetch to complete
-      await waitFor(() => {
-        const activityFeed = screen.queryByTestId('activity-feed');
-        expect(activityFeed).toBeInTheDocument();
-      });
-
-      // Check that we don't have more than 5 activity items
-      const activityItems = screen.queryAllByTestId('activity-item');
-      expect(activityItems.length).toBeLessThanOrEqual(5);
-    });
+    const deliverables = screen.getByTestId('phase-deliverables');
+    // Done deliverable has checkmark
+    expect(deliverables.textContent).toContain('\u2713');
+    expect(deliverables.textContent).toContain('Quality scoring');
+    // Pending deliverable has circle
+    expect(deliverables.textContent).toContain('\u25CB');
+    expect(deliverables.textContent).toContain('Edge cases');
   });
 
-  describe('Empty State', () => {
-    it('shows empty state when no project', () => {
-      vi.mocked(useProject).mockReturnValue({
-        project: null,
-        status: null,
-        loading: false,
-        error: null,
-        fetchProject: vi.fn(),
-        fetchStatus: vi.fn(),
-        refresh: vi.fn(),
-      });
-
-      vi.mocked(useTasks).mockReturnValue({
-        tasks: [],
-        fetchTasks: vi.fn(),
-        selectedTask: null,
-        filters: { status: null, assignee: null, phase: null, priority: null },
-        loading: false,
-        filteredTasks: [],
-        tasksByStatus: { pending: [], in_progress: [], completed: [] },
-        createTask: vi.fn(),
-        updateTask: vi.fn(),
-        deleteTask: vi.fn(),
-        selectTask: vi.fn(),
-        setFilter: vi.fn(),
-        clearFilters: vi.fn(),
-      });
-
-      renderWithRouter(<DashboardPage />);
-
-      expect(screen.getByText(/no project/i)).toBeInTheDocument();
-    });
-
-    it('shows call to action in empty state', () => {
-      vi.mocked(useProject).mockReturnValue({
-        project: null,
-        status: null,
-        loading: false,
-        error: null,
-        fetchProject: vi.fn(),
-        fetchStatus: vi.fn(),
-        refresh: vi.fn(),
-      });
-
-      vi.mocked(useTasks).mockReturnValue({
-        tasks: [],
-        fetchTasks: vi.fn(),
-        selectedTask: null,
-        filters: { status: null, assignee: null, phase: null, priority: null },
-        loading: false,
-        filteredTasks: [],
-        tasksByStatus: { pending: [], in_progress: [], completed: [] },
-        createTask: vi.fn(),
-        updateTask: vi.fn(),
-        deleteTask: vi.fn(),
-        selectTask: vi.fn(),
-        setFilter: vi.fn(),
-        clearFilters: vi.fn(),
-      });
-
-      renderWithRouter(<DashboardPage />);
-
-      // Should show a button to select/create a project
-      expect(screen.getByRole('button', { name: /select.*project|open.*project|get.*started/i })).toBeInTheDocument();
-    });
+  it('task count shown in phase row', () => {
+    renderPage();
+    const taskCounts = screen.getAllByTestId('phase-tasks');
+    expect(taskCounts[0]).toHaveTextContent('3/3');
+    expect(taskCounts[1]).toHaveTextContent('3/5');
+    expect(taskCounts[2]).toHaveTextContent('0/4');
   });
 
-  describe('Task Counts', () => {
-    it('shows pending tasks count', () => {
-      vi.mocked(useProject).mockReturnValue({
-        project: { name: 'Test Project', phase: 1 },
-        status: null,
-        loading: false,
-        error: null,
-        fetchProject: vi.fn(),
-        fetchStatus: vi.fn(),
-        refresh: vi.fn(),
-      });
-
-      vi.mocked(useTasks).mockReturnValue({
-        tasks: [
-          { id: '1', title: 'Task 1', status: 'pending', description: '', priority: 'medium', assignee: null, phase: 1, acceptanceCriteria: [], createdAt: '' },
-          { id: '2', title: 'Task 2', status: 'pending', description: '', priority: 'medium', assignee: null, phase: 1, acceptanceCriteria: [], createdAt: '' },
-          { id: '3', title: 'Task 3', status: 'in_progress', description: '', priority: 'medium', assignee: null, phase: 1, acceptanceCriteria: [], createdAt: '' },
-        ],
-        fetchTasks: vi.fn(),
-        selectedTask: null,
-        filters: { status: null, assignee: null, phase: null, priority: null },
-        loading: false,
-        filteredTasks: [],
-        tasksByStatus: {
-          pending: [
-            { id: '1', title: 'Task 1', status: 'pending', description: '', priority: 'medium', assignee: null, phase: 1, acceptanceCriteria: [], createdAt: '' },
-            { id: '2', title: 'Task 2', status: 'pending', description: '', priority: 'medium', assignee: null, phase: 1, acceptanceCriteria: [], createdAt: '' },
-          ],
-          in_progress: [
-            { id: '3', title: 'Task 3', status: 'in_progress', description: '', priority: 'medium', assignee: null, phase: 1, acceptanceCriteria: [], createdAt: '' },
-          ],
-          completed: [],
-        },
-        createTask: vi.fn(),
-        updateTask: vi.fn(),
-        deleteTask: vi.fn(),
-        selectTask: vi.fn(),
-        setFilter: vi.fn(),
-        clearFilters: vi.fn(),
-      });
-
-      renderWithRouter(<DashboardPage />);
-
-      // Find the pending badge
-      const pendingSection = screen.getByText('Pending');
-      expect(pendingSection).toBeInTheDocument();
-    });
+  it('recent commits displayed with short hash and message', () => {
+    renderPage();
+    expect(screen.getByTestId('recent-commits')).toBeInTheDocument();
+    const hashes = screen.getAllByTestId('commit-hash');
+    const messages = screen.getAllByTestId('commit-message');
+    expect(hashes).toHaveLength(2);
+    expect(hashes[0]).toHaveTextContent('abc1234');
+    expect(hashes[1]).toHaveTextContent('def5678');
+    expect(messages[0]).toHaveTextContent('feat: add quality scoring');
+    expect(messages[1]).toHaveTextContent('fix: edge case detection');
   });
 
-  describe('Data Fetching', () => {
-    it('calls fetch functions on mount', () => {
-      const mockFetchProject = vi.fn();
-      const mockFetchStatus = vi.fn();
-      const mockFetchTasks = vi.fn();
+  it('empty state shown when no project', () => {
+    vi.mocked(useProject).mockReturnValue({
+      ...defaultProjectMock,
+      project: null,
+    } as ReturnType<typeof useProject>);
+    vi.mocked(useRoadmap).mockReturnValue({ roadmap: null, loading: false, error: null, refresh: vi.fn() });
 
-      vi.mocked(useProject).mockReturnValue({
-        project: null,
-        status: null,
-        loading: false,
-        error: null,
-        fetchProject: mockFetchProject,
-        fetchStatus: mockFetchStatus,
-        refresh: vi.fn(),
-      });
+    renderPage();
+    expect(screen.getByText('No Project Selected')).toBeInTheDocument();
+  });
 
-      vi.mocked(useTasks).mockReturnValue({
-        tasks: [],
-        fetchTasks: mockFetchTasks,
-        selectedTask: null,
-        filters: { status: null, assignee: null, phase: null, priority: null },
-        loading: false,
-        filteredTasks: [],
-        tasksByStatus: { pending: [], in_progress: [], completed: [] },
-        createTask: vi.fn(),
-        updateTask: vi.fn(),
-        deleteTask: vi.fn(),
-        selectTask: vi.fn(),
-        setFilter: vi.fn(),
-        clearFilters: vi.fn(),
-      });
+  it('non-TLC banner for projects without .planning', () => {
+    vi.mocked(useProject).mockReturnValue({
+      ...defaultProjectMock,
+      project: { name: 'Other', hasTlc: false, hasPlanning: false, phase: 0, totalPhases: 0, path: '/tmp/other', version: '0.1.0' },
+    } as ReturnType<typeof useProject>);
+    vi.mocked(useRoadmap).mockReturnValue({ roadmap: null, loading: false, error: null, refresh: vi.fn() });
 
-      renderWithRouter(<DashboardPage />);
+    renderPage();
+    expect(screen.getByText(/\/tlc:init/)).toBeInTheDocument();
+  });
 
-      expect(mockFetchProject).toHaveBeenCalled();
-      expect(mockFetchStatus).toHaveBeenCalled();
-      expect(mockFetchTasks).toHaveBeenCalled();
-    });
+  it('loading skeleton while fetching', () => {
+    vi.mocked(useProject).mockReturnValue({
+      ...defaultProjectMock,
+      loading: true,
+      project: null,
+    } as ReturnType<typeof useProject>);
+    vi.mocked(useRoadmap).mockReturnValue({ roadmap: null, loading: true, error: null, refresh: vi.fn() });
 
-    it('sets active view to dashboard on mount', () => {
-      vi.mocked(useProject).mockReturnValue({
-        project: null,
-        status: null,
-        loading: false,
-        error: null,
-        fetchProject: vi.fn(),
-        fetchStatus: vi.fn(),
-        refresh: vi.fn(),
-      });
-
-      vi.mocked(useTasks).mockReturnValue({
-        tasks: [],
-        fetchTasks: vi.fn(),
-        selectedTask: null,
-        filters: { status: null, assignee: null, phase: null, priority: null },
-        loading: false,
-        filteredTasks: [],
-        tasksByStatus: { pending: [], in_progress: [], completed: [] },
-        createTask: vi.fn(),
-        updateTask: vi.fn(),
-        deleteTask: vi.fn(),
-        selectTask: vi.fn(),
-        setFilter: vi.fn(),
-        clearFilters: vi.fn(),
-      });
-
-      renderWithRouter(<DashboardPage />);
-
-      expect(useUIStore.getState().activeView).toBe('dashboard');
-    });
+    renderPage();
+    const skeletons = screen.getAllByTestId('skeleton');
+    expect(skeletons.length).toBeGreaterThan(0);
   });
 });
