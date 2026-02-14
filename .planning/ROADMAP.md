@@ -2468,7 +2468,7 @@ Reject → developer notified with feedback
 
 ---
 
-### Phase 71: Semantic Memory & Rich Capture [ ]
+### Phase 71: Semantic Memory & Rich Capture [x]
 
 **Goal:** Transform TLC memory from thin one-liner extraction with text search into rich conversation capture with semantic vector recall. Conversations chunked by topic, stored as detailed markdown, indexed in local sqlite-vec for semantic search. Vectors are derived data — rebuilt per machine from git-tracked text.
 
@@ -2515,7 +2515,7 @@ Reject → developer notified with feedback
 
 ---
 
-### Phase 72: Infra Repo & Workspace Bootstrap [ ]
+### Phase 72: Infra Repo & Workspace Bootstrap [x]
 
 **Goal:** Workspace = git repo. `projects.json` tracks all repos. Clone on new machine → run bootstrap → entire workspace recreated.
 
@@ -2530,7 +2530,7 @@ Reject → developer notified with feedback
 
 ---
 
-### Phase 73: Memory Hierarchy & Inheritance [ ]
+### Phase 73: Memory Hierarchy & Inheritance [x]
 
 **Goal:** Workspace decisions cascade to child projects. Working in `kasha-api/` automatically inherits workspace-level context.
 
@@ -2545,7 +2545,7 @@ Reject → developer notified with feedback
 
 ---
 
-### Phase 74: Dashboard Memory & Recall UI [ ]
+### Phase 74: Dashboard Memory & Recall UI [>]
 
 **Goal:** Memory visualization in dashboard: semantic search, conversation browser, decision list, vector status.
 
@@ -2557,6 +2557,23 @@ Reject → developer notified with feedback
 - [ ] Memory widget for dashboard home (compact status + quick search)
 
 **Tests:** ~75
+
+---
+
+### Phase 75: Dashboard Project Understanding [x]
+
+**Goal:** Fix the dashboard to give good project understanding without CLI. Enrich server-side data extraction to deliver full roadmap with per-phase status, task breakdowns, git activity, and test summaries. Kasha-style project page — every phase visible with status, tasks, verified state.
+
+**Deliverables:**
+- [x] Enriched project status module (full roadmap parsing, per-phase task counts, git log)
+- [x] Test inventory module (file discovery, test counting, directory grouping)
+- [x] Full roadmap API endpoint (`/api/projects/:id/roadmap`)
+- [x] Dashboard API client + `useRoadmap()` / `useTestSuite()` hooks
+- [x] Project overview page rewrite (phase list, stat cards, recent commits)
+- [x] Test Suite page (inventory, groups, run tests)
+- [x] Sidebar & routing updates
+
+**Tests:** 62
 
 ---
 
