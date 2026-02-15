@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { FileText, ChevronRight } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
 import { useUIStore } from '../stores';
@@ -20,7 +20,7 @@ function renderMarkdown(md: string) {
   let key = 0;
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+    const line = lines[i]!;
 
     // Headings
     const h1 = line.match(/^# (.+)$/);
@@ -54,8 +54,8 @@ function renderMarkdown(md: string) {
     if (line.startsWith('```')) {
       const codeLines: string[] = [];
       i++;
-      while (i < lines.length && !lines[i].startsWith('```')) {
-        codeLines.push(lines[i]);
+      while (i < lines.length && !lines[i]!.startsWith('```')) {
+        codeLines.push(lines[i]!);
         i++;
       }
       elements.push(
