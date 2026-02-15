@@ -306,7 +306,7 @@ function readProjectBugs(projectPath) {
  * @returns {express.Router} Express router with workspace endpoints
  */
 function createWorkspaceRouter(options = {}) {
-  const { globalConfig, projectScanner } = options;
+  const { globalConfig, projectScanner, memoryApi } = options;
 
   if (!globalConfig) {
     throw new Error('globalConfig is required');
@@ -814,6 +814,71 @@ function createWorkspaceRouter(options = {}) {
       const bugsPath = path.join(project.path, '.planning', 'BUGS.md');
       const created = bugWriter.createBug(bugsPath, req.body);
       res.status(201).json({ bug: created });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // =========================================================================
+  // Memory API routes (Phase 77)
+  // =========================================================================
+  if (memoryApi) {
+    router.get('/projects/:projectId/memory/decisions', async (req, res) => {
+      try {
+        const roots = globalConfig.getRoots();
+        const project = findProjectById(projectScanner, roots, req.params.projectId);
+        if (!project) return res.status(404).json({ error: 'Project not found' });
+        await memoryApi.handleListDecisions(req, res);
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
+    });
+
+    router.get('/projects/:projectId/memory/gotchas', async (req, res) => {
+      try {
+        const roots = globalConfig.getRoots();
+        const project = findProjectById(projectScanner, roots, req.params.projectId);
+        if (!project) return res.status(404).json({ error: 'Project not found' });
+        await memoryApi.handleListGotchas(req, res);
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
+    });
+
+    router.get('/projects/:projectId/memory/stats', async (req, res) => {
+      try {
+        const roots = globalConfig.getRoots();
+        const project = findProjectById(projectScanner, roots, req.params.projectId);
+        if (!project) return res.status(404).json({ error: 'Project not found' });
+        await memoryApi.handleGetStats(req, res);
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
+    });
+  }
+
+  // =========================================================================
+  // Project file endpoint (Phase 77)
+  // =========================================================================
+  router.get('/projects/:projectId/files/:filename', (req, res) => {
+    try {
+      const roots = globalConfig.getRoots();
+      const project = findProjectById(projectScanner, roots, req.params.projectId);
+      if (!project) return res.status(404).json({ error: 'Project not found' });
+
+      const filename = req.params.filename;
+      // Reject path traversal
+      if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+        return res.status(400).json({ error: 'Invalid filename' });
+      }
+
+      const filePath = path.join(project.path, '.planning', filename);
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+
+      const content = fs.readFileSync(filePath, 'utf-8');
+      res.json({ filename, content });
     } catch (err) {
       res.status(500).json({ error: err.message });
     }

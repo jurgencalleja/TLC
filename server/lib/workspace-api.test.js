@@ -742,6 +742,169 @@ describe('Workspace API', () => {
   });
 
   // =========================================================================
+  // Memory API routes (Task 1 - Phase 77)
+  // =========================================================================
+
+  describe('Memory API routes', () => {
+    function createRouterWithMemory(projectPath, memoryApi) {
+      const projectId = Buffer.from(projectPath).toString('base64url');
+      const mockConfig = createMockGlobalConfig([path.dirname(projectPath)]);
+      const mockScanner = createMockProjectScanner([
+        { name: 'mem-project', path: projectPath, hasTlc: true, hasPlanning: true },
+      ]);
+      const router = createWorkspaceRouter({
+        globalConfig: mockConfig,
+        projectScanner: mockScanner,
+        memoryApi,
+      });
+      return { router, projectId };
+    }
+
+    it('GET /projects/:id/memory/decisions returns decisions', async () => {
+      const projectPath = path.join(tempDir, 'mem-proj');
+      fs.mkdirSync(projectPath, { recursive: true });
+      const mockMemoryApi = {
+        handleListDecisions: vi.fn(async (req, res) => {
+          res.json({ decisions: [{ id: 'd1', text: 'Use React' }] });
+        }),
+      };
+      const { router, projectId } = createRouterWithMemory(projectPath, mockMemoryApi);
+
+      const handler = getHandler(router, 'GET', '/projects/:projectId/memory/decisions');
+      expect(handler).not.toBeNull();
+
+      const { req, res } = createMockReqRes('GET', `/projects/${projectId}/memory/decisions`, {}, { projectId });
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(200);
+      expect(res._json.decisions).toBeDefined();
+    });
+
+    it('GET /projects/:id/memory/gotchas returns gotchas', async () => {
+      const projectPath = path.join(tempDir, 'mem-proj2');
+      fs.mkdirSync(projectPath, { recursive: true });
+      const mockMemoryApi = {
+        handleListGotchas: vi.fn(async (req, res) => {
+          res.json({ gotchas: [{ id: 'g1', text: 'Watch out for X' }] });
+        }),
+      };
+      const { router, projectId } = createRouterWithMemory(projectPath, mockMemoryApi);
+
+      const handler = getHandler(router, 'GET', '/projects/:projectId/memory/gotchas');
+      expect(handler).not.toBeNull();
+
+      const { req, res } = createMockReqRes('GET', `/projects/${projectId}/memory/gotchas`, {}, { projectId });
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(200);
+      expect(res._json.gotchas).toBeDefined();
+    });
+
+    it('GET /projects/:id/memory/stats returns stats', async () => {
+      const projectPath = path.join(tempDir, 'mem-proj3');
+      fs.mkdirSync(projectPath, { recursive: true });
+      const mockMemoryApi = {
+        handleGetStats: vi.fn(async (req, res) => {
+          res.json({ totalEntries: 42, vectorCount: 100 });
+        }),
+      };
+      const { router, projectId } = createRouterWithMemory(projectPath, mockMemoryApi);
+
+      const handler = getHandler(router, 'GET', '/projects/:projectId/memory/stats');
+      expect(handler).not.toBeNull();
+
+      const { req, res } = createMockReqRes('GET', `/projects/${projectId}/memory/stats`, {}, { projectId });
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(200);
+      expect(res._json.totalEntries).toBe(42);
+    });
+
+    it('memory routes return 404 for unknown project', async () => {
+      const mockMemoryApi = {};
+      const unknownId = Buffer.from('/tmp/nonexistent').toString('base64url');
+      const mockConfig = createMockGlobalConfig([tempDir]);
+      const mockScanner = createMockProjectScanner([]);
+      const router = createWorkspaceRouter({
+        globalConfig: mockConfig,
+        projectScanner: mockScanner,
+        memoryApi: mockMemoryApi,
+      });
+
+      const handler = getHandler(router, 'GET', '/projects/:projectId/memory/decisions');
+      const { req, res } = createMockReqRes('GET', `/projects/${unknownId}/memory/decisions`, {}, { projectId: unknownId });
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(404);
+    });
+  });
+
+  // =========================================================================
+  // Project file endpoint (Task 1 - Phase 77)
+  // =========================================================================
+
+  describe('Project file endpoint', () => {
+    it('GET /projects/:id/files/:filename returns .planning file content', async () => {
+      const projectPath = path.join(tempDir, 'file-proj');
+      fs.mkdirSync(path.join(projectPath, '.planning'), { recursive: true });
+      fs.writeFileSync(path.join(projectPath, '.planning', 'ROADMAP.md'), '# Roadmap\n\nPhase 1');
+
+      const projectId = Buffer.from(projectPath).toString('base64url');
+      const mockConfig = createMockGlobalConfig([tempDir]);
+      const mockScanner = createMockProjectScanner([
+        { name: 'file-proj', path: projectPath, hasTlc: true, hasPlanning: true },
+      ]);
+      const router = createWorkspaceRouter({ globalConfig: mockConfig, projectScanner: mockScanner });
+
+      const handler = getHandler(router, 'GET', '/projects/:projectId/files/:filename');
+      expect(handler).not.toBeNull();
+
+      const { req, res } = createMockReqRes('GET', `/projects/${projectId}/files/ROADMAP.md`, {}, { projectId, filename: 'ROADMAP.md' });
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(200);
+      expect(res._json.content).toBe('# Roadmap\n\nPhase 1');
+      expect(res._json.filename).toBe('ROADMAP.md');
+    });
+
+    it('file endpoint returns 404 for missing file', async () => {
+      const projectPath = path.join(tempDir, 'file-proj2');
+      fs.mkdirSync(path.join(projectPath, '.planning'), { recursive: true });
+
+      const projectId = Buffer.from(projectPath).toString('base64url');
+      const mockConfig = createMockGlobalConfig([tempDir]);
+      const mockScanner = createMockProjectScanner([
+        { name: 'file-proj2', path: projectPath, hasTlc: true, hasPlanning: true },
+      ]);
+      const router = createWorkspaceRouter({ globalConfig: mockConfig, projectScanner: mockScanner });
+
+      const handler = getHandler(router, 'GET', '/projects/:projectId/files/:filename');
+      const { req, res } = createMockReqRes('GET', `/projects/${projectId}/files/NONEXISTENT.md`, {}, { projectId, filename: 'NONEXISTENT.md' });
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(404);
+    });
+
+    it('file endpoint rejects path traversal', async () => {
+      const projectPath = path.join(tempDir, 'file-proj3');
+      fs.mkdirSync(path.join(projectPath, '.planning'), { recursive: true });
+
+      const projectId = Buffer.from(projectPath).toString('base64url');
+      const mockConfig = createMockGlobalConfig([tempDir]);
+      const mockScanner = createMockProjectScanner([
+        { name: 'file-proj3', path: projectPath, hasTlc: true, hasPlanning: true },
+      ]);
+      const router = createWorkspaceRouter({ globalConfig: mockConfig, projectScanner: mockScanner });
+
+      const handler = getHandler(router, 'GET', '/projects/:projectId/files/:filename');
+      const { req, res } = createMockReqRes('GET', `/projects/${projectId}/files/../../../etc/passwd`, {}, { projectId, filename: '../../../etc/passwd' });
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(400);
+    });
+  });
+
+  // =========================================================================
   // Coverage in project status (Task 9 - Phase 77)
   // =========================================================================
 
