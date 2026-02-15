@@ -1,12 +1,13 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Brain, Lightbulb, AlertTriangle } from 'lucide-react';
+import { Brain, Lightbulb, AlertTriangle, Search } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Skeleton } from '../components/ui/Skeleton';
 import { useUIStore } from '../stores';
 import { useWorkspaceStore } from '../stores/workspace.store';
 import { useMemory } from '../hooks/useMemory';
+import { useMemorySearch } from '../hooks/useMemorySearch';
 
 export function MemoryPage() {
   const { projectId: urlProjectId } = useParams<{ projectId: string }>();
@@ -22,6 +23,7 @@ export function MemoryPage() {
   }, [urlProjectId, storeProjectId, selectProject]);
 
   const { decisions, gotchas, stats, loading, error } = useMemory(projectId);
+  const { query, setQuery, filteredDecisions, filteredGotchas } = useMemorySearch(decisions, gotchas);
 
   useEffect(() => {
     setActiveView('memory');
@@ -53,6 +55,21 @@ export function MemoryPage() {
 
       {error && (
         <div className="text-danger text-sm p-3 bg-danger/10 rounded-lg">{error}</div>
+      )}
+
+      {/* Search */}
+      {!isEmpty && (
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
+          <input
+            type="text"
+            data-testid="memory-search"
+            placeholder="Search memory..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 text-sm bg-bg-secondary border border-border rounded-md text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+          />
+        </div>
       )}
 
       {/* Stats Cards */}
@@ -100,10 +117,10 @@ export function MemoryPage() {
             <div className="flex items-center gap-2 mb-3">
               <Lightbulb className="w-5 h-5 text-accent" />
               <h2 className="text-lg font-medium text-text-primary">Decisions</h2>
-              <Badge variant="neutral" size="sm">{decisions.length}</Badge>
+              <Badge variant="neutral" size="sm">{filteredDecisions.length}</Badge>
             </div>
             <div className="space-y-2">
-              {decisions.map((d) => (
+              {filteredDecisions.map((d) => (
                 <Card key={d.id} className="p-3">
                   <p className="text-sm text-text-primary">{d.text}</p>
                   <div className="flex items-center gap-2 mt-2">
@@ -116,7 +133,7 @@ export function MemoryPage() {
                   </div>
                 </Card>
               ))}
-              {decisions.length === 0 && (
+              {filteredDecisions.length === 0 && (
                 <p className="text-sm text-text-muted">No decisions recorded yet.</p>
               )}
             </div>
@@ -127,10 +144,10 @@ export function MemoryPage() {
             <div className="flex items-center gap-2 mb-3">
               <AlertTriangle className="w-5 h-5 text-warning" />
               <h2 className="text-lg font-medium text-text-primary">Gotchas</h2>
-              <Badge variant="warning" size="sm">{gotchas.length}</Badge>
+              <Badge variant="warning" size="sm">{filteredGotchas.length}</Badge>
             </div>
             <div className="space-y-2">
-              {gotchas.map((g) => (
+              {filteredGotchas.map((g) => (
                 <Card key={g.id} className="p-3 border-warning/30">
                   <p className="text-sm text-text-primary">{g.text}</p>
                   <div className="flex items-center gap-2 mt-2">
@@ -143,7 +160,7 @@ export function MemoryPage() {
                   </div>
                 </Card>
               ))}
-              {gotchas.length === 0 && (
+              {filteredGotchas.length === 0 && (
                 <p className="text-sm text-text-muted">No gotchas recorded yet.</p>
               )}
             </div>

@@ -7,6 +7,15 @@ vi.mock('../hooks/useMemory', () => ({
   useMemory: vi.fn(),
 }));
 
+vi.mock('../hooks/useMemorySearch', () => ({
+  useMemorySearch: vi.fn((decisions: any[], gotchas: any[]) => ({
+    query: '',
+    setQuery: vi.fn(),
+    filteredDecisions: decisions,
+    filteredGotchas: gotchas,
+  })),
+}));
+
 vi.mock('../stores', () => ({
   useUIStore: vi.fn((selector) => {
     const store = { setActiveView: vi.fn() };
