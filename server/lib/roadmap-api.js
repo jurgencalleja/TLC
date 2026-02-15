@@ -27,7 +27,7 @@
  * @param {Function} deps.findProject - Resolves a project ID to { path, name, ... } or null
  * @returns {object} Handler methods for each roadmap/test endpoint
  */
-export function createRoadmapApi({ projectStatus, testInventory, findProject }) {
+function createRoadmapApi({ projectStatus, testInventory, findProject }) {
   /** @type {Map<string, CacheEntry>} */
   const roadmapCache = new Map();
   /** @type {Map<string, CacheEntry>} */
@@ -196,3 +196,5 @@ export function createRoadmapApi({ projectStatus, testInventory, findProject }) 
     handleRunTests,
   };
 }
+
+module.exports = { createRoadmapApi };

@@ -7,7 +7,7 @@
  * directory, and reading cached test runs.
  */
 
-import { join, relative, dirname } from 'path';
+const { join, relative, dirname } = require('path');
 
 /**
  * Creates a test inventory service with injected dependencies.
@@ -16,7 +16,7 @@ import { join, relative, dirname } from 'path';
  * @param {{ readFileSync: Function, existsSync: Function }} deps.fs - File system operations
  * @returns {{ getTestInventory: Function, getLastTestRun: Function }}
  */
-export function createTestInventory({ globSync, fs }) {
+function createTestInventory({ globSync, fs }) {
   /**
    * Count the number of test cases in a file's content.
    * Matches: it(, it.only(, it.skip(, test(, test.only(, test.skip(
@@ -108,3 +108,5 @@ export function createTestInventory({ globSync, fs }) {
 
   return { getTestInventory, getLastTestRun };
 }
+
+module.exports = { createTestInventory };

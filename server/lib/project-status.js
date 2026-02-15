@@ -26,7 +26,7 @@ function parseStatus(text) {
  * @returns {{ milestones: Array, totalPhases: number, completedPhases: number }}
  */
 function parseRoadmap(content) {
-  const lines = content.split('\n');
+  const lines = content.replace(/\r/g, '').split('\n');
   const milestones = [];
   let currentMilestone = null;
   let currentPhase = null;
@@ -119,7 +119,7 @@ function parseRoadmap(content) {
  * @returns {{ taskCount: number, completedTaskCount: number }}
  */
 function parsePlan(content) {
-  const lines = content.split('\n');
+  const lines = content.replace(/\r/g, '').split('\n');
   let taskCount = 0;
   let completedTaskCount = 0;
 
@@ -140,7 +140,7 @@ function parsePlan(content) {
  * @returns {{ testFileCount: number, testCount: number }}
  */
 function parseTests(content) {
-  const lines = content.split('\n');
+  const lines = content.replace(/\r/g, '').split('\n');
   let testFileCount = 0;
   let testCount = 0;
 
@@ -181,7 +181,7 @@ function parseGitLog(output) {
  * @param {Function} deps.execSync - Child process execSync function
  * @returns {{ getFullStatus: (projectPath: string) => Object }}
  */
-export function createProjectStatus({ fs, execSync }) {
+function createProjectStatus({ fs, execSync }) {
   /**
    * Read a file safely, returning null if it doesn't exist.
    * @param {string} filePath - Absolute path
@@ -189,7 +189,7 @@ export function createProjectStatus({ fs, execSync }) {
    */
   function readFile(filePath) {
     if (fs.existsSync(filePath)) {
-      return fs.readFileSync(filePath);
+      return fs.readFileSync(filePath, 'utf-8');
     }
     return null;
   }
@@ -293,3 +293,5 @@ export function createProjectStatus({ fs, execSync }) {
 
   return { getFullStatus };
 }
+
+module.exports = { createProjectStatus };

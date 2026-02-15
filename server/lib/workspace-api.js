@@ -10,6 +10,10 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
+const { createProjectStatus } = require('./project-status');
+const { createTestInventory } = require('./test-inventory');
+const { createRoadmapApi } = require('./roadmap-api');
 
 /**
  * Encode a project path to a URL-safe project ID
@@ -536,6 +540,53 @@ function createWorkspaceRouter(options = {}) {
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
+  });
+
+  // =========================================================================
+  // Roadmap & Test Suite endpoints (Phase 75)
+  // =========================================================================
+  const projectStatusService = createProjectStatus({ fs, execSync });
+  const testInventoryService = createTestInventory({
+    globSync: (patterns, opts) => {
+      const results = fs.globSync(patterns, {
+        cwd: opts.cwd,
+        exclude: (p) =>
+          p.includes('node_modules') || p.includes('/dist/') || p.includes('.git/'),
+      });
+      // fs.globSync returns relative paths; convert to absolute if requested
+      if (opts.absolute) {
+        return results.map((f) => path.join(opts.cwd, f));
+      }
+      return results;
+    },
+    fs,
+  });
+
+  const roadmapApi = createRoadmapApi({
+    projectStatus: projectStatusService,
+    testInventory: testInventoryService,
+    findProject: (projectId) => {
+      const roots = globalConfig.getRoots();
+      const project = findProjectById(projectScanner, roots, projectId);
+      return project || null;
+    },
+  });
+
+  router.get('/projects/:projectId/roadmap', async (req, res) => {
+    try { await roadmapApi.handleGetRoadmap(req, res); }
+    catch (err) { res.status(500).json({ error: err.message }); }
+  });
+  router.get('/projects/:projectId/tests', async (req, res) => {
+    try { await roadmapApi.handleGetTestInventory(req, res); }
+    catch (err) { res.status(500).json({ error: err.message }); }
+  });
+  router.get('/projects/:projectId/tasks/all', async (req, res) => {
+    try { await roadmapApi.handleGetAllTasks(req, res); }
+    catch (err) { res.status(500).json({ error: err.message }); }
+  });
+  router.post('/projects/:projectId/tests/run', async (req, res) => {
+    try { await roadmapApi.handleRunTests(req, res); }
+    catch (err) { res.status(500).json({ error: err.message }); }
   });
 
   return router;
