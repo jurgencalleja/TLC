@@ -11,7 +11,7 @@ export function ProjectsPage() {
   const navigate = useNavigate();
   const setActiveView = useUIStore((state) => state.setActiveView);
   const selectProject = useWorkspaceStore((s) => s.selectProject);
-  const { groups, loading, error, fetchGroups } = useWorkspaceGroups();
+  const { groups, loading, error } = useWorkspaceGroups();
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedGroup, setExpandedGroup] = useState<WorkspaceGroup | null>(null);
 
@@ -29,7 +29,7 @@ export function ProjectsPage() {
   const handleGroupClick = (group: WorkspaceGroup) => {
     if (group.repoCount === 1) {
       // Single-repo group — navigate directly
-      const repo = group.repos[0];
+      const repo = group.repos[0]!;
       selectProject(repo.id);
       navigate(`/projects/${repo.id}`);
     } else {

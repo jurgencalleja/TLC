@@ -102,7 +102,8 @@ export const useUIStore = create<UIState & UIActions>((set) => ({
       // Cycle: dark → light → system → dark
       const order: ThemePreference[] = ['dark', 'light', 'system'];
       const currentIndex = order.indexOf(state.themePreference);
-      const nextPref = order[(currentIndex + 1) % order.length];
+      const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % order.length;
+      const nextPref = order[nextIndex] as ThemePreference;
       const resolved = resolveTheme(nextPref);
       safeSetItem(STORAGE_KEY, nextPref);
       applyTheme(resolved);
