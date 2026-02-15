@@ -9,6 +9,7 @@ import { useTasks } from '../hooks/useTasks';
 import type { Task as ComponentTask, TaskStatus } from '../components/task/TaskCard';
 import type { Task as StoreTask } from '../stores/task.store';
 import { Skeleton } from '../components/ui/Skeleton';
+import { Plus, X } from 'lucide-react';
 
 // Transform server task format to component format
 function transformTask(task: StoreTask): ComponentTask {
@@ -55,7 +56,7 @@ function extractAssignees(tasks: ComponentTask[]): Assignee[] {
 
 const defaultActivity: ActivityItem[] = [];
 
-// Derive acceptance criteria from actual task data instead of using hardcoded defaults
+// Derive acceptance criteria from actual task data
 function getAcceptanceCriteria(task: ComponentTask, storeTasks: StoreTask[]): AcceptanceCriterion[] {
   const storeTask = storeTasks.find((t) => t.id === task.id);
   if (storeTask?.acceptanceCriteria && storeTask.acceptanceCriteria.length > 0) {
@@ -85,9 +86,12 @@ export function TasksPage() {
   const selectedProject = useWorkspaceStore((s) =>
     s.projects.find((p) => p.id === (urlProjectId ?? storeProjectId))
   );
-  const { tasks: storeTasks, loading, fetchTasks, updateTask, isReadOnly } = useTasks(projectId);
+  const { tasks: storeTasks, loading, fetchTasks, updateTaskStatus, createTask } = useTasks(projectId);
   const [selectedTask, setSelectedTask] = useState<ComponentTask | null>(null);
   const [filters, setFilters] = useState<TaskFilterValues>({ assignees: [], priorities: [] });
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [createTitle, setCreateTitle] = useState('');
+  const [createGoal, setCreateGoal] = useState('');
 
   useEffect(() => {
     setActiveView('tasks');
@@ -115,15 +119,43 @@ export function TasksPage() {
   }, []);
 
   const handleTaskMove = useCallback(async (taskId: string, newStatus: TaskStatus) => {
-    // Map component status back to server status
     const serverStatus = newStatus === 'done' ? 'completed' : newStatus;
     try {
-      await updateTask(taskId, { status: serverStatus });
+      await updateTaskStatus(taskId, serverStatus);
     } catch {
-      // Task already updated optimistically, refresh on error
       fetchTasks();
     }
-  }, [updateTask, fetchTasks]);
+  }, [updateTaskStatus, fetchTasks]);
+
+  const handleClaim = useCallback(async (taskId: string) => {
+    try {
+      await updateTaskStatus(taskId, 'in_progress');
+      fetchTasks();
+    } catch {
+      // Ignore errors
+    }
+  }, [updateTaskStatus, fetchTasks]);
+
+  const handleComplete = useCallback(async (taskId: string) => {
+    try {
+      await updateTaskStatus(taskId, 'done');
+      fetchTasks();
+    } catch {
+      // Ignore errors
+    }
+  }, [updateTaskStatus, fetchTasks]);
+
+  const handleCreateSubmit = useCallback(async () => {
+    if (!createTitle.trim()) return;
+    try {
+      await createTask({ title: createTitle, goal: createGoal, description: createGoal });
+      setCreateTitle('');
+      setCreateGoal('');
+      setShowCreateForm(false);
+    } catch {
+      // Ignore errors
+    }
+  }, [createTask, createTitle, createGoal]);
 
   // Apply filters
   const filteredTasks = useMemo(() => {
@@ -161,13 +193,64 @@ export function TasksPage() {
         <div className="p-4 border-b border-border">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-semibold text-text-primary">Tasks</h1>
-            <TaskFilter
-              assignees={assignees}
-              onFilterChange={handleFilterChange}
-              initialFilters={filters}
-            />
+            <div className="flex items-center gap-2">
+              <button
+                data-testid="create-task-btn"
+                onClick={() => setShowCreateForm(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md bg-accent text-white hover:bg-accent-hover transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                Create Task
+              </button>
+              <TaskFilter
+                assignees={assignees}
+                onFilterChange={handleFilterChange}
+                initialFilters={filters}
+              />
+            </div>
           </div>
         </div>
+
+        {/* Create Task Form */}
+        {showCreateForm && (
+          <div data-testid="task-create-form" className="p-4 border-b border-border bg-bg-secondary">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-medium text-text-primary">New Task</h3>
+              <button
+                onClick={() => setShowCreateForm(false)}
+                className="p-1 rounded hover:bg-bg-tertiary transition-colors"
+              >
+                <X className="h-4 w-4 text-text-muted" />
+              </button>
+            </div>
+            <div className="space-y-3">
+              <input
+                data-testid="task-title-input"
+                type="text"
+                placeholder="Task title..."
+                value={createTitle}
+                onChange={(e) => setCreateTitle(e.target.value)}
+                className="w-full px-3 py-2 text-sm bg-bg-primary border border-border rounded-md text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent"
+              />
+              <textarea
+                data-testid="task-goal-input"
+                placeholder="Goal / description..."
+                value={createGoal}
+                onChange={(e) => setCreateGoal(e.target.value)}
+                rows={2}
+                className="w-full px-3 py-2 text-sm bg-bg-primary border border-border rounded-md text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent resize-none"
+              />
+              <button
+                data-testid="task-submit-btn"
+                disabled={!createTitle.trim()}
+                onClick={handleCreateSubmit}
+                className="px-4 py-2 text-sm font-medium rounded-md bg-accent text-white hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Create
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="flex-1 overflow-auto p-4">
           {tasks.length === 0 ? (
@@ -185,18 +268,25 @@ export function TasksPage() {
               ) : (
                 <>
                   <p className="text-text-secondary mb-2">No tasks found</p>
-                  <p className="text-sm text-text-muted">
+                  <p className="text-sm text-text-muted mb-4">
                     {selectedProject?.hasPlanning
                       ? 'No tasks in current phase plan files (.planning/phases/*-PLAN.md)'
                       : 'Select a project with TLC configured to view tasks'}
                   </p>
+                  <button
+                    onClick={() => setShowCreateForm(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md bg-accent text-white hover:bg-accent-hover transition-colors"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Create Task
+                  </button>
                 </>
               )}
             </div>
           ) : (
             <TaskBoard
               tasks={filteredTasks}
-              onTaskMove={isReadOnly ? undefined : handleTaskMove}
+              onTaskMove={handleTaskMove}
               onTaskClick={handleTaskClick}
             />
           )}
@@ -210,6 +300,9 @@ export function TasksPage() {
             acceptanceCriteria={getAcceptanceCriteria(selectedTask, storeTasks)}
             activity={defaultActivity}
             onClose={handleCloseDetail}
+            onClaim={handleClaim}
+            onRelease={handleCloseDetail}
+            onComplete={handleComplete}
           />
         </div>
       )}

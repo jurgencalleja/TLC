@@ -2577,6 +2577,26 @@ Reject → developer notified with feedback
 
 ---
 
+### Phase 76: Dashboard That Actually Works [>]
+
+**Goal:** Fix every broken page, rewire navigation to workspace-first, add write operations (create/edit tasks and bugs), and deliver full drill-down depth on phases and tasks. PO or QA can open dashboard and understand entire project without CLI.
+
+**Deliverables:**
+- [ ] Fix all blank pages (Settings, Team, Health, Client, Tests) — zero blank screens
+- [ ] Workspace-first navigation (workspaces → repos, not flat 48-repo list)
+- [ ] Tabbed project detail (Overview | Roadmap | Tasks | Tests | Logs)
+- [ ] Full roadmap drill-down (click phase → goal, deliverables, tasks, discussion summary)
+- [ ] Task CRUD API (create/update/claim tasks, persisted to PLAN.md)
+- [ ] Bug CRUD API (create/update/close bugs, persisted to BUGS.md)
+- [ ] Task kanban with detail panel (acceptance criteria, test cases, claim/complete)
+- [ ] Bug report page with form (title, severity, screenshot, URL)
+- [ ] Working test inventory page (grouped files, run tests button)
+- [ ] System theme preference (auto dark/light)
+
+**Tests:** ~110
+
+---
+
 ---
 
 ## Milestone: v3.0 - TLC Standalone

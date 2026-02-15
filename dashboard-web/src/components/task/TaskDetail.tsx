@@ -25,6 +25,7 @@ export interface TaskDetailProps {
   onCriteriaToggle?: (criterionId: string, completed: boolean) => void;
   onClaim?: (taskId: string) => void;
   onRelease?: (taskId: string) => void;
+  onComplete?: (taskId: string) => void;
   currentUserId?: string;
 }
 
@@ -63,10 +64,12 @@ export function TaskDetail({
   onCriteriaToggle,
   onClaim,
   onRelease,
+  onComplete,
   currentUserId,
 }: TaskDetailProps) {
   const canRelease = task.assignee?.id === currentUserId;
   const canClaim = !task.assignee;
+  const canComplete = task.status === 'in_progress';
 
   return (
     <div className="bg-surface border border-border rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
@@ -81,6 +84,26 @@ export function TaskDetail({
             <span className="text-xs text-muted-foreground">Phase {task.phase}</span>
           </div>
           <h2 className="text-lg font-semibold text-foreground">{task.title}</h2>
+          <div className="flex items-center gap-2 mt-2">
+            {canClaim && onClaim && (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => onClaim(task.id)}
+              >
+                Claim
+              </Button>
+            )}
+            {canComplete && onComplete && (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => onComplete(task.id)}
+              >
+                Complete
+              </Button>
+            )}
+          </div>
         </div>
         <button
           onClick={onClose}

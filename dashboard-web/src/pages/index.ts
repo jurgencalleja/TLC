@@ -7,3 +7,7 @@ export { TeamPage } from './TeamPage';
 export { HealthPage } from './HealthPage';
 export { PreviewPage } from './PreviewPage';
 export { TestSuitePage } from './TestSuitePage';
+export { BugsPage } from './BugsPage';
+export { RoadmapPage } from './RoadmapPage';
+export { ProjectDetailPage } from './ProjectDetailPage';
+export { ClientDashboard } from './ClientDashboard';

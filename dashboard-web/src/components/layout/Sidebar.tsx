@@ -9,7 +9,8 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Eye,
+  Bug,
+  Map,
 } from 'lucide-react';
 import { useWorkspaceStore } from '../../stores/workspace.store';
 
@@ -32,10 +33,11 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
     const navItems: NavItem[] = useMemo(() => [
       { path: pid ? `/projects/${pid}` : '/', label: 'Dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
       { path: '/projects', label: 'Projects', icon: <FolderKanban className="h-5 w-5" /> },
+      { path: pid ? `/projects/${pid}/roadmap` : '/roadmap', label: 'Roadmap', icon: <Map className="h-5 w-5" /> },
       { path: pid ? `/projects/${pid}/tasks` : '/tasks', label: 'Tasks', icon: <CheckSquare className="h-5 w-5" /> },
-      { path: pid ? `/projects/${pid}/test-suite` : '/test-suite', label: 'Tests', icon: <TestTube className="h-5 w-5" /> },
+      { path: pid ? `/projects/${pid}/tests` : '/tests', label: 'Tests', icon: <TestTube className="h-5 w-5" /> },
+      { path: pid ? `/projects/${pid}/bugs` : '/bugs', label: 'Bugs', icon: <Bug className="h-5 w-5" /> },
       { path: pid ? `/projects/${pid}/logs` : '/logs', label: 'Logs', icon: <ScrollText className="h-5 w-5" /> },
-      { path: pid ? `/projects/${pid}/preview` : '/preview', label: 'Preview', icon: <Eye className="h-5 w-5" /> },
       { path: '/settings', label: 'Settings', icon: <Settings className="h-5 w-5" /> },
     ], [pid]);
 

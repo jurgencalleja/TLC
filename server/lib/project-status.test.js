@@ -376,6 +376,79 @@ describe('project-status', () => {
     expect(result.milestones).toEqual([]);
   });
 
+  it('falls back to deliverable counts when no PLAN.md exists', () => {
+    // Phases 2, 3, 4 have no PLAN.md but have deliverables in ROADMAP.md
+    const result = projectStatus.getFullStatus('/project');
+
+    // Phase 2: 2 deliverables, both [x] → taskCount=2, completedTaskCount=2
+    const phase2 = result.milestones[0].phases[1];
+    expect(phase2.taskCount).toBe(2);
+    expect(phase2.completedTaskCount).toBe(2);
+
+    // Phase 3: 2 deliverables, 1 [x] and 1 [ ] → taskCount=2, completedTaskCount=1
+    const phase3 = result.milestones[0].phases[2];
+    expect(phase3.taskCount).toBe(2);
+    expect(phase3.completedTaskCount).toBe(1);
+
+    // Phase 4: 2 deliverables, both [ ] → taskCount=2, completedTaskCount=0
+    const phase4 = result.milestones[1].phases[0];
+    expect(phase4.taskCount).toBe(2);
+    expect(phase4.completedTaskCount).toBe(0);
+  });
+
+  it('parses checklist items without Deliverables header', () => {
+    // Kasha-style ROADMAP: - [x] items directly under phase, no **Deliverables:** header
+    const roadmap = `# Roadmap
+
+## Milestone: v1.0
+
+### Phase 1: Foundation [x]
+- **Discussion:** assessment.md
+- **Plan:** plan.md
+- [x] 1.1 Update framework
+- [x] 1.2 Standardize Node.js
+- [x] 1.3 Standardize TypeScript
+
+### Phase 2: Backend [>]
+- [x] 2.1 Migration Batch 1
+- [x] 2.2 Migration Batch 2
+- [ ] 2.3 TypeORM standardization
+- [ ] 2.4 Gateway migration
+`;
+
+    const files = {
+      '/kasha/package.json': JSON.stringify({ name: 'kasha', version: '1.0.0' }),
+      '/kasha/.planning/ROADMAP.md': roadmap,
+    };
+    const fs = createMockFs(files);
+    const exec = createMockExecSync('');
+    const status = createProjectStatus({ fs, execSync: exec });
+
+    const result = status.getFullStatus('/kasha');
+
+    // Phase 1: 3 checklist items, all done
+    const phase1 = result.milestones[0].phases[0];
+    expect(phase1.deliverables).toHaveLength(3);
+    expect(phase1.taskCount).toBe(3);
+    expect(phase1.completedTaskCount).toBe(3);
+
+    // Phase 2: 4 checklist items, 2 done
+    const phase2 = result.milestones[0].phases[1];
+    expect(phase2.deliverables).toHaveLength(4);
+    expect(phase2.taskCount).toBe(4);
+    expect(phase2.completedTaskCount).toBe(2);
+  });
+
+  it('prefers PLAN.md task counts over deliverable counts', () => {
+    // Phase 1 has both a PLAN.md (3 tasks, 2 done) and deliverables (2 items, 2 done)
+    // PLAN.md should take precedence
+    const result = projectStatus.getFullStatus('/project');
+
+    const phase1 = result.milestones[0].phases[0];
+    expect(phase1.taskCount).toBe(3);
+    expect(phase1.completedTaskCount).toBe(2);
+  });
+
   it('milestone boundary correctly separates phases', () => {
     const result = projectStatus.getFullStatus('/project');
 

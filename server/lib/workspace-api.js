@@ -14,6 +14,8 @@ const { execSync } = require('child_process');
 const { createProjectStatus } = require('./project-status');
 const { createTestInventory } = require('./test-inventory');
 const { createRoadmapApi } = require('./roadmap-api');
+const { createPlanWriter } = require('./plan-writer');
+const { createBugWriter } = require('./bug-writer');
 
 /**
  * Encode a project path to a URL-safe project ID
@@ -433,6 +435,58 @@ function createWorkspaceRouter(options = {}) {
   });
 
   // =========================================================================
+  // GET /groups - Returns projects grouped by parent directory (workspace)
+  // =========================================================================
+  router.get('/groups', (req, res) => {
+    try {
+      const roots = globalConfig.getRoots();
+
+      if (roots.length === 0) {
+        return res.json({ groups: [] });
+      }
+
+      const projects = projectScanner.scan(roots);
+      const projectsWithIds = projects.map((p) => ({
+        ...p,
+        id: encodeProjectId(p.path),
+      }));
+
+      // Group by parent directory name
+      const groupMap = new Map();
+      for (const project of projectsWithIds) {
+        const parentDir = path.dirname(project.path);
+        const groupName = path.basename(parentDir);
+
+        if (!groupMap.has(groupName)) {
+          groupMap.set(groupName, {
+            name: groupName,
+            path: parentDir,
+            repos: [],
+            repoCount: 0,
+            hasTlc: false,
+          });
+        }
+
+        const group = groupMap.get(groupName);
+        group.repos.push(project);
+        group.repoCount = group.repos.length;
+        if (project.hasTlc) {
+          group.hasTlc = true;
+        }
+      }
+
+      // Sort groups by repo count descending
+      const groups = Array.from(groupMap.values()).sort(
+        (a, b) => b.repoCount - a.repoCount
+      );
+
+      res.json({ groups });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // =========================================================================
   // GET /projects - Returns all discovered projects
   // =========================================================================
   router.get('/projects', (req, res) => {
@@ -587,6 +641,168 @@ function createWorkspaceRouter(options = {}) {
   router.post('/projects/:projectId/tests/run', async (req, res) => {
     try { await roadmapApi.handleRunTests(req, res); }
     catch (err) { res.status(500).json({ error: err.message }); }
+  });
+
+  // =========================================================================
+  // Task & Bug Write endpoints (Phase 76)
+  // =========================================================================
+  const planWriter = createPlanWriter({ fs });
+  const bugWriter = createBugWriter({ fs });
+
+  /**
+   * Helper: find the PLAN.md path for a project's current phase
+   */
+  function findPlanPath(projectPath) {
+    const status = readProjectStatus(projectPath);
+    if (!status.currentPhase) return null;
+    const phasesDir = path.join(projectPath, '.planning', 'phases');
+    let planPath = path.join(phasesDir, `${status.currentPhase}-PLAN.md`);
+    if (!fs.existsSync(planPath)) {
+      try {
+        const padded = status.currentPhase.toString().padStart(2, '0');
+        const files = fs.readdirSync(phasesDir);
+        const match = files.find(
+          (f) =>
+            (f.startsWith(`${padded}-`) || f.startsWith(`${status.currentPhase}-`)) &&
+            f.endsWith('-PLAN.md')
+        );
+        if (match) planPath = path.join(phasesDir, match);
+      } catch {
+        return null;
+      }
+    }
+    return fs.existsSync(planPath) ? planPath : null;
+  }
+
+  // PUT /projects/:projectId/tasks/:taskNum/status - Update task status
+  router.put('/projects/:projectId/tasks/:taskNum/status', (req, res) => {
+    try {
+      const roots = globalConfig.getRoots();
+      const project = findProjectById(projectScanner, roots, req.params.projectId);
+      if (!project) return res.status(404).json({ error: 'Project not found' });
+
+      const planPath = findPlanPath(project.path);
+      if (!planPath) return res.status(404).json({ error: 'No PLAN.md found for current phase' });
+
+      const taskNum = parseInt(req.params.taskNum, 10);
+      const { status, owner } = req.body;
+
+      planWriter.updateTaskStatus(planPath, taskNum, status, owner || null);
+
+      const tasks = readProjectTasks(project.path, readProjectStatus(project.path).currentPhase);
+      const updated = tasks.find((t) => t.num === taskNum);
+      res.json({ task: updated });
+    } catch (err) {
+      if (err.message.includes('not found')) {
+        return res.status(404).json({ error: err.message });
+      }
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // PUT /projects/:projectId/tasks/:taskNum - Update task content
+  router.put('/projects/:projectId/tasks/:taskNum', (req, res) => {
+    try {
+      const roots = globalConfig.getRoots();
+      const project = findProjectById(projectScanner, roots, req.params.projectId);
+      if (!project) return res.status(404).json({ error: 'Project not found' });
+
+      const planPath = findPlanPath(project.path);
+      if (!planPath) return res.status(404).json({ error: 'No PLAN.md found for current phase' });
+
+      const taskNum = parseInt(req.params.taskNum, 10);
+      const updates = req.body;
+
+      planWriter.updateTaskContent(planPath, taskNum, updates);
+
+      const tasks = readProjectTasks(project.path, readProjectStatus(project.path).currentPhase);
+      const updated = tasks.find((t) => t.num === taskNum);
+      res.json({ task: updated });
+    } catch (err) {
+      if (err.message.includes('not found')) {
+        return res.status(404).json({ error: err.message });
+      }
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // POST /projects/:projectId/tasks - Create new task
+  router.post('/projects/:projectId/tasks', (req, res) => {
+    try {
+      const roots = globalConfig.getRoots();
+      const project = findProjectById(projectScanner, roots, req.params.projectId);
+      if (!project) return res.status(404).json({ error: 'Project not found' });
+
+      const planPath = findPlanPath(project.path);
+      if (!planPath) return res.status(404).json({ error: 'No PLAN.md found for current phase' });
+
+      const created = planWriter.createTask(planPath, req.body);
+      res.status(201).json({ task: created });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // PUT /projects/:projectId/bugs/:bugId/status - Update bug status
+  router.put('/projects/:projectId/bugs/:bugId/status', (req, res) => {
+    try {
+      const roots = globalConfig.getRoots();
+      const project = findProjectById(projectScanner, roots, req.params.projectId);
+      if (!project) return res.status(404).json({ error: 'Project not found' });
+
+      const bugsPath = path.join(project.path, '.planning', 'BUGS.md');
+      if (!fs.existsSync(bugsPath)) return res.status(404).json({ error: 'No BUGS.md found' });
+
+      const { status } = req.body;
+      bugWriter.updateBugStatus(bugsPath, req.params.bugId, status);
+
+      const bugs = readProjectBugs(project.path);
+      const updated = bugs.find((b) => b.id === req.params.bugId);
+      res.json({ bug: updated });
+    } catch (err) {
+      if (err.message.includes('not found')) {
+        return res.status(404).json({ error: err.message });
+      }
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // PUT /projects/:projectId/bugs/:bugId - Update bug content
+  router.put('/projects/:projectId/bugs/:bugId', (req, res) => {
+    try {
+      const roots = globalConfig.getRoots();
+      const project = findProjectById(projectScanner, roots, req.params.projectId);
+      if (!project) return res.status(404).json({ error: 'Project not found' });
+
+      const bugsPath = path.join(project.path, '.planning', 'BUGS.md');
+      if (!fs.existsSync(bugsPath)) return res.status(404).json({ error: 'No BUGS.md found' });
+
+      bugWriter.updateBugContent(bugsPath, req.params.bugId, req.body);
+
+      const bugs = readProjectBugs(project.path);
+      const updated = bugs.find((b) => b.id === req.params.bugId);
+      res.json({ bug: updated });
+    } catch (err) {
+      if (err.message.includes('not found')) {
+        return res.status(404).json({ error: err.message });
+      }
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // POST /projects/:projectId/bugs - Create new bug
+  router.post('/projects/:projectId/bugs', (req, res) => {
+    try {
+      const roots = globalConfig.getRoots();
+      const project = findProjectById(projectScanner, roots, req.params.projectId);
+      if (!project) return res.status(404).json({ error: 'Project not found' });
+
+      const bugsPath = path.join(project.path, '.planning', 'BUGS.md');
+      const created = bugWriter.createBug(bugsPath, req.body);
+      res.status(201).json({ bug: created });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
   });
 
   return router;

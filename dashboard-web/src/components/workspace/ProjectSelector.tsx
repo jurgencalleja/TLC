@@ -33,10 +33,10 @@ export function ProjectSelector({
             appearance-none
             w-56 pl-3 pr-8 py-1.5
             text-sm font-medium
-            bg-surface border border-border rounded-md
-            text-foreground
+            bg-bg-secondary border border-border rounded-md
+            text-text-primary
             cursor-pointer
-            focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary
+            focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent
           "
         >
           <option value="">Select a project...</option>
@@ -46,12 +46,12 @@ export function ProjectSelector({
             </option>
           ))}
         </select>
-        <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+        <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
       </div>
 
       <span
         data-testid="project-selector-count"
-        className="text-sm text-muted-foreground"
+        className="text-sm text-text-muted"
       >
         {projects.length} {projectLabel}
       </span>

@@ -13,6 +13,10 @@ import {
   HealthPage,
   PreviewPage,
   TestSuitePage,
+  BugsPage,
+  RoadmapPage,
+  ProjectDetailPage,
+  ClientDashboard,
 } from './pages';
 import { useUIStore } from './stores';
 import { useWebSocket } from './hooks';
@@ -74,7 +78,9 @@ function AppContent() {
     { id: 'nav-team', label: 'Go to Team', shortcut: 'g m', action: () => { navigate('/team'); closeCommandPalette(); } },
     { id: 'nav-health', label: 'Go to Health', shortcut: 'g h', action: () => { navigate('/health'); closeCommandPalette(); } },
     { id: 'nav-preview', label: 'Go to Preview', shortcut: 'g v', action: () => { navigate(pid ? `/projects/${pid}/preview` : '/preview'); closeCommandPalette(); } },
-    { id: 'nav-tests', label: 'Go to Tests', shortcut: 'g x', action: () => { navigate(pid ? `/projects/${pid}/test-suite` : '/test-suite'); closeCommandPalette(); } },
+    { id: 'nav-tests', label: 'Go to Tests', shortcut: 'g x', action: () => { navigate(pid ? `/projects/${pid}/tests` : '/tests'); closeCommandPalette(); } },
+    { id: 'nav-bugs', label: 'Go to Bugs', shortcut: 'g b', action: () => { navigate(pid ? `/projects/${pid}/bugs` : '/bugs'); closeCommandPalette(); } },
+    { id: 'nav-roadmap', label: 'Go to Roadmap', shortcut: 'g r', action: () => { navigate(pid ? `/projects/${pid}/roadmap` : '/roadmap'); closeCommandPalette(); } },
     { id: 'nav-setup', label: 'Workspace Setup', shortcut: 'g w', action: () => { navigate('/setup'); closeCommandPalette(); } },
     { id: 'toggle-theme', label: 'Toggle Theme', shortcut: 't', action: () => { toggleTheme(); closeCommandPalette(); } },
   ], [navigate, closeCommandPalette, toggleTheme, pid]);
@@ -115,12 +121,16 @@ function AppContent() {
               />
             </div>
             <Routes>
-              {/* Project-scoped routes */}
-              <Route path="/projects/:projectId" element={<DashboardPage />} />
-              <Route path="/projects/:projectId/tasks" element={<TasksPage />} />
-              <Route path="/projects/:projectId/logs" element={<LogsPage />} />
-              <Route path="/projects/:projectId/preview" element={<PreviewPage />} />
-              <Route path="/projects/:projectId/test-suite" element={<TestSuitePage />} />
+              {/* Project-scoped routes with tabbed layout */}
+              <Route path="/projects/:projectId/*" element={<ProjectDetailPage />}>
+                <Route index element={<DashboardPage />} />
+                <Route path="roadmap" element={<RoadmapPage />} />
+                <Route path="tasks" element={<TasksPage />} />
+                <Route path="tests" element={<TestSuitePage />} />
+                <Route path="bugs" element={<BugsPage />} />
+                <Route path="logs" element={<LogsPage />} />
+                <Route path="preview" element={<PreviewPage />} />
+              </Route>
               {/* Global routes */}
               <Route path="/" element={<DashboardPage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
@@ -131,7 +141,10 @@ function AppContent() {
               <Route path="/team" element={<TeamPage />} />
               <Route path="/health" element={<HealthPage />} />
               <Route path="/preview" element={<PreviewPage />} />
-              <Route path="/test-suite" element={<TestSuitePage />} />
+              <Route path="/tests" element={<TestSuitePage />} />
+              <Route path="/bugs" element={<BugsPage />} />
+              <Route path="/roadmap" element={<RoadmapPage />} />
+              <Route path="/client" element={<ClientDashboard />} />
             </Routes>
           </Shell>
         } />

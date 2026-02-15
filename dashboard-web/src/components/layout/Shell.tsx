@@ -1,6 +1,7 @@
 import { forwardRef, useState, type HTMLAttributes } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { useUIStore } from '../../stores';
 
 interface ShellProps extends HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -9,14 +10,9 @@ interface ShellProps extends HTMLAttributes<HTMLDivElement> {
 export const Shell = forwardRef<HTMLDivElement, ShellProps>(
   ({ children, className = '', ...props }, ref) => {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-    const [theme, setTheme] = useState<'dark' | 'light'>('dark');
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-    const handleThemeToggle = () => {
-      const newTheme = theme === 'dark' ? 'light' : 'dark';
-      setTheme(newTheme);
-      document.documentElement.setAttribute('data-theme', newTheme);
-    };
+    const theme = useUIStore((s) => s.theme);
+    const toggleTheme = useUIStore((s) => s.toggleTheme);
 
     const handleSidebarToggle = () => {
       setSidebarCollapsed(!sidebarCollapsed);
@@ -67,7 +63,7 @@ export const Shell = forwardRef<HTMLDivElement, ShellProps>(
         <div className="flex-1 flex flex-col overflow-hidden">
           <Header
             theme={theme}
-            onThemeToggle={handleThemeToggle}
+            onThemeToggle={toggleTheme}
             onMobileMenuToggle={handleMobileMenuToggle}
           />
 

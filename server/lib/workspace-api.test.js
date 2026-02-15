@@ -616,4 +616,128 @@ describe('Workspace API', () => {
       expect(res._json).toBeDefined();
     }
   });
+
+  // =========================================================================
+  // GET /groups - Workspace grouping endpoint
+  // =========================================================================
+
+  describe('GET /groups', () => {
+    it('groups projects by parent directory', async () => {
+      const mockConfig = createMockGlobalConfig([tempDir]);
+      const mockScanner = createMockProjectScanner([
+        { name: 'alpha', path: `${tempDir}/workspace-a/alpha`, hasTlc: true, hasPlanning: true },
+        { name: 'beta', path: `${tempDir}/workspace-a/beta`, hasTlc: false, hasPlanning: false },
+        { name: 'gamma', path: `${tempDir}/workspace-b/gamma`, hasTlc: true, hasPlanning: true },
+      ]);
+
+      const router = createWorkspaceRouter({ globalConfig: mockConfig, projectScanner: mockScanner });
+      const handler = getHandler(router, 'GET', '/groups');
+      expect(handler).not.toBeNull();
+
+      const { req, res } = createMockReqRes('GET', '/groups');
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(200);
+      expect(res._json.groups).toHaveLength(2);
+
+      const groupA = res._json.groups.find((g) => g.name === 'workspace-a');
+      const groupB = res._json.groups.find((g) => g.name === 'workspace-b');
+
+      expect(groupA).toBeDefined();
+      expect(groupA.repos).toHaveLength(2);
+      expect(groupA.repoCount).toBe(2);
+
+      expect(groupB).toBeDefined();
+      expect(groupB.repos).toHaveLength(1);
+      expect(groupB.repoCount).toBe(1);
+    });
+
+    it('includes hasTlc flag and repo count per group', async () => {
+      const mockConfig = createMockGlobalConfig([tempDir]);
+      const mockScanner = createMockProjectScanner([
+        { name: 'svc-a', path: `${tempDir}/platform/svc-a`, hasTlc: true, hasPlanning: true },
+        { name: 'svc-b', path: `${tempDir}/platform/svc-b`, hasTlc: false, hasPlanning: false },
+      ]);
+
+      const router = createWorkspaceRouter({ globalConfig: mockConfig, projectScanner: mockScanner });
+      const handler = getHandler(router, 'GET', '/groups');
+      const { req, res } = createMockReqRes('GET', '/groups');
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(200);
+      const group = res._json.groups[0];
+      expect(group.name).toBe('platform');
+      expect(group.hasTlc).toBe(true); // at least one repo has TLC
+      expect(group.repoCount).toBe(2);
+    });
+
+    it('treats standalone projects as their own group using parent dir name', async () => {
+      const mockConfig = createMockGlobalConfig([tempDir]);
+      // Single project directly under root - groups by parent directory name
+      const mockScanner = createMockProjectScanner([
+        { name: 'standalone', path: `${tempDir}/standalone`, hasTlc: true, hasPlanning: true },
+      ]);
+
+      const router = createWorkspaceRouter({ globalConfig: mockConfig, projectScanner: mockScanner });
+      const handler = getHandler(router, 'GET', '/groups');
+      const { req, res } = createMockReqRes('GET', '/groups');
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(200);
+      expect(res._json.groups).toHaveLength(1);
+      // Parent dir is tempDir itself, so group name is tempDir's basename
+      expect(res._json.groups[0].repoCount).toBe(1);
+      expect(res._json.groups[0].repos[0].name).toBe('standalone');
+    });
+
+    it('returns empty groups when no projects', async () => {
+      const mockConfig = createMockGlobalConfig([tempDir]);
+      const mockScanner = createMockProjectScanner([]);
+
+      const router = createWorkspaceRouter({ globalConfig: mockConfig, projectScanner: mockScanner });
+      const handler = getHandler(router, 'GET', '/groups');
+      const { req, res } = createMockReqRes('GET', '/groups');
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(200);
+      expect(res._json.groups).toHaveLength(0);
+    });
+
+    it('sorts groups by repo count descending', async () => {
+      const mockConfig = createMockGlobalConfig([tempDir]);
+      const mockScanner = createMockProjectScanner([
+        { name: 'a', path: `${tempDir}/small/a`, hasTlc: false },
+        { name: 'x', path: `${tempDir}/large/x`, hasTlc: true },
+        { name: 'y', path: `${tempDir}/large/y`, hasTlc: true },
+        { name: 'z', path: `${tempDir}/large/z`, hasTlc: false },
+      ]);
+
+      const router = createWorkspaceRouter({ globalConfig: mockConfig, projectScanner: mockScanner });
+      const handler = getHandler(router, 'GET', '/groups');
+      const { req, res } = createMockReqRes('GET', '/groups');
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(200);
+      expect(res._json.groups[0].name).toBe('large');
+      expect(res._json.groups[1].name).toBe('small');
+    });
+
+    it('includes current phase info in repos', async () => {
+      const mockConfig = createMockGlobalConfig([tempDir]);
+      const mockScanner = createMockProjectScanner([
+        { name: 'myapp', path: `${tempDir}/ws/myapp`, hasTlc: true, hasPlanning: true, phase: 5, phaseName: 'Auth', totalPhases: 10, completedPhases: 4 },
+      ]);
+
+      const router = createWorkspaceRouter({ globalConfig: mockConfig, projectScanner: mockScanner });
+      const handler = getHandler(router, 'GET', '/groups');
+      const { req, res } = createMockReqRes('GET', '/groups');
+      await handler(req, res);
+
+      const repo = res._json.groups[0].repos[0];
+      expect(repo.id).toBeDefined();
+      expect(repo.name).toBe('myapp');
+      expect(repo.phase).toBe(5);
+      expect(repo.phaseName).toBe('Auth');
+    });
+  });
 });

@@ -30,17 +30,32 @@ describe('ui.store', () => {
       expect(result.current.theme).toBe('dark');
     });
 
-    it('toggles theme between dark and light', () => {
+    it('cycles theme preference: dark → light → system → dark', () => {
       const { result } = renderHook(() => useUIStore());
+
+      // Default themePreference is 'system', so first toggle goes to next after system
+      // But after reset(), themePreference is 'system'. Let's set it to dark first.
+      act(() => {
+        result.current.setThemePreference('dark');
+      });
+      expect(result.current.themePreference).toBe('dark');
 
       act(() => {
         result.current.toggleTheme();
       });
+      expect(result.current.themePreference).toBe('light');
       expect(result.current.theme).toBe('light');
 
       act(() => {
         result.current.toggleTheme();
       });
+      expect(result.current.themePreference).toBe('system');
+      // System resolves based on matchMedia (dark in jsdom)
+
+      act(() => {
+        result.current.toggleTheme();
+      });
+      expect(result.current.themePreference).toBe('dark');
       expect(result.current.theme).toBe('dark');
     });
 

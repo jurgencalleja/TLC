@@ -89,20 +89,19 @@ function parseRoadmap(content) {
       continue;
     }
 
-    // Deliverable item: - [x] text or - [ ] text
-    if (inDeliverables) {
-      const deliverableMatch = line.match(/^- \[(x| )\]\s*(.+)$/);
-      if (deliverableMatch) {
-        currentPhase.deliverables.push({
-          text: deliverableMatch[2].trim(),
-          done: deliverableMatch[1] === 'x',
-        });
-        continue;
-      }
-      // If we hit a non-deliverable, non-empty line that's not blank, stop
-      if (line.trim() !== '' && !line.match(/^- \[/)) {
-        inDeliverables = false;
-      }
+    // Deliverable/checklist item: - [x] text or - [ ] text
+    // Match both inside **Deliverables:** sections and standalone checklist items
+    const deliverableMatch = line.match(/^- \[(x| )\]\s*(.+)$/);
+    if (deliverableMatch) {
+      currentPhase.deliverables.push({
+        text: deliverableMatch[2].trim(),
+        done: deliverableMatch[1] === 'x',
+      });
+      continue;
+    }
+    // End deliverables section on non-deliverable, non-empty, non-blank line
+    if (inDeliverables && line.trim() !== '' && !line.match(/^- \[/)) {
+      inDeliverables = false;
     }
   }
 
@@ -259,6 +258,12 @@ function createProjectStatus({ fs, execSync }) {
           phase.testCount = tests.testCount;
           totalTestFiles += tests.testFileCount;
           totalTests += tests.testCount;
+        }
+
+        // Fall back to deliverable counts when no PLAN.md exists
+        if (phase.taskCount === 0 && phase.deliverables.length > 0) {
+          phase.taskCount = phase.deliverables.length;
+          phase.completedTaskCount = phase.deliverables.filter((d) => d.done).length;
         }
 
         // VERIFIED.md

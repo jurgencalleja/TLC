@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 
+export type ThemePreference = 'dark' | 'light' | 'system';
 export type Theme = 'dark' | 'light';
 export type ViewName =
   | 'dashboard'
@@ -14,6 +15,7 @@ export type ViewName =
 
 interface UIState {
   theme: Theme;
+  themePreference: ThemePreference;
   sidebarCollapsed: boolean;
   isCommandPaletteOpen: boolean;
   activeView: ViewName;
@@ -22,6 +24,7 @@ interface UIState {
 
 interface UIActions {
   setTheme: (theme: Theme) => void;
+  setThemePreference: (pref: ThemePreference) => void;
   toggleTheme: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
   toggleSidebar: () => void;
@@ -37,8 +40,41 @@ interface UIActions {
 
 const STORAGE_KEY = 'tlc-theme';
 
+function safeSetItem(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Ignore in environments without localStorage
+  }
+}
+
+function safeGetItem(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function resolveTheme(pref: ThemePreference): Theme {
+  if (pref === 'system') {
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'dark';
+  }
+  return pref;
+}
+
+function applyTheme(theme: Theme) {
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-theme', theme);
+  }
+}
+
 const initialState: UIState = {
   theme: 'dark',
+  themePreference: 'system',
   sidebarCollapsed: false,
   isCommandPaletteOpen: false,
   activeView: 'dashboard',
@@ -49,15 +85,28 @@ export const useUIStore = create<UIState & UIActions>((set) => ({
   ...initialState,
 
   setTheme: (theme) => {
-    localStorage.setItem(STORAGE_KEY, theme);
-    set({ theme });
+    safeSetItem(STORAGE_KEY, theme);
+    applyTheme(theme);
+    set({ theme, themePreference: theme });
+  },
+
+  setThemePreference: (pref) => {
+    safeSetItem(STORAGE_KEY, pref);
+    const resolved = resolveTheme(pref);
+    applyTheme(resolved);
+    set({ themePreference: pref, theme: resolved });
   },
 
   toggleTheme: () => {
     set((state) => {
-      const newTheme = state.theme === 'dark' ? 'light' : 'dark';
-      localStorage.setItem(STORAGE_KEY, newTheme);
-      return { theme: newTheme };
+      // Cycle: dark → light → system → dark
+      const order: ThemePreference[] = ['dark', 'light', 'system'];
+      const currentIndex = order.indexOf(state.themePreference);
+      const nextPref = order[(currentIndex + 1) % order.length];
+      const resolved = resolveTheme(nextPref);
+      safeSetItem(STORAGE_KEY, nextPref);
+      applyTheme(resolved);
+      return { themePreference: nextPref, theme: resolved };
     });
   },
 
@@ -78,9 +127,16 @@ export const useUIStore = create<UIState & UIActions>((set) => ({
   closeMobileMenu: () => set({ isMobileMenuOpen: false }),
 
   initFromStorage: () => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === 'light' || stored === 'dark') {
-      set({ theme: stored });
+    const stored = safeGetItem(STORAGE_KEY);
+    if (stored === 'light' || stored === 'dark' || stored === 'system') {
+      const resolved = resolveTheme(stored as ThemePreference);
+      applyTheme(resolved);
+      set({ themePreference: stored as ThemePreference, theme: resolved });
+    } else {
+      // Default to system
+      const resolved = resolveTheme('system');
+      applyTheme(resolved);
+      set({ themePreference: 'system', theme: resolved });
     }
   },
 

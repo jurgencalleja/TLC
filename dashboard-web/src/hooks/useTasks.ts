@@ -20,8 +20,6 @@ export function useTasks(projectId?: string) {
     setLoading,
   } = useTaskStore();
 
-  const isReadOnly = Boolean(projectId);
-
   const fetchTasks = useCallback(async () => {
     setLoading(true);
     try {
@@ -43,15 +41,26 @@ export function useTasks(projectId?: string) {
     } catch (err) {
       console.error('Failed to fetch tasks:', err);
       setTasks([]);
+    } finally {
+      setLoading(false);
     }
   }, [projectId, setLoading, setTasks]);
 
   const createTask = useCallback(
     async (taskData: Partial<Task>) => {
       if (projectId) {
-        const err = new Error('Tasks are read-only in workspace mode.');
-        console.warn(err.message);
-        return Promise.reject(err);
+        // Use workspace API for project-scoped task creation
+        try {
+          const result = await api.projects.createTask(projectId, {
+            title: taskData.title || taskData.subject || 'Untitled',
+            goal: taskData.goal || taskData.description || '',
+          });
+          await fetchTasks(); // Refresh to get server-assigned numbers
+          return result.task;
+        } catch (err) {
+          console.error('Failed to create task:', err);
+          throw err;
+        }
       }
       try {
         const created = await api.tasks.createTask(taskData);
@@ -62,15 +71,51 @@ export function useTasks(projectId?: string) {
         throw err;
       }
     },
-    [addTask, projectId]
+    [addTask, projectId, fetchTasks]
+  );
+
+  const updateTaskStatus = useCallback(
+    async (taskId: string, newStatus: string, owner?: string) => {
+      if (projectId) {
+        try {
+          const result = await api.projects.updateTaskStatus(
+            projectId,
+            parseInt(taskId, 10),
+            newStatus,
+            owner
+          );
+          // Update local store optimistically
+          storeUpdateTask(taskId, { status: newStatus === 'done' ? 'completed' : newStatus, owner: owner ?? null });
+          return result.task;
+        } catch (err) {
+          console.error('Failed to update task status:', err);
+          throw err;
+        }
+      }
+      // Fallback to old API
+      try {
+        const updated = await api.tasks.updateTask(taskId, { status: newStatus });
+        storeUpdateTask(taskId, updated);
+        return updated;
+      } catch (err) {
+        console.error('Failed to update task:', err);
+        throw err;
+      }
+    },
+    [storeUpdateTask, projectId]
   );
 
   const updateTask = useCallback(
     async (id: string, updates: Partial<Task>) => {
       if (projectId) {
-        const err = new Error('Tasks are read-only in workspace mode.');
-        console.warn(err.message);
-        return Promise.reject(err);
+        try {
+          const result = await api.projects.updateTask(projectId, parseInt(id, 10), updates);
+          storeUpdateTask(id, result.task);
+          return result.task;
+        } catch (err) {
+          console.error('Failed to update task:', err);
+          throw err;
+        }
       }
       try {
         const updated = await api.tasks.updateTask(id, updates);
@@ -86,11 +131,6 @@ export function useTasks(projectId?: string) {
 
   const deleteTask = useCallback(
     async (id: string) => {
-      if (projectId) {
-        const err = new Error('Tasks are read-only in workspace mode.');
-        console.warn(err.message);
-        return Promise.reject(err);
-      }
       try {
         await api.tasks.deleteTask(id);
         removeTask(id);
@@ -99,7 +139,7 @@ export function useTasks(projectId?: string) {
         throw err;
       }
     },
-    [removeTask, projectId]
+    [removeTask]
   );
 
   return {
@@ -107,12 +147,13 @@ export function useTasks(projectId?: string) {
     selectedTask,
     filters,
     loading,
-    isReadOnly,
+    isReadOnly: false, // No longer read-only — workspace API supports writes
     filteredTasks,
     tasksByStatus,
     fetchTasks,
     createTask,
     updateTask,
+    updateTaskStatus,
     deleteTask,
     selectTask,
     setFilter,

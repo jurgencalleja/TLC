@@ -636,21 +636,35 @@ git add src/auth/login.ts tests/auth/login.test.ts
 git commit -m "feat: {task-title} - phase {N}"
 ```
 
-#### 7e. Mark Task Complete (Multi-User)
+#### 7e. Mark Task Complete in PLAN.md (MANDATORY)
 
-If using multi-user mode (task had `[>@user]` marker):
+**Always update the task marker in PLAN.md after tests pass.** This is not optional.
 
-1. Update marker: `[>@{user}]` → `[x@{user}]`
-2. Commit: `git commit -m "complete: task {N} - {title} (@{user})"`
-3. Push to share progress with team
+1. Open `.planning/phases/{phase}-PLAN.md`
+2. Find the task heading: `### Task {N}: {title} [ ]` (or `[>@{user}]`)
+3. Update the marker:
+   - Single-user: `[ ]` → `[x]`
+   - Multi-user: `[>@{user}]` → `[x@{user}]`
+4. Include the plan update in the same commit (step 7d) or commit separately
+
+**Example:**
+```
+### Task 3: Tabbed Project Detail Page [ ]     ← before
+### Task 3: Tabbed Project Detail Page [x]     ← after
+```
+
+This keeps the plan file as the single source of truth for task status. Do NOT wait until the end of the phase — mark each task done immediately after its tests pass.
+
+If in multi-user mode, also push to share progress with team.
 
 #### 7f. Move to next task
-Repeat 7a-7d for each task in the phase.
+Repeat 7a-7e for each task in the phase.
 
 **Critical Rules:**
 - Implement **one task at a time**
 - Run tests **after each task**
 - Commit **after each passing task**
+- **Mark task `[x]` in PLAN.md after each passing task** — never defer this
 - Do NOT batch — sequential execution catches issues early
 
 ### Step 8: Verify All Tests Pass (Green)

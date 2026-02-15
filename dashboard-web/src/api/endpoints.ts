@@ -97,6 +97,14 @@ export interface TestInventoryData {
   lastRun?: { timestamp: string; passed: number; failed: number; total: number; duration: number } | null;
 }
 
+export interface WorkspaceGroup {
+  name: string;
+  path: string;
+  repos: (WorkspaceProject & { id: string })[];
+  repoCount: number;
+  hasTlc: boolean;
+}
+
 export interface ApiEndpoints {
   project: {
     getProject(): Promise<ProjectInfo>;
@@ -139,6 +147,7 @@ export interface ApiEndpoints {
     setConfig(roots: string[]): Promise<{ roots: string[] }>;
     scan(): Promise<{ projects: WorkspaceProject[]; scannedAt: number }>;
     getProjects(): Promise<WorkspaceProject[]>;
+    getGroups(): Promise<WorkspaceGroup[]>;
   };
   projects: {
     getById(id: string): Promise<WorkspaceProject>;
@@ -148,6 +157,12 @@ export interface ApiEndpoints {
     getRoadmap(id: string): Promise<RoadmapData>;
     getTestInventory(id: string): Promise<TestInventoryData>;
     runTests(id: string): Promise<{ started: boolean; message: string }>;
+    updateTaskStatus(id: string, taskNum: number, status: string, owner?: string): Promise<{ task: Task }>;
+    updateTask(id: string, taskNum: number, updates: Record<string, unknown>): Promise<{ task: Task }>;
+    createTask(id: string, task: Record<string, unknown>): Promise<{ task: Task }>;
+    updateBugStatus(id: string, bugId: string, status: string): Promise<{ bug: Bug }>;
+    updateBug(id: string, bugId: string, updates: Record<string, unknown>): Promise<{ bug: Bug }>;
+    createBug(id: string, bug: Record<string, unknown>): Promise<{ bug: Bug }>;
   };
 }
 
@@ -257,6 +272,10 @@ export function createApiEndpoints(client: ApiClient): ApiEndpoints {
         const res = await client.get<{ projects: WorkspaceProject[] }>('/api/workspace/projects');
         return res.projects;
       },
+      async getGroups() {
+        const res = await client.get<{ groups: WorkspaceGroup[] }>('/api/workspace/groups');
+        return res.groups;
+      },
     },
 
     projects: {
@@ -284,6 +303,24 @@ export function createApiEndpoints(client: ApiClient): ApiEndpoints {
       },
       async runTests(id: string) {
         return client.post<{ started: boolean; message: string }>(`/api/projects/${id}/tests/run`);
+      },
+      async updateTaskStatus(id: string, taskNum: number, status: string, owner?: string) {
+        return client.put<{ task: Task }>(`/api/projects/${id}/tasks/${taskNum}/status`, { status, owner });
+      },
+      async updateTask(id: string, taskNum: number, updates: Record<string, unknown>) {
+        return client.put<{ task: Task }>(`/api/projects/${id}/tasks/${taskNum}`, updates);
+      },
+      async createTask(id: string, task: Record<string, unknown>) {
+        return client.post<{ task: Task }>(`/api/projects/${id}/tasks`, task);
+      },
+      async updateBugStatus(id: string, bugId: string, status: string) {
+        return client.put<{ bug: Bug }>(`/api/projects/${id}/bugs/${bugId}/status`, { status });
+      },
+      async updateBug(id: string, bugId: string, updates: Record<string, unknown>) {
+        return client.put<{ bug: Bug }>(`/api/projects/${id}/bugs/${bugId}`, updates);
+      },
+      async createBug(id: string, bug: Record<string, unknown>) {
+        return client.post<{ bug: Bug }>(`/api/projects/${id}/bugs`, bug);
       },
     },
   };
