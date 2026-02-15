@@ -278,6 +278,46 @@ describe('api/endpoints', () => {
       expect(result).toEqual(bugs);
     });
 
+    it('getMemoryDecisions fetches decisions for a project', async () => {
+      const decisions = [{ id: 'd1', text: 'Use React' }];
+      vi.mocked(mockClient.get).mockResolvedValueOnce({ decisions });
+
+      const result = await endpoints.projects.getMemoryDecisions('proj-1');
+
+      expect(mockClient.get).toHaveBeenCalledWith('/api/projects/proj-1/memory/decisions');
+      expect(result).toEqual(decisions);
+    });
+
+    it('getMemoryGotchas fetches gotchas for a project', async () => {
+      const gotchas = [{ id: 'g1', text: 'Watch out' }];
+      vi.mocked(mockClient.get).mockResolvedValueOnce({ gotchas });
+
+      const result = await endpoints.projects.getMemoryGotchas('proj-1');
+
+      expect(mockClient.get).toHaveBeenCalledWith('/api/projects/proj-1/memory/gotchas');
+      expect(result).toEqual(gotchas);
+    });
+
+    it('getMemoryStats fetches memory stats for a project', async () => {
+      const stats = { totalEntries: 42 };
+      vi.mocked(mockClient.get).mockResolvedValueOnce(stats);
+
+      const result = await endpoints.projects.getMemoryStats('proj-1');
+
+      expect(mockClient.get).toHaveBeenCalledWith('/api/projects/proj-1/memory/stats');
+      expect(result).toEqual(stats);
+    });
+
+    it('getFile fetches a project .planning file', async () => {
+      const fileData = { filename: 'ROADMAP.md', content: '# Roadmap' };
+      vi.mocked(mockClient.get).mockResolvedValueOnce(fileData);
+
+      const result = await endpoints.projects.getFile('proj-1', 'ROADMAP.md');
+
+      expect(mockClient.get).toHaveBeenCalledWith('/api/projects/proj-1/files/ROADMAP.md');
+      expect(result).toEqual(fileData);
+    });
+
     it('includes project ID in per-project API paths', async () => {
       vi.mocked(mockClient.get).mockResolvedValueOnce({ project: {} });
       await endpoints.projects.getById('my-special-project');

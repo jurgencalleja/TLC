@@ -105,6 +105,33 @@ export interface WorkspaceGroup {
   hasTlc: boolean;
 }
 
+export interface MemoryDecision {
+  id: string;
+  text: string;
+  context?: string;
+  timestamp?: string;
+}
+
+export interface MemoryGotcha {
+  id: string;
+  text: string;
+  context?: string;
+  timestamp?: string;
+}
+
+export interface MemoryStats {
+  totalEntries: number;
+  vectorCount?: number;
+  decisions?: number;
+  gotchas?: number;
+  conversations?: number;
+}
+
+export interface ProjectFile {
+  filename: string;
+  content: string;
+}
+
 export interface ApiEndpoints {
   project: {
     getProject(): Promise<ProjectInfo>;
@@ -163,6 +190,10 @@ export interface ApiEndpoints {
     updateBugStatus(id: string, bugId: string, status: string): Promise<{ bug: Bug }>;
     updateBug(id: string, bugId: string, updates: Record<string, unknown>): Promise<{ bug: Bug }>;
     createBug(id: string, bug: Record<string, unknown>): Promise<{ bug: Bug }>;
+    getMemoryDecisions(id: string): Promise<MemoryDecision[]>;
+    getMemoryGotchas(id: string): Promise<MemoryGotcha[]>;
+    getMemoryStats(id: string): Promise<MemoryStats>;
+    getFile(id: string, filename: string): Promise<ProjectFile>;
   };
 }
 
@@ -321,6 +352,20 @@ export function createApiEndpoints(client: ApiClient): ApiEndpoints {
       },
       async createBug(id: string, bug: Record<string, unknown>) {
         return client.post<{ bug: Bug }>(`/api/projects/${id}/bugs`, bug);
+      },
+      async getMemoryDecisions(id: string) {
+        const res = await client.get<{ decisions: MemoryDecision[] }>(`/api/projects/${id}/memory/decisions`);
+        return res.decisions;
+      },
+      async getMemoryGotchas(id: string) {
+        const res = await client.get<{ gotchas: MemoryGotcha[] }>(`/api/projects/${id}/memory/gotchas`);
+        return res.gotchas;
+      },
+      async getMemoryStats(id: string) {
+        return client.get<MemoryStats>(`/api/projects/${id}/memory/stats`);
+      },
+      async getFile(id: string, filename: string) {
+        return client.get<ProjectFile>(`/api/projects/${id}/files/${filename}`);
       },
     },
   };
