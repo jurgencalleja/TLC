@@ -11,3 +11,5 @@ export { BugsPage } from './BugsPage';
 export { RoadmapPage } from './RoadmapPage';
 export { ProjectDetailPage } from './ProjectDetailPage';
 export { ClientDashboard } from './ClientDashboard';
+export { MemoryPage } from './MemoryPage';
+export { ProjectInfoPage } from './ProjectInfoPage';

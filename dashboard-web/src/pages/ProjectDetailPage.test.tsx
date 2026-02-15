@@ -21,6 +21,8 @@ function renderPage(path = '/projects/proj1') {
           <Route path="tests" element={<div data-testid="tests-content">Tests</div>} />
           <Route path="bugs" element={<div data-testid="bugs-content">Bugs</div>} />
           <Route path="logs" element={<div data-testid="logs-content">Logs</div>} />
+          <Route path="memory" element={<div data-testid="memory-content">Memory</div>} />
+          <Route path="info" element={<div data-testid="info-content">Info</div>} />
         </Route>
       </Routes>
     </MemoryRouter>
@@ -75,5 +77,25 @@ describe('ProjectDetailPage', () => {
     renderPage('/projects/proj1/tasks');
     const tab = screen.getByTestId('tab-tasks');
     expect(tab.getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('renders memory tab', () => {
+    renderPage();
+    expect(screen.getByTestId('tab-memory')).toBeInTheDocument();
+  });
+
+  it('renders info tab', () => {
+    renderPage();
+    expect(screen.getByTestId('tab-info')).toBeInTheDocument();
+  });
+
+  it('renders memory content for memory path', () => {
+    renderPage('/projects/proj1/memory');
+    expect(screen.getByTestId('memory-content')).toBeInTheDocument();
+  });
+
+  it('renders info content for info path', () => {
+    renderPage('/projects/proj1/info');
+    expect(screen.getByTestId('info-content')).toBeInTheDocument();
   });
 });

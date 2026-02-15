@@ -10,6 +10,8 @@ const PROJECT_TABS: Tab[] = [
   { id: 'tests', label: 'Tests', path: 'tests' },
   { id: 'bugs', label: 'Bugs', path: 'bugs' },
   { id: 'logs', label: 'Logs', path: 'logs' },
+  { id: 'memory', label: 'Memory', path: 'memory' },
+  { id: 'info', label: 'Info', path: 'info' },
 ];
 
 export function ProjectDetailPage() {

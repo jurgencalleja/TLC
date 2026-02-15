@@ -17,6 +17,8 @@ import {
   RoadmapPage,
   ProjectDetailPage,
   ClientDashboard,
+  MemoryPage,
+  ProjectInfoPage,
 } from './pages';
 import { useUIStore } from './stores';
 import { useWebSocket } from './hooks';
@@ -130,6 +132,8 @@ function AppContent() {
                 <Route path="bugs" element={<BugsPage />} />
                 <Route path="logs" element={<LogsPage />} />
                 <Route path="preview" element={<PreviewPage />} />
+                <Route path="memory" element={<MemoryPage />} />
+                <Route path="info" element={<ProjectInfoPage />} />
               </Route>
               {/* Global routes */}
               <Route path="/" element={<DashboardPage />} />
