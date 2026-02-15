@@ -114,4 +114,18 @@ describe('ProjectCard', () => {
     const desc = screen.getByTestId('project-description');
     expect(desc).toHaveClass('line-clamp-2');
   });
+
+  it('shows N/A when coverage is null', () => {
+    const noCovProject = { ...mockProject, coverage: null as unknown as number };
+    renderWithRouter(<ProjectCard project={noCovProject} />);
+    expect(screen.getByText('N/A')).toBeInTheDocument();
+    const progressBar = screen.getByTestId('coverage-bar');
+    expect(progressBar).toHaveStyle({ width: '0%' });
+  });
+
+  it('shows 0% when coverage is explicitly 0', () => {
+    const zeroCovProject = { ...mockProject, coverage: 0 };
+    renderWithRouter(<ProjectCard project={zeroCovProject} />);
+    expect(screen.getByText('0%')).toBeInTheDocument();
+  });
 });

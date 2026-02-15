@@ -62,6 +62,7 @@ function readProjectStatus(projectPath) {
     phaseName: null,
     totalPhases: 0,
     completedPhases: 0,
+    coverage: null,
   };
 
   if (!status.exists) {
@@ -125,6 +126,19 @@ function readProjectStatus(projectPath) {
       }
     } catch {
       // Ignore read errors
+    }
+  }
+
+  // Read coverage from Istanbul coverage-summary.json
+  const coveragePath = path.join(projectPath, 'coverage', 'coverage-summary.json');
+  if (fs.existsSync(coveragePath)) {
+    try {
+      const covData = JSON.parse(fs.readFileSync(coveragePath, 'utf-8'));
+      if (covData.total && covData.total.lines && typeof covData.total.lines.pct === 'number') {
+        status.coverage = covData.total.lines.pct;
+      }
+    } catch {
+      // Malformed coverage file — leave as null
     }
   }
 

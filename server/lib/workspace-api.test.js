@@ -740,4 +740,90 @@ describe('Workspace API', () => {
       expect(repo.phaseName).toBe('Auth');
     });
   });
+
+  // =========================================================================
+  // Coverage in project status (Task 9 - Phase 77)
+  // =========================================================================
+
+  describe('readProjectStatus coverage', () => {
+    it('returns coverage from coverage-summary.json when present', async () => {
+      const projectPath = path.join(tempDir, 'cov-project');
+      fs.mkdirSync(projectPath, { recursive: true });
+      fs.mkdirSync(path.join(projectPath, '.planning'), { recursive: true });
+      fs.writeFileSync(path.join(projectPath, '.tlc.json'), '{}');
+      fs.mkdirSync(path.join(projectPath, 'coverage'), { recursive: true });
+      fs.writeFileSync(
+        path.join(projectPath, 'coverage', 'coverage-summary.json'),
+        JSON.stringify({
+          total: {
+            lines: { pct: 85.5 },
+            statements: { pct: 82.3 },
+            functions: { pct: 90.1 },
+            branches: { pct: 70.2 },
+          },
+        })
+      );
+
+      const projectId = Buffer.from(projectPath).toString('base64url');
+      const mockConfig = createMockGlobalConfig([tempDir]);
+      const mockScanner = createMockProjectScanner([
+        { name: 'cov-project', path: projectPath, hasTlc: true, hasPlanning: true },
+      ]);
+      const router = createWorkspaceRouter({ globalConfig: mockConfig, projectScanner: mockScanner });
+
+      const handler = getHandler(router, 'GET', '/projects/:projectId/status');
+      const { req, res } = createMockReqRes('GET', `/projects/${projectId}/status`, {}, { projectId });
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(200);
+      expect(res._json.status.coverage).toBe(85.5);
+    });
+
+    it('returns null coverage when no coverage-summary.json exists', async () => {
+      const projectPath = path.join(tempDir, 'no-cov-project');
+      fs.mkdirSync(projectPath, { recursive: true });
+      fs.mkdirSync(path.join(projectPath, '.planning'), { recursive: true });
+      fs.writeFileSync(path.join(projectPath, '.tlc.json'), '{}');
+
+      const projectId = Buffer.from(projectPath).toString('base64url');
+      const mockConfig = createMockGlobalConfig([tempDir]);
+      const mockScanner = createMockProjectScanner([
+        { name: 'no-cov-project', path: projectPath, hasTlc: true, hasPlanning: true },
+      ]);
+      const router = createWorkspaceRouter({ globalConfig: mockConfig, projectScanner: mockScanner });
+
+      const handler = getHandler(router, 'GET', '/projects/:projectId/status');
+      const { req, res } = createMockReqRes('GET', `/projects/${projectId}/status`, {}, { projectId });
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(200);
+      expect(res._json.status.coverage).toBeNull();
+    });
+
+    it('returns null coverage when coverage-summary.json is malformed', async () => {
+      const projectPath = path.join(tempDir, 'bad-cov-project');
+      fs.mkdirSync(projectPath, { recursive: true });
+      fs.mkdirSync(path.join(projectPath, '.planning'), { recursive: true });
+      fs.writeFileSync(path.join(projectPath, '.tlc.json'), '{}');
+      fs.mkdirSync(path.join(projectPath, 'coverage'), { recursive: true });
+      fs.writeFileSync(
+        path.join(projectPath, 'coverage', 'coverage-summary.json'),
+        'not json'
+      );
+
+      const projectId = Buffer.from(projectPath).toString('base64url');
+      const mockConfig = createMockGlobalConfig([tempDir]);
+      const mockScanner = createMockProjectScanner([
+        { name: 'bad-cov-project', path: projectPath, hasTlc: true, hasPlanning: true },
+      ]);
+      const router = createWorkspaceRouter({ globalConfig: mockConfig, projectScanner: mockScanner });
+
+      const handler = getHandler(router, 'GET', '/projects/:projectId/status');
+      const { req, res } = createMockReqRes('GET', `/projects/${projectId}/status`, {}, { projectId });
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(200);
+      expect(res._json.status.coverage).toBeNull();
+    });
+  });
 });

@@ -106,13 +106,15 @@ export function ProjectCard({ project, onClick, className = '' }: ProjectCardPro
       <div className="mb-3">
         <div className="flex items-center justify-between text-sm mb-1">
           <span className="text-muted-foreground">Coverage</span>
-          <span className="font-medium text-foreground">{project.coverage}%</span>
+          <span className="font-medium text-foreground">
+            {project.coverage != null ? `${project.coverage}%` : 'N/A'}
+          </span>
         </div>
         <div className="h-2 bg-muted rounded-full overflow-hidden">
           <div
             data-testid="coverage-bar"
             className="h-full bg-primary rounded-full transition-all"
-            style={{ width: `${project.coverage}%` }}
+            style={{ width: `${project.coverage ?? 0}%` }}
           />
         </div>
       </div>
