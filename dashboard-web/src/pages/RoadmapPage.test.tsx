@@ -133,11 +133,11 @@ describe('RoadmapPage', () => {
     expect(statusBadges[2]).toHaveTextContent('pending');
   });
 
-  it('click phase expands detail section', () => {
+  it('click chevron expands detail section', () => {
     renderPage();
-    const phaseRows = screen.getAllByTestId('phase-row');
-    // Phase 2 is auto-expanded (current), so click phase 1
-    fireEvent.click(phaseRows[0]);
+    const chevrons = screen.getAllByTestId('phase-chevron');
+    // Phase 2 is auto-expanded (current), so click phase 1 chevron
+    fireEvent.click(chevrons[0]);
     const details = screen.getAllByTestId('phase-detail');
     expect(details.length).toBeGreaterThanOrEqual(1);
   });

@@ -19,6 +19,7 @@ import {
   ClientDashboard,
   MemoryPage,
   ProjectInfoPage,
+  PhaseDetailPage as PhaseDetail,
 } from './pages';
 import { useUIStore } from './stores';
 import { useWebSocket } from './hooks';
@@ -134,6 +135,7 @@ function AppContent() {
                 <Route path="preview" element={<PreviewPage />} />
                 <Route path="memory" element={<MemoryPage />} />
                 <Route path="info" element={<ProjectInfoPage />} />
+                <Route path="phases/:phaseNumber" element={<PhaseDetail />} />
               </Route>
               {/* Global routes */}
               <Route path="/" element={<DashboardPage />} />

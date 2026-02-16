@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronDown, ChevronRight, CheckCircle2, Circle, Clock } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -28,6 +28,7 @@ export function RoadmapPage() {
   const selectProject = useWorkspaceStore((s) => s.selectProject);
   const setActiveView = useUIStore((s) => s.setActiveView);
 
+  const navigate = useNavigate();
   const projectId = urlProjectId ?? storeProjectId ?? undefined;
   useEffect(() => {
     if (urlProjectId && urlProjectId !== storeProjectId) {
@@ -151,10 +152,19 @@ export function RoadmapPage() {
                     className={`flex items-center justify-between p-3 rounded-lg cursor-pointer hover:bg-bg-tertiary transition-colors ${
                       isCurrent ? 'bg-primary/5 border border-primary/20' : 'bg-bg-secondary'
                     }`}
-                    onClick={() => togglePhase(phase.number)}
+                    onClick={() => {
+                      const base = projectId ? `/projects/${projectId}` : '';
+                      navigate(`${base}/phases/${phase.number}`);
+                    }}
                   >
                     <div className="flex items-center gap-3">
-                      {isExpanded ? <ChevronDown className="w-4 h-4 text-text-muted" /> : <ChevronRight className="w-4 h-4 text-text-muted" />}
+                      <span
+                        onClick={(e) => { e.stopPropagation(); togglePhase(phase.number); }}
+                        className="cursor-pointer"
+                        data-testid="phase-chevron"
+                      >
+                        {isExpanded ? <ChevronDown className="w-4 h-4 text-text-muted" /> : <ChevronRight className="w-4 h-4 text-text-muted" />}
+                      </span>
                       {statusIcon(phase.status)}
                       <span className="font-mono text-sm text-text-muted">{phase.number}.</span>
                       <span className="text-sm font-medium text-text-primary">{phase.name}</span>

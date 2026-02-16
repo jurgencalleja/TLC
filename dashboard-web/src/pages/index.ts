@@ -13,3 +13,4 @@ export { ProjectDetailPage } from './ProjectDetailPage';
 export { ClientDashboard } from './ClientDashboard';
 export { MemoryPage } from './MemoryPage';
 export { ProjectInfoPage } from './ProjectInfoPage';
+export { PhaseDetailPage } from './PhaseDetailPage';
