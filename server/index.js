@@ -82,11 +82,74 @@ app.use(cors({ origin: true, credentials: true }));
 // Workspace API
 const globalConfig = new GlobalConfig();
 const projectScanner = new ProjectScanner();
+const { observeAndRemember } = require('./lib/memory-observer');
+
+// Lazy-initialized memory dependencies (ESM modules loaded async)
+const memoryDeps = {
+  observeAndRemember,
+  semanticRecall: null,
+  vectorIndexer: null,
+  embeddingClient: null,
+  vectorStore: null,
+};
+
+// Lazy init: load ESM memory modules on first use
+let memoryInitPromise = null;
+async function initMemoryPipeline() {
+  if (memoryInitPromise) return memoryInitPromise;
+  memoryInitPromise = (async () => {
+    try {
+      const os = require('os');
+      const dbPath = path.join(os.homedir(), '.tlc', 'memory', 'vectors.db');
+
+      // Ensure directory exists
+      const dbDir = path.dirname(dbPath);
+      if (!fs.existsSync(dbDir)) {
+        fs.mkdirSync(dbDir, { recursive: true });
+      }
+
+      const { createEmbeddingClient } = await import('./lib/embedding-client.js');
+      const { createVectorStore } = await import('./lib/vector-store.js');
+      const { createVectorIndexer } = await import('./lib/vector-indexer.js');
+      const { createSemanticRecall } = await import('./lib/semantic-recall.js');
+
+      memoryDeps.embeddingClient = createEmbeddingClient();
+      memoryDeps.vectorStore = await createVectorStore({ dbPath });
+      memoryDeps.vectorIndexer = createVectorIndexer({
+        vectorStore: memoryDeps.vectorStore,
+        embeddingClient: memoryDeps.embeddingClient,
+      });
+      memoryDeps.semanticRecall = createSemanticRecall({
+        vectorStore: memoryDeps.vectorStore,
+        embeddingClient: memoryDeps.embeddingClient,
+      });
+
+      console.log('[TLC] Memory pipeline initialized (vector store at', dbPath + ')');
+    } catch (err) {
+      console.warn('[TLC] Memory pipeline unavailable:', err.message);
+      // Non-fatal: server works without vector store
+    }
+  })();
+  return memoryInitPromise;
+}
+
+// Start memory init in background (non-blocking)
+initMemoryPipeline();
+
 const memoryApi = createMemoryApi({
-  semanticRecall: { recall: async () => [] },
-  vectorIndexer: { indexAll: async () => ({ indexed: 0 }) },
+  semanticRecall: { recall: async (...args) => {
+    await initMemoryPipeline();
+    return memoryDeps.semanticRecall ? memoryDeps.semanticRecall.recall(...args) : [];
+  }},
+  vectorIndexer: { indexAll: async (...args) => {
+    await initMemoryPipeline();
+    return memoryDeps.vectorIndexer ? memoryDeps.vectorIndexer.indexAll(...args) : { indexed: 0 };
+  }},
   richCapture: { processChunk: async () => ({ stored: false }) },
-  embeddingClient: { embed: async () => [] },
+  embeddingClient: { embed: async (...args) => {
+    await initMemoryPipeline();
+    return memoryDeps.embeddingClient ? memoryDeps.embeddingClient.embed(...args) : [];
+  }},
   memoryStore: {
     listConversations: async () => ({ items: [], total: 0 }),
     getConversation: async () => null,
@@ -95,7 +158,12 @@ const memoryApi = createMemoryApi({
     getStats: async () => ({ decisions: 0, gotchas: 0, total: 0 }),
   },
 });
-const workspaceRouter = createWorkspaceRouter({ globalConfig, projectScanner, memoryApi });
+const workspaceRouter = createWorkspaceRouter({
+  globalConfig,
+  projectScanner,
+  memoryApi,
+  memoryDeps,
+});
 app.use('/api/workspace', workspaceRouter);
 // Also mount project-level routes at /api/projects for per-project endpoints
 app.use('/api', workspaceRouter);

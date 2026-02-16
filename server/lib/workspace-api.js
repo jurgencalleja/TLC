@@ -307,7 +307,7 @@ function readProjectBugs(projectPath) {
  * @returns {express.Router} Express router with workspace endpoints
  */
 function createWorkspaceRouter(options = {}) {
-  const { globalConfig, projectScanner, memoryApi } = options;
+  const { globalConfig, projectScanner, memoryApi, memoryDeps = {} } = options;
 
   if (!globalConfig) {
     throw new Error('globalConfig is required');
@@ -863,6 +863,83 @@ function createWorkspaceRouter(options = {}) {
       }
     });
   }
+
+  // =========================================================================
+  // Memory capture endpoint (Phase 79 Task 5)
+  // =========================================================================
+  router.post('/projects/:projectId/memory/capture', async (req, res) => {
+    try {
+      const roots = globalConfig.getRoots();
+      const project = findProjectById(projectScanner, roots, req.params.projectId);
+      if (!project) return res.status(404).json({ error: 'Project not found' });
+
+      const { exchanges } = req.body;
+      if (!exchanges || !Array.isArray(exchanges) || exchanges.length === 0) {
+        return res.status(400).json({ error: 'exchanges array is required and must not be empty' });
+      }
+
+      // Process in background — respond immediately
+      let captured = 0;
+      const { observeAndRemember, vectorIndexer } = memoryDeps;
+
+      for (const exchange of exchanges) {
+        try {
+          if (typeof observeAndRemember === 'function') {
+            await observeAndRemember(project.path, exchange);
+          }
+          if (vectorIndexer && typeof vectorIndexer.indexChunk === 'function') {
+            await vectorIndexer.indexChunk(exchange);
+          }
+          captured++;
+        } catch {
+          // Individual exchange failures don't stop the batch
+        }
+      }
+
+      res.json({ captured });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // =========================================================================
+  // Memory search endpoint (Phase 79 Task 6)
+  // =========================================================================
+  router.get('/projects/:projectId/memory/search', async (req, res) => {
+    try {
+      const roots = globalConfig.getRoots();
+      const project = findProjectById(projectScanner, roots, req.params.projectId);
+      if (!project) return res.status(404).json({ error: 'Project not found' });
+
+      const query = req.query.q;
+      if (!query) {
+        return res.status(400).json({ error: 'Query parameter q is required' });
+      }
+
+      const { semanticRecall } = memoryDeps;
+
+      // Try vector-based semantic recall first
+      if (semanticRecall && typeof semanticRecall.recall === 'function') {
+        try {
+          const results = await semanticRecall.recall(query, { projectRoot: project.path });
+          return res.json({ results: results || [], source: 'vector' });
+        } catch {
+          // Fall through to file-based search
+        }
+      }
+
+      // Fallback: file-based text search
+      try {
+        const { searchMemory } = require('./memory-reader');
+        const results = await searchMemory(project.path, query);
+        return res.json({ results: results || [], source: 'file' });
+      } catch {
+        return res.json({ results: [], source: 'file' });
+      }
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
 
   // =========================================================================
   // Project file endpoint (Phase 77)

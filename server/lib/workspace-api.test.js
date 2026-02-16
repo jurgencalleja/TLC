@@ -981,4 +981,237 @@ describe('Workspace API', () => {
       expect(res._json.status.coverage).toBeNull();
     });
   });
+
+  // =========================================================================
+  // Phase 79 — Task 5: Memory capture endpoint
+  // =========================================================================
+  describe('POST /projects/:projectId/memory/capture', () => {
+    it('returns 404 for unknown project', async () => {
+      const mockConfig = createMockGlobalConfig([tempDir]);
+      const mockScanner = createMockProjectScanner([]);
+      const mockMemoryApi = {};
+      const router = createWorkspaceRouter({
+        globalConfig: mockConfig,
+        projectScanner: mockScanner,
+        memoryApi: mockMemoryApi,
+        memoryDeps: {},
+      });
+
+      const handler = getHandler(router, 'POST', '/projects/:projectId/memory/capture');
+      expect(handler).not.toBeNull();
+
+      const fakeId = Buffer.from('/nonexistent').toString('base64url');
+      const { req, res } = createMockReqRes('POST', `/projects/${fakeId}/memory/capture`, { exchanges: [{ role: 'user', content: 'hello' }] }, { projectId: fakeId });
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(404);
+    });
+
+    it('returns 400 for missing exchanges body', async () => {
+      const projectPath = path.join(tempDir, 'capture-project');
+      fs.mkdirSync(projectPath, { recursive: true });
+      fs.writeFileSync(path.join(projectPath, '.tlc.json'), '{}');
+      fs.mkdirSync(path.join(projectPath, '.planning'), { recursive: true });
+
+      const projectId = Buffer.from(projectPath).toString('base64url');
+      const mockConfig = createMockGlobalConfig([tempDir]);
+      const mockScanner = createMockProjectScanner([
+        { name: 'capture-project', path: projectPath, hasTlc: true, hasPlanning: true },
+      ]);
+      const router = createWorkspaceRouter({
+        globalConfig: mockConfig,
+        projectScanner: mockScanner,
+        memoryApi: {},
+        memoryDeps: {},
+      });
+
+      const handler = getHandler(router, 'POST', '/projects/:projectId/memory/capture');
+      const { req, res } = createMockReqRes('POST', `/projects/${projectId}/memory/capture`, {}, { projectId });
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('accepts exchanges and returns captured count', async () => {
+      const projectPath = path.join(tempDir, 'capture-ok');
+      fs.mkdirSync(projectPath, { recursive: true });
+      fs.writeFileSync(path.join(projectPath, '.tlc.json'), '{}');
+      fs.mkdirSync(path.join(projectPath, '.planning'), { recursive: true });
+
+      const projectId = Buffer.from(projectPath).toString('base64url');
+      const mockConfig = createMockGlobalConfig([tempDir]);
+      const mockScanner = createMockProjectScanner([
+        { name: 'capture-ok', path: projectPath, hasTlc: true, hasPlanning: true },
+      ]);
+
+      const observerCalls = [];
+      const mockMemoryDeps = {
+        observeAndRemember: async (root, exchange) => { observerCalls.push({ root, exchange }); },
+        vectorIndexer: null,
+      };
+      const router = createWorkspaceRouter({
+        globalConfig: mockConfig,
+        projectScanner: mockScanner,
+        memoryApi: {},
+        memoryDeps: mockMemoryDeps,
+      });
+
+      const handler = getHandler(router, 'POST', '/projects/:projectId/memory/capture');
+      const exchanges = [
+        { role: 'user', content: 'what is TLC?' },
+        { role: 'assistant', content: 'TLC is...' },
+      ];
+      const { req, res } = createMockReqRes('POST', `/projects/${projectId}/memory/capture`, { exchanges }, { projectId });
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(200);
+      expect(res._json.captured).toBe(2);
+    });
+  });
+
+  // =========================================================================
+  // Phase 79 — Task 6: Memory search endpoint
+  // =========================================================================
+  describe('GET /projects/:projectId/memory/search', () => {
+    it('returns 404 for unknown project', async () => {
+      const mockConfig = createMockGlobalConfig([tempDir]);
+      const mockScanner = createMockProjectScanner([]);
+      const router = createWorkspaceRouter({
+        globalConfig: mockConfig,
+        projectScanner: mockScanner,
+        memoryApi: {},
+        memoryDeps: {},
+      });
+
+      const handler = getHandler(router, 'GET', '/projects/:projectId/memory/search');
+      expect(handler).not.toBeNull();
+
+      const fakeId = Buffer.from('/nonexistent').toString('base64url');
+      const { req, res } = createMockReqRes('GET', `/projects/${fakeId}/memory/search`, {}, { projectId: fakeId }, { q: 'test' });
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(404);
+    });
+
+    it('returns 400 for missing query parameter', async () => {
+      const projectPath = path.join(tempDir, 'search-project');
+      fs.mkdirSync(projectPath, { recursive: true });
+      fs.writeFileSync(path.join(projectPath, '.tlc.json'), '{}');
+      fs.mkdirSync(path.join(projectPath, '.planning'), { recursive: true });
+
+      const projectId = Buffer.from(projectPath).toString('base64url');
+      const mockConfig = createMockGlobalConfig([tempDir]);
+      const mockScanner = createMockProjectScanner([
+        { name: 'search-project', path: projectPath, hasTlc: true, hasPlanning: true },
+      ]);
+      const router = createWorkspaceRouter({
+        globalConfig: mockConfig,
+        projectScanner: mockScanner,
+        memoryApi: {},
+        memoryDeps: {},
+      });
+
+      const handler = getHandler(router, 'GET', '/projects/:projectId/memory/search');
+      const { req, res } = createMockReqRes('GET', `/projects/${projectId}/memory/search`, {}, { projectId }, {});
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('returns search results with source indicator using semantic recall', async () => {
+      const projectPath = path.join(tempDir, 'search-ok');
+      fs.mkdirSync(projectPath, { recursive: true });
+      fs.writeFileSync(path.join(projectPath, '.tlc.json'), '{}');
+      fs.mkdirSync(path.join(projectPath, '.planning'), { recursive: true });
+
+      const projectId = Buffer.from(projectPath).toString('base64url');
+      const mockConfig = createMockGlobalConfig([tempDir]);
+      const mockScanner = createMockProjectScanner([
+        { name: 'search-ok', path: projectPath, hasTlc: true, hasPlanning: true },
+      ]);
+
+      const mockMemoryDeps = {
+        semanticRecall: {
+          recall: async (query) => [{ text: 'remembered item', score: 0.92, type: 'decision' }],
+        },
+      };
+      const router = createWorkspaceRouter({
+        globalConfig: mockConfig,
+        projectScanner: mockScanner,
+        memoryApi: {},
+        memoryDeps: mockMemoryDeps,
+      });
+
+      const handler = getHandler(router, 'GET', '/projects/:projectId/memory/search');
+      const { req, res } = createMockReqRes('GET', `/projects/${projectId}/memory/search`, {}, { projectId }, { q: 'remembered' });
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(200);
+      expect(res._json.results).toBeInstanceOf(Array);
+      expect(res._json.source).toBe('vector');
+    });
+
+    it('falls back to file-based search when semantic recall unavailable', async () => {
+      const projectPath = path.join(tempDir, 'search-fallback');
+      fs.mkdirSync(projectPath, { recursive: true });
+      fs.writeFileSync(path.join(projectPath, '.tlc.json'), '{}');
+      fs.mkdirSync(path.join(projectPath, '.planning'), { recursive: true });
+      // Create a memory file for file-based search to find
+      fs.mkdirSync(path.join(projectPath, '.planning', 'memory'), { recursive: true });
+
+      const projectId = Buffer.from(projectPath).toString('base64url');
+      const mockConfig = createMockGlobalConfig([tempDir]);
+      const mockScanner = createMockProjectScanner([
+        { name: 'search-fallback', path: projectPath, hasTlc: true, hasPlanning: true },
+      ]);
+
+      // No semanticRecall provided — should fall back to file-based
+      const router = createWorkspaceRouter({
+        globalConfig: mockConfig,
+        projectScanner: mockScanner,
+        memoryApi: {},
+        memoryDeps: {},
+      });
+
+      const handler = getHandler(router, 'GET', '/projects/:projectId/memory/search');
+      const { req, res } = createMockReqRes('GET', `/projects/${projectId}/memory/search`, {}, { projectId }, { q: 'something' });
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(200);
+      expect(res._json.results).toBeInstanceOf(Array);
+      expect(res._json.source).toBe('file');
+    });
+
+    it('returns empty results when no matches found', async () => {
+      const projectPath = path.join(tempDir, 'search-empty');
+      fs.mkdirSync(projectPath, { recursive: true });
+      fs.writeFileSync(path.join(projectPath, '.tlc.json'), '{}');
+      fs.mkdirSync(path.join(projectPath, '.planning'), { recursive: true });
+
+      const projectId = Buffer.from(projectPath).toString('base64url');
+      const mockConfig = createMockGlobalConfig([tempDir]);
+      const mockScanner = createMockProjectScanner([
+        { name: 'search-empty', path: projectPath, hasTlc: true, hasPlanning: true },
+      ]);
+
+      const mockMemoryDeps = {
+        semanticRecall: {
+          recall: async () => [],
+        },
+      };
+      const router = createWorkspaceRouter({
+        globalConfig: mockConfig,
+        projectScanner: mockScanner,
+        memoryApi: {},
+        memoryDeps: mockMemoryDeps,
+      });
+
+      const handler = getHandler(router, 'GET', '/projects/:projectId/memory/search');
+      const { req, res } = createMockReqRes('GET', `/projects/${projectId}/memory/search`, {}, { projectId }, { q: 'nonexistent' });
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(200);
+      expect(res._json.results).toEqual([]);
+    });
+  });
 });
