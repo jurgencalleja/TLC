@@ -16,6 +16,7 @@ const { createTestInventory } = require('./test-inventory');
 const { createRoadmapApi } = require('./roadmap-api');
 const { createPlanWriter } = require('./plan-writer');
 const { createBugWriter } = require('./bug-writer');
+const { createMemoryStoreAdapter } = require('./memory-store-adapter');
 
 /**
  * Encode a project path to a URL-safe project ID
@@ -820,7 +821,7 @@ function createWorkspaceRouter(options = {}) {
   });
 
   // =========================================================================
-  // Memory API routes (Phase 77)
+  // Memory API routes (Phase 77, fixed per-project in Phase 78)
   // =========================================================================
   if (memoryApi) {
     router.get('/projects/:projectId/memory/decisions', async (req, res) => {
@@ -828,7 +829,9 @@ function createWorkspaceRouter(options = {}) {
         const roots = globalConfig.getRoots();
         const project = findProjectById(projectScanner, roots, req.params.projectId);
         if (!project) return res.status(404).json({ error: 'Project not found' });
-        await memoryApi.handleListDecisions(req, res);
+        const adapter = createMemoryStoreAdapter(project.path);
+        const decisions = await adapter.listDecisions();
+        res.json({ decisions });
       } catch (err) {
         res.status(500).json({ error: err.message });
       }
@@ -839,7 +842,9 @@ function createWorkspaceRouter(options = {}) {
         const roots = globalConfig.getRoots();
         const project = findProjectById(projectScanner, roots, req.params.projectId);
         if (!project) return res.status(404).json({ error: 'Project not found' });
-        await memoryApi.handleListGotchas(req, res);
+        const adapter = createMemoryStoreAdapter(project.path);
+        const gotchas = await adapter.listGotchas();
+        res.json({ gotchas });
       } catch (err) {
         res.status(500).json({ error: err.message });
       }
@@ -850,7 +855,9 @@ function createWorkspaceRouter(options = {}) {
         const roots = globalConfig.getRoots();
         const project = findProjectById(projectScanner, roots, req.params.projectId);
         if (!project) return res.status(404).json({ error: 'Project not found' });
-        await memoryApi.handleGetStats(req, res);
+        const adapter = createMemoryStoreAdapter(project.path);
+        const stats = await adapter.getStats();
+        res.json(stats);
       } catch (err) {
         res.status(500).json({ error: err.message });
       }

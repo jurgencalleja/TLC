@@ -760,14 +760,10 @@ describe('Workspace API', () => {
       return { router, projectId };
     }
 
-    it('GET /projects/:id/memory/decisions returns decisions', async () => {
+    it('GET /projects/:id/memory/decisions returns decisions from file adapter', async () => {
       const projectPath = path.join(tempDir, 'mem-proj');
       fs.mkdirSync(projectPath, { recursive: true });
-      const mockMemoryApi = {
-        handleListDecisions: vi.fn(async (req, res) => {
-          res.json({ decisions: [{ id: 'd1', text: 'Use React' }] });
-        }),
-      };
+      const mockMemoryApi = {};
       const { router, projectId } = createRouterWithMemory(projectPath, mockMemoryApi);
 
       const handler = getHandler(router, 'GET', '/projects/:projectId/memory/decisions');
@@ -778,16 +774,13 @@ describe('Workspace API', () => {
 
       expect(res.statusCode).toBe(200);
       expect(res._json.decisions).toBeDefined();
+      expect(Array.isArray(res._json.decisions)).toBe(true);
     });
 
-    it('GET /projects/:id/memory/gotchas returns gotchas', async () => {
+    it('GET /projects/:id/memory/gotchas returns gotchas from file adapter', async () => {
       const projectPath = path.join(tempDir, 'mem-proj2');
       fs.mkdirSync(projectPath, { recursive: true });
-      const mockMemoryApi = {
-        handleListGotchas: vi.fn(async (req, res) => {
-          res.json({ gotchas: [{ id: 'g1', text: 'Watch out for X' }] });
-        }),
-      };
+      const mockMemoryApi = {};
       const { router, projectId } = createRouterWithMemory(projectPath, mockMemoryApi);
 
       const handler = getHandler(router, 'GET', '/projects/:projectId/memory/gotchas');
@@ -798,16 +791,13 @@ describe('Workspace API', () => {
 
       expect(res.statusCode).toBe(200);
       expect(res._json.gotchas).toBeDefined();
+      expect(Array.isArray(res._json.gotchas)).toBe(true);
     });
 
-    it('GET /projects/:id/memory/stats returns stats', async () => {
+    it('GET /projects/:id/memory/stats returns per-project stats', async () => {
       const projectPath = path.join(tempDir, 'mem-proj3');
       fs.mkdirSync(projectPath, { recursive: true });
-      const mockMemoryApi = {
-        handleGetStats: vi.fn(async (req, res) => {
-          res.json({ totalEntries: 42, vectorCount: 100 });
-        }),
-      };
+      const mockMemoryApi = {};
       const { router, projectId } = createRouterWithMemory(projectPath, mockMemoryApi);
 
       const handler = getHandler(router, 'GET', '/projects/:projectId/memory/stats');
@@ -817,7 +807,9 @@ describe('Workspace API', () => {
       await handler(req, res);
 
       expect(res.statusCode).toBe(200);
-      expect(res._json.totalEntries).toBe(42);
+      expect(res._json).toHaveProperty('decisions');
+      expect(res._json).toHaveProperty('gotchas');
+      expect(res._json).toHaveProperty('total');
     });
 
     it('memory routes return 404 for unknown project', async () => {
