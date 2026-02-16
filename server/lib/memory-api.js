@@ -28,7 +28,7 @@
  * @param {object} deps.memoryStore - Memory store with list/get methods
  * @returns {object} Handler methods for each memory endpoint
  */
-export function createMemoryApi({ semanticRecall, vectorIndexer, richCapture, embeddingClient, memoryStore }) {
+function createMemoryApi({ semanticRecall, vectorIndexer, richCapture, embeddingClient, memoryStore }) {
 
   /**
    * Search memory semantically.
@@ -178,3 +178,5 @@ export function createMemoryApi({ semanticRecall, vectorIndexer, richCapture, em
     handleRemember,
   };
 }
+
+module.exports = { createMemoryApi };
