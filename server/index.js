@@ -24,6 +24,8 @@ const { autoProvision, stopDatabase } = require('./lib/auto-database');
 const { GlobalConfig } = require('./lib/global-config');
 const { ProjectScanner } = require('./lib/project-scanner');
 const { createWorkspaceRouter } = require('./lib/workspace-api');
+const { createMemoryApi } = require('./lib/memory-api');
+const { createMemoryStoreAdapter } = require('./lib/memory-store-adapter');
 const {
   createUserStore,
   createAuthMiddleware,
@@ -80,7 +82,20 @@ app.use(cors({ origin: true, credentials: true }));
 // Workspace API
 const globalConfig = new GlobalConfig();
 const projectScanner = new ProjectScanner();
-const workspaceRouter = createWorkspaceRouter({ globalConfig, projectScanner });
+const memoryApi = createMemoryApi({
+  semanticRecall: { recall: async () => [] },
+  vectorIndexer: { indexAll: async () => ({ indexed: 0 }) },
+  richCapture: { processChunk: async () => ({ stored: false }) },
+  embeddingClient: { embed: async () => [] },
+  memoryStore: {
+    listConversations: async () => ({ items: [], total: 0 }),
+    getConversation: async () => null,
+    listDecisions: async () => [],
+    listGotchas: async () => [],
+    getStats: async () => ({ decisions: 0, gotchas: 0, total: 0 }),
+  },
+});
+const workspaceRouter = createWorkspaceRouter({ globalConfig, projectScanner, memoryApi });
 app.use('/api/workspace', workspaceRouter);
 // Also mount project-level routes at /api/projects for per-project endpoints
 app.use('/api', workspaceRouter);
