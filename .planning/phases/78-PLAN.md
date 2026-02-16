@@ -15,9 +15,9 @@ Wire the memory API into the server so Memory pages actually show data. Add a Ph
 - server/lib/memory-api.test.js (modify)
 
 **Acceptance Criteria:**
-- [ ] `createMemoryApi` exported via `module.exports`
-- [ ] Tests use `require()` not `import`
-- [ ] All existing memory-api tests still pass
+- [x] `createMemoryApi` exported via `module.exports`
+- [x] Tests use `require()` not `import`
+- [x] All existing memory-api tests still pass
 
 ---
 
@@ -30,12 +30,12 @@ Wire the memory API into the server so Memory pages actually show data. Add a Ph
 - server/lib/memory-store-adapter.test.js (new)
 
 **Acceptance Criteria:**
-- [ ] `createMemoryStoreAdapter(projectPath)` factory function
-- [ ] `listDecisions(options)` reads from `.tlc/memory/team/decisions/` and returns array
-- [ ] `listGotchas(options)` reads from `.tlc/memory/team/gotchas/` and returns array
-- [ ] `getStats()` returns basic stats (file counts, no vector info)
-- [ ] Returns empty arrays/zeroes when directories don't exist
-- [ ] Handles malformed markdown gracefully
+- [x] `createMemoryStoreAdapter(projectPath)` factory function
+- [x] `listDecisions(options)` reads from `.tlc/memory/team/decisions/` and returns array
+- [x] `listGotchas(options)` reads from `.tlc/memory/team/gotchas/` and returns array
+- [x] `getStats()` returns basic stats (file counts, no vector info)
+- [x] Returns empty arrays/zeroes when directories don't exist
+- [x] Handles malformed markdown gracefully
 
 ---
 
@@ -47,13 +47,13 @@ Wire the memory API into the server so Memory pages actually show data. Add a Ph
 - server/index.js (modify)
 
 **Acceptance Criteria:**
-- [ ] `createMemoryApi` required from memory-api.js
-- [ ] `createMemoryStoreAdapter` used to create per-project memoryStore
-- [ ] memoryApi passed to `createWorkspaceRouter({ globalConfig, projectScanner, memoryApi })`
-- [ ] GET /api/projects/:id/memory/decisions returns 200
-- [ ] GET /api/projects/:id/memory/gotchas returns 200
-- [ ] GET /api/projects/:id/memory/stats returns 200
-- [ ] Empty project returns empty arrays (not 500)
+- [x] `createMemoryApi` required from memory-api.js
+- [x] `createMemoryStoreAdapter` used to create per-project memoryStore
+- [x] memoryApi passed to `createWorkspaceRouter({ globalConfig, projectScanner, memoryApi })`
+- [x] GET /api/projects/:id/memory/decisions returns 200
+- [x] GET /api/projects/:id/memory/gotchas returns 200
+- [x] GET /api/projects/:id/memory/stats returns 200
+- [x] Empty project returns empty arrays (not 500)
 
 ---
 
@@ -66,10 +66,10 @@ Wire the memory API into the server so Memory pages actually show data. Add a Ph
 - server/lib/workspace-api.test.js (update tests)
 
 **Acceptance Criteria:**
-- [ ] Memory routes resolve the project path from projectId
-- [ ] Adapter reads from the correct project's `.tlc/memory/team/` directory
-- [ ] Different projects return different memory data
-- [ ] Tests verify project-scoped memory lookup
+- [x] Memory routes resolve the project path from projectId
+- [x] Adapter reads from the correct project's `.tlc/memory/team/` directory
+- [x] Different projects return different memory data
+- [x] Tests verify project-scoped memory lookup
 
 ---
 
@@ -82,14 +82,14 @@ Wire the memory API into the server so Memory pages actually show data. Add a Ph
 - dashboard-web/src/pages/PhaseDetailPage.test.tsx (new)
 
 **Acceptance Criteria:**
-- [ ] Displays phase name, number, and status badge
-- [ ] Shows goal text
-- [ ] Shows deliverables with checkmarks
-- [ ] Lists tasks filtered to this phase (using useTasks + useRoadmap)
-- [ ] Each task shows title, status, assignee
-- [ ] Shows loading skeleton
-- [ ] Shows "Phase not found" for invalid phase number
-- [ ] Back navigation to roadmap
+- [x] Displays phase name, number, and status badge
+- [x] Shows goal text
+- [x] Shows deliverables with checkmarks
+- [x] Lists tasks filtered to this phase (using useTasks + useRoadmap)
+- [x] Each task shows title, status, assignee
+- [x] Shows loading skeleton
+- [x] Shows "Phase not found" for invalid phase number
+- [x] Back navigation to roadmap
 
 ---
 
@@ -104,10 +104,10 @@ Wire the memory API into the server so Memory pages actually show data. Add a Ph
 - dashboard-web/src/pages/RoadmapPage.test.tsx (modify)
 
 **Acceptance Criteria:**
-- [ ] Route `/projects/:projectId/phases/:phaseNumber` renders PhaseDetailPage
-- [ ] Clicking phase row in RoadmapPage navigates to phase detail
-- [ ] Expand/collapse still works via chevron icon click (stopPropagation)
-- [ ] PhaseDetailPage exported from pages/index.ts
+- [x] Route `/projects/:projectId/phases/:phaseNumber` renders PhaseDetailPage
+- [x] Clicking phase row in RoadmapPage navigates to phase detail
+- [x] Expand/collapse still works via chevron icon click (stopPropagation)
+- [x] PhaseDetailPage exported from pages/index.ts
 
 ---
 
