@@ -109,9 +109,11 @@ function readProjectMetadata(projectDir) {
   const hasTlc = fs.existsSync(path.join(projectDir, '.tlc.json'));
   const hasPlanning = fs.existsSync(path.join(projectDir, '.planning'));
 
-  // Read name and version from package.json if present
+  // Read name, version, and workspaces from package.json if present
   let name = path.basename(projectDir);
   let version = null;
+  let isMonorepo = false;
+  let workspaces = [];
 
   const pkgPath = path.join(projectDir, 'package.json');
   if (fs.existsSync(pkgPath)) {
@@ -122,6 +124,34 @@ function readProjectMetadata(projectDir) {
       }
       if (pkg.version) {
         version = pkg.version;
+      }
+
+      // Detect monorepo workspaces (npm array or yarn object format)
+      let workspacePatterns = null;
+      if (Array.isArray(pkg.workspaces)) {
+        workspacePatterns = pkg.workspaces;
+      } else if (pkg.workspaces && Array.isArray(pkg.workspaces.packages)) {
+        workspacePatterns = pkg.workspaces.packages;
+      }
+
+      if (workspacePatterns) {
+        isMonorepo = true;
+        // Resolve glob patterns to actual directories
+        for (const pattern of workspacePatterns) {
+          try {
+            const globDir = path.join(projectDir, path.dirname(pattern));
+            if (fs.existsSync(globDir)) {
+              const entries = fs.readdirSync(globDir, { withFileTypes: true });
+              for (const entry of entries) {
+                if (entry.isDirectory()) {
+                  workspaces.push(path.join(path.dirname(pattern), entry.name));
+                }
+              }
+            }
+          } catch {
+            // Ignore glob resolution errors
+          }
+        }
       }
     } catch {
       // Ignore malformed package.json
@@ -147,6 +177,8 @@ function readProjectMetadata(projectDir) {
     phaseName: phaseInfo.phaseName,
     totalPhases: phaseInfo.totalPhases,
     completedPhases: phaseInfo.completedPhases,
+    isMonorepo,
+    workspaces,
   };
 }
 
@@ -235,9 +267,12 @@ class ProjectScanner {
       if (typeof onProgress === 'function') {
         onProgress(projectsByPath.size);
       }
+
+      // Stop recursion: a project's children are not separate projects
+      return;
     }
 
-    // Recurse into subdirectories
+    // Recurse into subdirectories (only for non-project directories)
     let entries;
     try {
       entries = fs.readdirSync(dir, { withFileTypes: true });

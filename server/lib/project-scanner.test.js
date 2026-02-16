@@ -386,4 +386,156 @@ describe('ProjectScanner', () => {
     // The last reported count should match total found
     expect(progressCounts[progressCounts.length - 1]).toBe(2);
   });
+
+  // =========================================================================
+  // Phase 79 — Task 1: Stop recursion at project boundaries
+  // =========================================================================
+
+  // Test 20: Does NOT recurse into subdirectories of a detected project
+  it('does not recurse into subdirectories of a detected project', () => {
+    // Create a TLC project with a nested sub-package that also looks like a project
+    const projectDir = createTlcProject(tempDir, 'monorepo-project');
+    const subPkgDir = path.join(projectDir, 'packages', 'sub-package');
+    fs.mkdirSync(subPkgDir, { recursive: true });
+    fs.writeFileSync(path.join(subPkgDir, 'package.json'), JSON.stringify({ name: 'sub-package' }));
+    fs.mkdirSync(path.join(subPkgDir, '.git'), { recursive: true });
+
+    const results = scanner.scan([tempDir]);
+
+    // Should only find the parent project, not the sub-package
+    expect(results).toHaveLength(1);
+    expect(results[0].name).toBe('monorepo-project');
+  });
+
+  // Test 21: TLC project's server/ subdirectory not listed separately
+  it('does not list subdirectories of a TLC project as separate projects', () => {
+    const projectDir = createTlcProject(tempDir, 'tlc-project');
+    // Create a server/ subdirectory with its own package.json + .git
+    const serverDir = path.join(projectDir, 'server');
+    fs.mkdirSync(serverDir, { recursive: true });
+    fs.writeFileSync(path.join(serverDir, 'package.json'), JSON.stringify({ name: 'tlc-server' }));
+    fs.mkdirSync(path.join(serverDir, '.git'), { recursive: true });
+
+    const results = scanner.scan([tempDir]);
+
+    expect(results).toHaveLength(1);
+    expect(results[0].name).toBe('tlc-project');
+  });
+
+  // Test 22: Top-level non-project directories are still traversed
+  it('still traverses non-project directories to find nested projects', () => {
+    // Create a plain directory (not a project) with a project nested inside
+    const groupDir = path.join(tempDir, 'my-workspace');
+    fs.mkdirSync(groupDir, { recursive: true });
+    // No .tlc.json, no .planning, no package.json+.git — just a folder
+    createTlcProject(groupDir, 'nested-real-project');
+
+    const results = scanner.scan([tempDir]);
+
+    expect(results).toHaveLength(1);
+    expect(results[0].name).toBe('nested-real-project');
+  });
+
+  // Test 23: Multiple projects at same level, none recurse into children
+  it('finds sibling projects but does not recurse into either', () => {
+    const projA = createTlcProject(tempDir, 'project-a');
+    const projB = createTlcProject(tempDir, 'project-b');
+
+    // Add nested sub-projects inside each
+    const nestedA = path.join(projA, 'nested');
+    fs.mkdirSync(nestedA, { recursive: true });
+    fs.writeFileSync(path.join(nestedA, '.tlc.json'), '{}');
+
+    const nestedB = path.join(projB, 'apps', 'frontend');
+    fs.mkdirSync(nestedB, { recursive: true });
+    fs.writeFileSync(path.join(nestedB, 'package.json'), JSON.stringify({ name: 'frontend' }));
+    fs.mkdirSync(path.join(nestedB, '.git'), { recursive: true });
+
+    const results = scanner.scan([tempDir]);
+
+    expect(results).toHaveLength(2);
+    const names = results.map(r => r.name);
+    expect(names).toContain('project-a');
+    expect(names).toContain('project-b');
+  });
+
+  // =========================================================================
+  // Phase 79 — Task 2: Monorepo sub-package metadata
+  // =========================================================================
+
+  // Test 24: Detects npm workspaces array format
+  it('detects npm workspaces and returns isMonorepo: true', () => {
+    createTlcProject(tempDir, 'npm-monorepo', {
+      packageJson: {
+        name: 'npm-monorepo',
+        version: '1.0.0',
+        workspaces: ['packages/*'],
+      },
+    });
+
+    // Create a matching sub-package directory
+    const pkgDir = path.join(tempDir, 'npm-monorepo', 'packages', 'core');
+    fs.mkdirSync(pkgDir, { recursive: true });
+    fs.writeFileSync(path.join(pkgDir, 'package.json'), JSON.stringify({ name: '@mono/core' }));
+
+    const results = scanner.scan([tempDir]);
+
+    expect(results).toHaveLength(1);
+    expect(results[0].isMonorepo).toBe(true);
+    expect(results[0].workspaces).toBeInstanceOf(Array);
+    expect(results[0].workspaces.length).toBeGreaterThanOrEqual(1);
+  });
+
+  // Test 25: Detects yarn workspaces object format
+  it('detects yarn workspaces object format', () => {
+    createTlcProject(tempDir, 'yarn-monorepo', {
+      packageJson: {
+        name: 'yarn-monorepo',
+        version: '1.0.0',
+        workspaces: { packages: ['packages/*'] },
+      },
+    });
+
+    const pkgDir = path.join(tempDir, 'yarn-monorepo', 'packages', 'utils');
+    fs.mkdirSync(pkgDir, { recursive: true });
+    fs.writeFileSync(path.join(pkgDir, 'package.json'), JSON.stringify({ name: '@mono/utils' }));
+
+    const results = scanner.scan([tempDir]);
+
+    expect(results).toHaveLength(1);
+    expect(results[0].isMonorepo).toBe(true);
+    expect(results[0].workspaces).toBeInstanceOf(Array);
+    expect(results[0].workspaces.length).toBeGreaterThanOrEqual(1);
+  });
+
+  // Test 26: Non-monorepo returns isMonorepo: false and empty workspaces
+  it('returns isMonorepo false and empty workspaces for regular project', () => {
+    createTlcProject(tempDir, 'regular-project', {
+      packageJson: { name: 'regular-project', version: '1.0.0' },
+    });
+
+    const results = scanner.scan([tempDir]);
+
+    expect(results).toHaveLength(1);
+    expect(results[0].isMonorepo).toBe(false);
+    expect(results[0].workspaces).toEqual([]);
+  });
+
+  // Test 27: Monorepo with no matching workspace directories
+  it('returns empty workspaces when glob pattern matches nothing', () => {
+    createTlcProject(tempDir, 'empty-mono', {
+      packageJson: {
+        name: 'empty-mono',
+        version: '1.0.0',
+        workspaces: ['packages/*'],
+      },
+    });
+    // Don't create the packages/ directory at all
+
+    const results = scanner.scan([tempDir]);
+
+    expect(results).toHaveLength(1);
+    expect(results[0].isMonorepo).toBe(true);
+    expect(results[0].workspaces).toEqual([]);
+  });
 });
