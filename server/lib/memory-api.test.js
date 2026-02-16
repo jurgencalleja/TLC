@@ -1,6 +1,6 @@
 /**
  * @file memory-api.test.js
- * @description Tests for the Memory API endpoint handlers (Phase 74, Task 1).
+ * @description Tests for the Memory API endpoint handlers.
  *
  * Tests the factory function `createMemoryApi(deps)` which accepts injected
  * dependencies (semanticRecall, vectorIndexer, richCapture, embeddingClient,
@@ -11,7 +11,8 @@
  * routing is tested here.
  */
 import { describe, it, beforeEach, expect, vi } from 'vitest';
-import { createMemoryApi } from './memory-api.js';
+
+const { createMemoryApi } = await import('./memory-api.js');
 
 /**
  * Creates a mock Express request object.
@@ -294,7 +295,6 @@ describe('memory-api', () => {
     it('project filter works across endpoints', async () => {
       const projectId = 'proj-abc';
 
-      // Test project filter on conversations
       const convReq = createMockReq({ query: { project: projectId, page: '1', limit: '10' } });
       const convRes = createMockRes();
       await api.handleListConversations(convReq, convRes);
@@ -302,7 +302,6 @@ describe('memory-api', () => {
         expect.objectContaining({ project: projectId })
       );
 
-      // Test project filter on decisions
       const decReq = createMockReq({ query: { project: projectId } });
       const decRes = createMockRes();
       await api.handleListDecisions(decReq, decRes);
@@ -310,7 +309,6 @@ describe('memory-api', () => {
         expect.objectContaining({ project: projectId })
       );
 
-      // Test project filter on gotchas
       const gotReq = createMockReq({ query: { project: projectId } });
       const gotRes = createMockRes();
       await api.handleListGotchas(gotReq, gotRes);
