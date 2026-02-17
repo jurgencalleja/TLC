@@ -55,6 +55,7 @@ export function createRememberCommand({ richCapture, vectorIndexer, embeddingCli
       chunk.title = `[PERMANENT] ${text}`;
       chunk.topic = text;
       chunk.content = text;
+      chunk.text = text;
     } else if (exchanges && exchanges.length > 0) {
       // Exchange capture mode
       const summary = exchanges
@@ -64,6 +65,7 @@ export function createRememberCommand({ richCapture, vectorIndexer, embeddingCli
       chunk.title = `[PERMANENT] ${summary}`;
       chunk.topic = summary;
       chunk.exchanges = exchanges;
+      chunk.text = summary;
     } else {
       return {
         success: false,
