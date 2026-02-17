@@ -262,4 +262,27 @@ describe('remember-command', () => {
     // Should provide guidance about what to provide
     expect(result.message.length).toBeGreaterThan(0);
   });
+
+  // -------------------------------------------------------------------------
+  // 10. Phase 81: chunk.text must be set for vector indexing
+  // -------------------------------------------------------------------------
+  it('explicit text remember sets chunk.text on indexChunk call', async () => {
+    await remember.execute(testDir, { text: 'Always use UTC timestamps' });
+
+    expect(mockVectorIndexer.indexChunk).toHaveBeenCalledTimes(1);
+    const indexedChunk = mockVectorIndexer.indexChunk.mock.calls[0][1];
+    // chunk.text MUST be set — vectorIndexer.indexChunk only reads chunk.text
+    expect(indexedChunk.text).toBe('Always use UTC timestamps');
+  });
+
+  it('exchange capture sets chunk.text to exchange summary', async () => {
+    await remember.execute(testDir, { exchanges: sampleExchanges });
+
+    expect(mockVectorIndexer.indexChunk).toHaveBeenCalledTimes(1);
+    const indexedChunk = mockVectorIndexer.indexChunk.mock.calls[0][1];
+    // chunk.text MUST be non-empty for vector indexing to work
+    expect(indexedChunk.text).toBeDefined();
+    expect(typeof indexedChunk.text).toBe('string');
+    expect(indexedChunk.text.length).toBeGreaterThan(0);
+  });
 });
