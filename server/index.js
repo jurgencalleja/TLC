@@ -36,6 +36,12 @@ const {
   hasPermission,
   USER_ROLES,
 } = require('./lib/auth-system');
+const { createDockerClient } = require('./lib/docker-client');
+const { createDockerRouter } = require('./lib/docker-api');
+const { createSshClient } = require('./lib/ssh-client');
+const { createVpsRouter } = require('./lib/vps-api');
+const { createVpsMonitor } = require('./lib/vps-monitor');
+const { createCommandRunner } = require('./lib/command-runner');
 
 // Handle PGlite WASM crashes gracefully
 process.on('uncaughtException', (err) => {
@@ -83,6 +89,7 @@ app.use(cors({ origin: true, credentials: true }));
 const globalConfig = new GlobalConfig();
 const projectScanner = new ProjectScanner();
 const { observeAndRemember } = require('./lib/memory-observer');
+
 
 // Lazy-initialized memory dependencies (ESM modules loaded async)
 const memoryDeps = {
@@ -167,6 +174,38 @@ const workspaceRouter = createWorkspaceRouter({
 app.use('/api/workspace', workspaceRouter);
 // Also mount project-level routes at /api/projects for per-project endpoints
 app.use('/api', workspaceRouter);
+
+// ============================================
+// Docker + VPS Management (Phase 80)
+// ============================================
+const DOCKER_SOCKET = process.env.DOCKER_SOCKET || '/var/run/docker.sock';
+const TLC_CONFIG_DIR = process.env.TLC_CONFIG_DIR || path.join(require('os').homedir(), '.tlc');
+
+// Docker client (graceful when socket unavailable)
+let dockerClient;
+try {
+  dockerClient = createDockerClient({ socketPath: DOCKER_SOCKET });
+} catch (err) {
+  console.log('[TLC] Docker client init skipped:', err.message);
+  dockerClient = null;
+}
+
+if (dockerClient) {
+  const dockerRouter = createDockerRouter({ dockerClient });
+  app.use('/api/docker', dockerRouter);
+  console.log('[TLC] Docker API mounted at /api/docker');
+}
+
+// SSH + VPS (always available, VPS operations fail gracefully)
+const sshClient = createSshClient();
+const vpsRouter = createVpsRouter({ sshClient, configDir: TLC_CONFIG_DIR });
+app.use('/api/vps', vpsRouter);
+
+// VPS monitor
+const vpsMonitor = createVpsMonitor({ sshClient });
+
+// Command runner
+const commandRunner = createCommandRunner();
 
 // ============================================
 // Authentication Setup
@@ -561,7 +600,51 @@ wss.on('connection', (ws) => {
   // Send recent logs to new client
   ws.send(JSON.stringify({ type: 'init', data: { logs, appPort } }));
 
+  // Docker streaming state per connection
+  const dockerStreams = new Map();
+
+  ws.on('message', (raw) => {
+    try {
+      const msg = JSON.parse(raw.toString());
+
+      // Docker log streaming
+      if (msg.type === 'docker:subscribe-logs' && dockerClient && msg.containerId) {
+        const abort = dockerClient.streamContainerLogs(msg.containerId, (data) => {
+          if (ws.readyState === 1) {
+            ws.send(JSON.stringify({ type: 'docker:log', containerId: msg.containerId, data, timestamp: new Date().toISOString() }));
+          }
+        });
+        dockerStreams.set(`logs:${msg.containerId}`, abort);
+      }
+
+      if (msg.type === 'docker:unsubscribe-logs' && msg.containerId) {
+        const abort = dockerStreams.get(`logs:${msg.containerId}`);
+        if (abort) { abort(); dockerStreams.delete(`logs:${msg.containerId}`); }
+      }
+
+      // Docker stats streaming
+      if (msg.type === 'docker:subscribe-stats' && dockerClient && msg.containerId) {
+        const abort = dockerClient.streamContainerStats(msg.containerId, (stats) => {
+          if (ws.readyState === 1) {
+            ws.send(JSON.stringify({ type: 'docker:stats', containerId: msg.containerId, ...stats }));
+          }
+        });
+        dockerStreams.set(`stats:${msg.containerId}`, abort);
+      }
+
+      if (msg.type === 'docker:unsubscribe-stats' && msg.containerId) {
+        const abort = dockerStreams.get(`stats:${msg.containerId}`);
+        if (abort) { abort(); dockerStreams.delete(`stats:${msg.containerId}`); }
+      }
+    } catch {}
+  });
+
   ws.on('close', () => {
+    // Clean up Docker streams
+    for (const abort of dockerStreams.values()) {
+      try { abort(); } catch {}
+    }
+    dockerStreams.clear();
     wsClients.delete(ws);
     console.log(`[TLC] Client disconnected (${wsClients.size} total)`);
   });

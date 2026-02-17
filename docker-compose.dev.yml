@@ -22,10 +22,14 @@ services:
       retries: 5
 
   # Your App (runs from project directory)
+  # Only starts when you explicitly provide PROJECT_DIR:
+  #   PROJECT_DIR=/path/to/your/app docker compose -f docker-compose.dev.yml up app
   app:
     image: node:20-alpine
     container_name: tlc-${COMPOSE_PROJECT_NAME:-dev}-app
     working_dir: /app
+    profiles:
+      - app
     command: >
       sh -c "
         npm install &&
@@ -51,7 +55,7 @@ services:
     ports:
       - "${APP_PORT:-5001}:5001"
     volumes:
-      - ..:/app
+      - ${PROJECT_DIR:-.}:/app
       - /app/node_modules
     depends_on:
       db:
@@ -95,31 +99,33 @@ services:
     restart: on-failure
 
   # TLC Dashboard (Express API + React SPA on port 3147)
-  # Since v1.8.1, the server serves the React dashboard from dashboard-web/dist/
+  # Mounts local TLC repo and user's home directory (read-only)
+  # so the dashboard setup screen can scan any code folder.
+  # Just run: docker compose -f docker-compose.dev.yml up
   dashboard:
     image: node:20-alpine
     container_name: tlc-${COMPOSE_PROJECT_NAME:-dev}-dashboard
-    working_dir: /project
+    working_dir: /tlc
     command: >
       sh -c "
-        echo 'Installing TLC...' &&
-        npm install -g tlc-claude-code@latest &&
-        TLC_DIR=/usr/local/lib/node_modules/tlc-claude-code &&
-        echo 'TLC installed at:' $$TLC_DIR &&
-        ls $$TLC_DIR/dashboard-web/dist/index.html && echo '[TLC] React SPA ready' || echo '[TLC] WARNING: dashboard-web/dist not found' &&
-        cd /project && node $$TLC_DIR/server/index.js --proxy-only --skip-db
+        echo '[TLC] Starting dashboard server...' &&
+        node server/index.js --proxy-only --skip-db
       "
     environment:
       - TLC_PORT=3147
       - TLC_PROXY_ONLY=true
       - TLC_APP_PORT=5001
       - TLC_AUTH=false
+      - TLC_CONFIG_DIR=${HOME}/.tlc
+      - DOCKER_SOCKET=/var/run/docker.sock
     ports:
       - "${DASHBOARD_PORT:-3147}:3147"
     volumes:
-      - ..:/project
-    depends_on:
-      - app
+      - .:/tlc
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${HOME}/.tlc:${HOME}/.tlc
+      - ${HOME}:${HOME}:ro
+      - ${HOME}/.ssh:${HOME}/.ssh:ro
     restart: on-failure
 
   # Playwright E2E Tests (optional - starts on demand)

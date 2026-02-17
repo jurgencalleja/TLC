@@ -1,0 +1,35 @@
+# TLC Dashboard — Standalone
+# Run with: docker compose up
+# Access at: http://localhost:3147
+
+services:
+  dashboard:
+    image: node:20-alpine
+    container_name: tlc-dashboard
+    working_dir: /tlc
+    command: >
+      sh -c "
+        echo '[TLC] Starting standalone dashboard...' &&
+        node server/index.js --proxy-only --skip-db
+      "
+    ports:
+      - "${DASHBOARD_PORT:-3147}:3147"
+    volumes:
+      # TLC codebase
+      - .:/tlc
+      # Docker socket for container visibility
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Global TLC config (read-write)
+      - ${HOME}/.tlc:${HOME}/.tlc
+      # User home for project scanning (read-only)
+      - ${HOME}:${HOME}:ro
+      # SSH keys for VPS access (read-only)
+      - ${HOME}/.ssh:${HOME}/.ssh:ro
+    environment:
+      - TLC_PORT=3147
+      - TLC_PROXY_ONLY=true
+      - TLC_STANDALONE=true
+      - TLC_AUTH=false
+      - TLC_CONFIG_DIR=${HOME}/.tlc
+      - DOCKER_SOCKET=/var/run/docker.sock
+    restart: unless-stopped
