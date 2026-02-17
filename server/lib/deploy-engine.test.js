@@ -72,6 +72,26 @@ describe('DeployEngine', () => {
       expect(commands.some(c => c.includes('feature-login-page'))).toBe(true);
     });
 
+    // Phase 81 Task 5: git commands must use original branch name
+    it('git clone uses original branch name not sanitized', async () => {
+      const sshConfig = { host: '1.2.3.4', username: 'deploy', privateKeyPath: '/key' };
+      const project = { name: 'myapp', repoUrl: 'git@github.com:user/myapp.git' };
+
+      await engine.deployBranch(sshConfig, project, 'feature/login-page', 'myapp.dev');
+
+      const commands = mockSsh.exec.mock.calls.map(c => c[1]);
+      // git clone -b must use the ORIGINAL branch name (feature/login-page)
+      const cloneCmd = commands.find(c => c.includes('git clone'));
+      if (cloneCmd) {
+        expect(cloneCmd).toContain('-b feature/login-page');
+      }
+      // git reset/checkout must use the ORIGINAL branch name
+      const resetCmd = commands.find(c => c.includes('git reset') || c.includes('git checkout'));
+      if (resetCmd) {
+        expect(resetCmd).toContain('origin/feature/login-page');
+      }
+    });
+
     it('allocates unique port', async () => {
       mockSsh.exec.mockImplementation(async (config, cmd) => {
         if (cmd.includes('cat') && cmd.includes('ports.json')) {
