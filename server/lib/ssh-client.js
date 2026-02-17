@@ -67,6 +67,8 @@ function createSshClient(options = {}) {
         host: config.host,
         port: config.port || 22,
         username: config.username,
+        readyTimeout: 10000,
+        keepaliveInterval: 5000,
       };
       if (keyPath && fs.existsSync(keyPath)) {
         connOpts.privateKey = fs.readFileSync(keyPath);

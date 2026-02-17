@@ -3,6 +3,8 @@
  * Phase 80 Task 5 (replaces caddy-config.js)
  */
 
+const { isValidDomain } = require('./input-sanitizer.js');
+
 /**
  * Generate Nginx site config for a project
  * @param {Object} options
@@ -12,6 +14,7 @@
  * @returns {string} Nginx config
  */
 function generateSiteConfig({ domain, port, proxyPass }) {
+  if (!isValidDomain(domain)) throw new Error(`Invalid domain: ${domain}`);
   return `# TLC generated Nginx config for ${domain}
 server {
     listen 80;
@@ -48,6 +51,7 @@ server {
  * @returns {string} Nginx config
  */
 function generateWildcardConfig(baseDomain, options = {}) {
+  if (!isValidDomain(baseDomain)) throw new Error(`Invalid domain: ${baseDomain}`);
   const branches = options.branches || [];
 
   // Map blocks for each branch
@@ -92,6 +96,7 @@ server {
  * @returns {string} SSL config lines
  */
 function generateSslConfig(domain) {
+  if (!isValidDomain(domain)) throw new Error(`Invalid domain: ${domain}`);
   return `    # SSL Configuration for ${domain}
     listen 443 ssl;
     ssl_certificate /etc/letsencrypt/live/${domain}/fullchain.pem;

@@ -121,15 +121,15 @@ function createDockerClient(options = {}) {
     const stats = await container.stats({ stream: false });
 
     // Calculate CPU %
-    const cpuDelta = stats.cpu_stats.cpu_usage.total_usage - stats.precpu_stats.cpu_usage.total_usage;
-    const systemDelta = stats.cpu_stats.system_cpu_usage - stats.precpu_stats.system_cpu_usage;
-    const numCpus = stats.cpu_stats.online_cpus || 1;
+    const cpuDelta = (stats.cpu_stats?.cpu_usage?.total_usage || 0) - (stats.precpu_stats?.cpu_usage?.total_usage || 0);
+    const systemDelta = (stats.cpu_stats?.system_cpu_usage || 0) - (stats.precpu_stats?.system_cpu_usage || 0);
+    const numCpus = stats.cpu_stats?.online_cpus || 1;
     const cpuPercent = systemDelta > 0 ? (cpuDelta / systemDelta) * numCpus * 100 : 0;
 
     // Memory
-    const cache = (stats.memory_stats.stats && stats.memory_stats.stats.cache) || 0;
-    const memoryUsage = stats.memory_stats.usage - cache;
-    const memoryLimit = stats.memory_stats.limit;
+    const cache = stats.memory_stats?.stats?.cache || stats.memory_stats?.stats?.inactive_file || 0;
+    const memoryUsage = (stats.memory_stats?.usage || 0) - cache;
+    const memoryLimit = stats.memory_stats?.limit || 0;
 
     // Network
     let networkRx = 0;
@@ -170,17 +170,19 @@ function createDockerClient(options = {}) {
    */
   function streamContainerLogs(id, callback) {
     let aborted = false;
+    let streamRef = null;
     const container = docker.getContainer(id);
     container.logs({ follow: true, stdout: true, stderr: true, tail: 50, timestamps: true })
       .then(stream => {
+        streamRef = stream;
         if (aborted) { stream.destroy && stream.destroy(); return; }
         stream.on('data', chunk => {
           if (!aborted) callback(chunk.toString('utf8'));
         });
         stream.on('end', () => {});
       })
-      .catch(() => {});
-    return () => { aborted = true; };
+      .catch((err) => { callback && callback(null, err); });
+    return () => { aborted = true; if (streamRef) { streamRef.destroy && streamRef.destroy(); } };
   }
 
   /**
@@ -191,9 +193,11 @@ function createDockerClient(options = {}) {
    */
   function streamContainerStats(id, callback) {
     let aborted = false;
+    let streamRef = null;
     const container = docker.getContainer(id);
     container.stats({ stream: true })
       .then(stream => {
+        streamRef = stream;
         if (aborted) { stream.destroy && stream.destroy(); return; }
         let buffer = '';
         stream.on('data', chunk => {
@@ -205,21 +209,21 @@ function createDockerClient(options = {}) {
             if (line.trim()) {
               try {
                 const stats = JSON.parse(line);
-                const cpuDelta = stats.cpu_stats.cpu_usage.total_usage - stats.precpu_stats.cpu_usage.total_usage;
-                const systemDelta = stats.cpu_stats.system_cpu_usage - stats.precpu_stats.system_cpu_usage;
-                const numCpus = stats.cpu_stats.online_cpus || 1;
+                const cpuDelta = (stats.cpu_stats?.cpu_usage?.total_usage || 0) - (stats.precpu_stats?.cpu_usage?.total_usage || 0);
+                const systemDelta = (stats.cpu_stats?.system_cpu_usage || 0) - (stats.precpu_stats?.system_cpu_usage || 0);
+                const numCpus = stats.cpu_stats?.online_cpus || 1;
                 callback({
                   cpuPercent: systemDelta > 0 ? (cpuDelta / systemDelta) * numCpus * 100 : 0,
-                  memoryUsage: stats.memory_stats.usage || 0,
-                  memoryLimit: stats.memory_stats.limit || 0,
+                  memoryUsage: stats.memory_stats?.usage || 0,
+                  memoryLimit: stats.memory_stats?.limit || 0,
                 });
               } catch {}
             }
           }
         });
       })
-      .catch(() => {});
-    return () => { aborted = true; };
+      .catch((err) => { callback && callback(null, err); });
+    return () => { aborted = true; if (streamRef) { streamRef.destroy && streamRef.destroy(); } };
   }
 
   /**

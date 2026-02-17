@@ -4,6 +4,7 @@
  */
 
 const { generateSiteConfig } = require('./nginx-config.js');
+const { isValidBranch, isValidRepoUrl, isValidDomain, isValidProjectName } = require('./input-sanitizer.js');
 
 /**
  * Sanitize branch name for DNS/container use
@@ -27,6 +28,10 @@ function createDeployEngine({ sshClient }) {
    */
   async function deploy(sshConfig, project, options = {}, onProgress) {
     const { domain, branch = 'main' } = options;
+    if (!isValidProjectName(project.name)) throw new Error(`Invalid project name: ${project.name}`);
+    if (!isValidBranch(branch)) throw new Error(`Invalid branch name: ${branch}`);
+    if (project.repoUrl && !isValidRepoUrl(project.repoUrl)) throw new Error(`Invalid repo URL: ${project.repoUrl}`);
+    if (domain && !isValidDomain(domain)) throw new Error(`Invalid domain: ${domain}`);
     const deployDir = `/opt/deploys/${project.name}`;
     const report = (step, msg) => onProgress && onProgress({ step, message: msg });
 
@@ -69,6 +74,10 @@ function createDeployEngine({ sshClient }) {
    * Deploy a branch preview
    */
   async function deployBranch(sshConfig, project, branch, baseDomain, onProgress) {
+    if (!isValidProjectName(project.name)) throw new Error(`Invalid project name: ${project.name}`);
+    if (!isValidBranch(branch)) throw new Error(`Invalid branch name: ${branch}`);
+    if (project.repoUrl && !isValidRepoUrl(project.repoUrl)) throw new Error(`Invalid repo URL: ${project.repoUrl}`);
+    if (baseDomain && !isValidDomain(baseDomain)) throw new Error(`Invalid base domain: ${baseDomain}`);
     const sanitized = sanitizeBranch(branch);
     const deployDir = `/opt/deploys/${project.name}/branches/${sanitized}`;
     const containerName = `tlc-${sanitizeBranch(project.name)}-${sanitized}`;
@@ -85,16 +94,17 @@ function createDeployEngine({ sshClient }) {
     let port = BASE_PORT;
     while (usedPorts.includes(port)) port++;
     portData[sanitized] = port;
-    await sshClient.exec(sshConfig, `mkdir -p /opt/deploys/${project.name} && echo '${JSON.stringify(portData)}' > /opt/deploys/${project.name}/ports.json`);
+    const portJson = Buffer.from(JSON.stringify(portData)).toString('base64');
+    await sshClient.exec(sshConfig, `mkdir -p /opt/deploys/${project.name} && echo '${portJson}' | base64 -d > /opt/deploys/${project.name}/ports.json`);
 
     // Clone branch
     report('git', `Cloning branch ${branch}...`);
     await sshClient.exec(sshConfig, `mkdir -p ${deployDir}`);
     const checkGit = await sshClient.exec(sshConfig, `test -d ${deployDir}/.git && echo "exists" || echo "new"`);
     if (checkGit.stdout.trim() === 'exists') {
-      await sshClient.exec(sshConfig, `cd ${deployDir} && git fetch origin && git checkout ${sanitized} 2>/dev/null || git checkout -b ${sanitized} origin/${branch}`);
+      await sshClient.exec(sshConfig, `cd ${deployDir} && git fetch origin && git reset --hard origin/${sanitized} 2>/dev/null || git checkout -b ${sanitized} origin/${sanitized}`);
     } else {
-      await sshClient.exec(sshConfig, `git clone -b ${branch} ${project.repoUrl} ${deployDir}`);
+      await sshClient.exec(sshConfig, `git clone -b ${sanitized} ${project.repoUrl} ${deployDir}`);
     }
 
     // Docker compose with custom port
@@ -152,7 +162,8 @@ function createDeployEngine({ sshClient }) {
       const portsResult = await sshClient.exec(sshConfig, `cat /opt/deploys/${project.name}/ports.json 2>/dev/null || echo "{}"`);
       const portData = JSON.parse(portsResult.stdout.trim());
       delete portData[sanitized];
-      await sshClient.exec(sshConfig, `echo '${JSON.stringify(portData)}' > /opt/deploys/${project.name}/ports.json`);
+      const portJson = Buffer.from(JSON.stringify(portData)).toString('base64');
+      await sshClient.exec(sshConfig, `echo '${portJson}' | base64 -d > /opt/deploys/${project.name}/ports.json`);
     } catch {}
   }
 

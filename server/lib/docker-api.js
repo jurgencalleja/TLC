@@ -93,7 +93,7 @@ function createDockerRouter({ dockerClient }) {
   // GET /docker/containers/:id/logs
   router.get('/containers/:id/logs', async (req, res) => {
     try {
-      const tail = req.query.tail ? parseInt(req.query.tail, 10) : 100;
+      const tail = parseInt(req.query.tail, 10) || 100;
       const logs = await dockerClient.getContainerLogs(req.params.id, { tail });
       res.json({ logs });
     } catch (err) {

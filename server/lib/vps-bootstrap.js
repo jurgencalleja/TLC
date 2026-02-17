@@ -3,6 +3,8 @@
  * Phase 80 Task 5
  */
 
+const { isValidUsername } = require('./input-sanitizer.js');
+
 /**
  * Generate idempotent bootstrap bash script
  * @param {Object} options
@@ -11,6 +13,7 @@
  */
 function generateBootstrapScript(options = {}) {
   const deployUser = options.deployUser || 'deploy';
+  if (!isValidUsername(deployUser)) throw new Error(`Invalid deploy user: ${deployUser}`);
 
   return `#!/bin/bash
 set -e

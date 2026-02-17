@@ -85,7 +85,11 @@ function createCommandRunner(options = {}) {
     // Find most recent plan file
     const planDir = path.join(projectPath, '.planning', 'phases');
     if (fs.existsSync(planDir)) {
-      const plans = fs.readdirSync(planDir).filter(f => f.endsWith('-PLAN.md')).sort();
+      const plans = fs.readdirSync(planDir).filter(f => f.endsWith('-PLAN.md')).sort((a, b) => {
+        const numA = parseInt(a.match(/^(\d+)/)?.[1] || '0', 10);
+        const numB = parseInt(b.match(/^(\d+)/)?.[1] || '0', 10);
+        return numA - numB;
+      });
       if (plans.length > 0) {
         const planPath = path.join(planDir, plans[plans.length - 1]);
         fs.appendFileSync(planPath, entry);
@@ -140,7 +144,7 @@ function createCommandRunner(options = {}) {
    */
   function validateCommand(command) {
     if (!command || typeof command !== 'string') return false;
-    return VALID_COMMANDS.includes(command) || command.length > 0;
+    return VALID_COMMANDS.includes(command);
   }
 
   return {

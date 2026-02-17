@@ -3,6 +3,8 @@
  * Phase 80 Task 9
  */
 
+const { isValidDomain } = require('./input-sanitizer.js');
+
 /**
  * Create VPS monitor
  * @param {Object} options
@@ -89,7 +91,7 @@ function createVpsMonitor({ sshClient }) {
     // Container alerts
     if (metrics.containers) {
       for (const c of metrics.containers) {
-        if (c.state === 'exited' && c.exitCode !== 0) {
+        if (c.state === 'exited' && c.exitCode !== undefined && c.exitCode !== 0) {
           alerts.push({ type: 'container', level: 'critical', message: `Container ${c.name} crashed (exit code ${c.exitCode})` });
         }
       }
@@ -105,6 +107,7 @@ function createVpsMonitor({ sshClient }) {
    * @returns {Promise<Object>}
    */
   async function checkSslExpiry(sshConfig, domain) {
+    if (!isValidDomain(domain)) throw new Error(`Invalid domain: ${domain}`);
     const result = await sshClient.exec(
       sshConfig,
       `openssl x509 -enddate -noout -in /etc/letsencrypt/live/${domain}/fullchain.pem 2>/dev/null || echo "not found"`
