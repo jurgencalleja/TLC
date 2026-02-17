@@ -158,19 +158,21 @@ function createCaptureHooks(projectRoot, deps) {
 
     processing = true;
 
+    // Snapshot and reset buffer atomically BEFORE async processing.
+    // New exchanges arriving during processing go into the fresh buffer.
+    const snapshot = buffer;
+    buffer = [];
+
     Promise.resolve().then(async () => {
       try {
-        const exchanges = buffer.slice();
-        const chunks = chunker.chunkConversation(exchanges);
+        const chunks = chunker.chunkConversation(snapshot);
         for (const chunk of chunks) {
           await richCapture.writeConversationChunk(projectRoot, chunk);
           await vectorIndexer.indexChunk(chunk);
         }
-        buffer = [];
       } catch (_err) {
         // Error resilience: capture failures must not propagate.
         // Hooks remain functional after errors.
-        buffer = [];
       } finally {
         processing = false;
       }

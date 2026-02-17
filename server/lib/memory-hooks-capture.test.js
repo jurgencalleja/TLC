@@ -297,18 +297,20 @@ describe('memory-hooks capture (auto-capture hooks)', () => {
     it('buffer resets after chunk written', async () => {
       const hooks = createCaptureHooks(testDir, makeDeps());
 
-      // Fill buffer to threshold
+      // Fill buffer to threshold — the 5th exchange triggers processBuffer
+      // which atomically swaps the buffer before async processing
       for (let i = 0; i < 5; i++) {
         hooks.onExchange(makeExchange(`q${i}`, `a${i}`));
       }
 
-      expect(hooks.getBufferSize()).toBe(5);
-
       // Wait for async processing to complete
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Buffer should be reset after chunking
+      // Buffer should be empty after processing
       expect(hooks.getBufferSize()).toBe(0);
+      // Chunker should have received the 5 exchanges
+      expect(mockChunker.chunkConversation).toHaveBeenCalled();
+      expect(mockChunker.chunkConversation.mock.calls[0][0]).toHaveLength(5);
     });
 
     it('flush() forces processing regardless of buffer size', async () => {
