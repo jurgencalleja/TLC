@@ -346,5 +346,68 @@ describe('memory-hooks capture (auto-capture hooks)', () => {
       expect(indexCallArgs).toBeDefined();
       expect(indexCallArgs[0]).toHaveProperty('id', 'chunk-1');
     });
+
+    // Phase 81 Task 3: Buffer race condition tests
+    it('exchanges added during async processing are not lost', async () => {
+      // Use a synchronous chunker but slow richCapture to simulate the race
+      const slowRichCapture = {
+        writeConversationChunk: vi.fn().mockImplementation(async () => {
+          // Simulate slow async write — yields control back to event loop
+          await new Promise(resolve => setTimeout(resolve, 80));
+          return '/tmp/slow-write.md';
+        }),
+      };
+
+      const hooks = createCaptureHooks(testDir, makeDeps({ richCapture: slowRichCapture }));
+
+      // Add 5 exchanges to trigger processing
+      for (let i = 0; i < 5; i++) {
+        hooks.onExchange(makeExchange(`q${i}`, `a${i}`));
+      }
+
+      // Wait briefly for processing to start (microtask scheduled)
+      await new Promise(resolve => setTimeout(resolve, 20));
+
+      // Now add more exchanges DURING the slow processing
+      hooks.onExchange(makeExchange('late-q1', 'late-a1'));
+      hooks.onExchange(makeExchange('late-q2', 'late-a2'));
+
+      // Wait for processing to complete
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      // The late exchanges must NOT have been lost
+      // They should be in the buffer (preserved) or processed in a second batch
+      const bufferSize = hooks.getBufferSize();
+      const chunkCalls = mockChunker.chunkConversation.mock.calls.length;
+      // Either late exchanges remain in buffer, or they triggered a second batch
+      expect(bufferSize === 2 || chunkCalls > 1).toBe(true);
+    });
+
+    it('error during processing preserves new exchanges', async () => {
+      const slowFailRichCapture = {
+        writeConversationChunk: vi.fn().mockImplementation(async () => {
+          await new Promise(resolve => setTimeout(resolve, 30));
+          throw new Error('Write failed');
+        }),
+      };
+
+      const hooks = createCaptureHooks(testDir, makeDeps({ richCapture: slowFailRichCapture }));
+
+      // Trigger processing (will fail during write)
+      for (let i = 0; i < 5; i++) {
+        hooks.onExchange(makeExchange(`q${i}`, `a${i}`));
+      }
+
+      // Wait for processing to start, then add exchange during failure
+      await new Promise(resolve => setTimeout(resolve, 10));
+      hooks.onExchange(makeExchange('after-error-q', 'after-error-a'));
+
+      // Wait for error processing to complete
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // The new exchange added during the failing processing must be preserved
+      const bufferSize = hooks.getBufferSize();
+      expect(bufferSize).toBeGreaterThanOrEqual(1);
+    });
   });
 });
