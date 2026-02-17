@@ -2597,6 +2597,29 @@ Reject → developer notified with feedback
 
 ---
 
+### Phase 81: Memory Integration Fix [>]
+
+**Goal:** Fix all P1/P2 bugs in the memory system found by Codex + Claude review, and wire memory hooks into the server session lifecycle to achieve the original vision: continuous autonomous decision logging without user prompting.
+
+**Deliverables:**
+- [ ] Fix vectorStore.search call signature in semantic-recall.js (P1)
+- [ ] Fix remember-command chunk.text for vector indexing (P1)
+- [ ] Wire createMemoryHooks() into server WebSocket lifecycle (P1)
+- [ ] Fix buffer race condition in capture hooks (P2)
+- [ ] Fix detectUncommittedMemory to use git status (P2)
+- [ ] Fix branch sanitization in deploy-engine git commands (P2)
+
+**Success Criteria:**
+- [ ] Semantic recall returns results for matching queries
+- [ ] /tlc:remember items findable via /tlc:recall
+- [ ] WebSocket responses automatically trigger memory capture
+- [ ] No exchanges lost during async buffer processing
+- [ ] Clean repos don't trigger spurious commits
+
+**Tests:** ~25
+
+---
+
 ---
 
 ## Milestone: v3.0 - TLC Standalone
