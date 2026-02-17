@@ -58,6 +58,27 @@ describe('memory-committer', () => {
 
       expect(uncommitted.every(f => !f.includes('.local'))).toBe(true);
     });
+
+    // Phase 81 Task 4: detectUncommittedMemory should use git status
+    it('returns empty for already-committed files in a git repo', async () => {
+      // Create a git repo, add a decision, and commit it
+      const { execSync } = await import('child_process');
+      execSync('git init', { cwd: testDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', { cwd: testDir, stdio: 'pipe' });
+      execSync('git config user.name "Test"', { cwd: testDir, stdio: 'pipe' });
+
+      await writeTeamDecision(testDir, {
+        title: 'Committed Decision',
+        reasoning: 'Already committed',
+      });
+
+      execSync('git add -A', { cwd: testDir, stdio: 'pipe' });
+      execSync('git commit -m "initial"', { cwd: testDir, stdio: 'pipe' });
+
+      // Now detect uncommitted — should be empty since everything is committed
+      const uncommitted = await detectUncommittedMemory(testDir);
+      expect(uncommitted).toHaveLength(0);
+    });
   });
 
   describe('generateCommitMessage', () => {
