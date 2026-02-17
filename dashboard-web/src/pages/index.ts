@@ -14,3 +14,5 @@ export { ClientDashboard } from './ClientDashboard';
 export { MemoryPage } from './MemoryPage';
 export { ProjectInfoPage } from './ProjectInfoPage';
 export { PhaseDetailPage } from './PhaseDetailPage';
+export { DockerPage } from './DockerPage';
+export { VpsPage } from './VpsPage';

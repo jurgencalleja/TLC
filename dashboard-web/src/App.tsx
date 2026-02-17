@@ -20,6 +20,8 @@ import {
   MemoryPage,
   ProjectInfoPage,
   PhaseDetailPage as PhaseDetail,
+  DockerPage,
+  VpsPage,
 } from './pages';
 import { useUIStore } from './stores';
 import { useWebSocket } from './hooks';
@@ -84,6 +86,8 @@ function AppContent() {
     { id: 'nav-tests', label: 'Go to Tests', shortcut: 'g x', action: () => { navigate(pid ? `/projects/${pid}/tests` : '/tests'); closeCommandPalette(); } },
     { id: 'nav-bugs', label: 'Go to Bugs', shortcut: 'g b', action: () => { navigate(pid ? `/projects/${pid}/bugs` : '/bugs'); closeCommandPalette(); } },
     { id: 'nav-roadmap', label: 'Go to Roadmap', shortcut: 'g r', action: () => { navigate(pid ? `/projects/${pid}/roadmap` : '/roadmap'); closeCommandPalette(); } },
+    { id: 'nav-docker', label: 'Go to Docker', shortcut: 'g k', action: () => { navigate('/docker'); closeCommandPalette(); } },
+    { id: 'nav-vps', label: 'Go to VPS', shortcut: 'g j', action: () => { navigate('/vps'); closeCommandPalette(); } },
     { id: 'nav-setup', label: 'Workspace Setup', shortcut: 'g w', action: () => { navigate('/setup'); closeCommandPalette(); } },
     { id: 'toggle-theme', label: 'Toggle Theme', shortcut: 't', action: () => { toggleTheme(); closeCommandPalette(); } },
   ], [navigate, closeCommandPalette, toggleTheme, pid]);
@@ -151,6 +155,8 @@ function AppContent() {
               <Route path="/bugs" element={<BugsPage />} />
               <Route path="/roadmap" element={<RoadmapPage />} />
               <Route path="/client" element={<ClientDashboard />} />
+              <Route path="/docker" element={<DockerPage />} />
+              <Route path="/vps" element={<VpsPage />} />
             </Routes>
           </Shell>
         } />
