@@ -102,9 +102,9 @@ function createDeployEngine({ sshClient }) {
     await sshClient.exec(sshConfig, `mkdir -p ${deployDir}`);
     const checkGit = await sshClient.exec(sshConfig, `test -d ${deployDir}/.git && echo "exists" || echo "new"`);
     if (checkGit.stdout.trim() === 'exists') {
-      await sshClient.exec(sshConfig, `cd ${deployDir} && git fetch origin && git reset --hard origin/${sanitized} 2>/dev/null || git checkout -b ${sanitized} origin/${sanitized}`);
+      await sshClient.exec(sshConfig, `cd ${deployDir} && git fetch origin && git reset --hard origin/${branch} 2>/dev/null || git checkout -b ${branch} origin/${branch}`);
     } else {
-      await sshClient.exec(sshConfig, `git clone -b ${sanitized} ${project.repoUrl} ${deployDir}`);
+      await sshClient.exec(sshConfig, `git clone -b ${branch} ${project.repoUrl} ${deployDir}`);
     }
 
     // Docker compose with custom port
