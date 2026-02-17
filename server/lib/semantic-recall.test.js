@@ -103,6 +103,23 @@ describe('semantic-recall', () => {
       expect(mockVectorStore.search).toHaveBeenCalled();
     });
 
+    it('calls vectorStore.search with (embedding, {limit}) not ({embedding, limit})', async () => {
+      const mockResults = [createMockResult()];
+      mockVectorStore.search.mockReturnValue(mockResults);
+
+      const context = { projectId: 'my-project', workspace: '/ws', branch: 'main', touchedFiles: [] };
+      await recall.recall('test query', context, { limit: 5 });
+
+      // The first argument must be the embedding (Float32Array), not an object
+      const firstArg = mockVectorStore.search.mock.calls[0][0];
+      expect(firstArg).toBeInstanceOf(Float32Array);
+
+      // The second argument must be the options object with limit
+      const secondArg = mockVectorStore.search.mock.calls[0][1];
+      expect(secondArg).toHaveProperty('limit');
+      expect(typeof secondArg.limit).toBe('number');
+    });
+
     it('sorts results by combined score highest first', async () => {
       // mem-1: high similarity but old (low recency)
       // mem-2: moderate similarity but recent (high recency)
