@@ -223,8 +223,44 @@ function createCaptureHooks(projectRoot, deps) {
   };
 }
 
+/**
+ * Create server-level memory capture that wires observeAndRemember into
+ * the TLC server lifecycle so conversations are automatically captured.
+ *
+ * @param {Object} opts
+ * @param {string} opts.projectRoot - Project root directory
+ * @param {Function} opts.observeAndRemember - The observe-and-remember function from memory-observer
+ * @returns {{ onAssistantResponse: Function, onTlcCommand: Function }}
+ */
+function createServerMemoryCapture({ projectRoot, observeAndRemember }) {
+  /**
+   * Called after each assistant response — fires observeAndRemember.
+   * Errors are swallowed to avoid disrupting the response flow.
+   * @param {string} response - The assistant response text
+   */
+  async function onAssistantResponse(response) {
+    try {
+      await observeAndRemember(projectRoot, { assistant: response });
+    } catch (_err) {
+      // Capture failures must not propagate
+    }
+  }
+
+  /**
+   * Called when a TLC command is invoked — currently a no-op placeholder
+   * for future flush/capture logic.
+   * @param {string} _command - The TLC command name
+   */
+  function onTlcCommand(_command) {
+    // Placeholder for future capture flush on TLC commands
+  }
+
+  return { onAssistantResponse, onTlcCommand };
+}
+
 module.exports = {
   createMemoryHooks,
   MemoryHooks,
   createCaptureHooks,
+  createServerMemoryCapture,
 };
