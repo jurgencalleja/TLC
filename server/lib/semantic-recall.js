@@ -188,7 +188,7 @@ export function createSemanticRecall({ vectorStore, embeddingClient }) {
       types,
     } = options;
 
-    const rawResults = vectorStore.search({ embedding, limit: limit * 3 });
+    const rawResults = vectorStore.search(embedding, { limit: limit * 3 });
 
     // Score all raw results and attach the raw data for filtering
     let scored = rawResults.map((raw) => {
