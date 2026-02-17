@@ -23,7 +23,24 @@ async function detectUncommittedMemory(projectRoot) {
     return [];
   }
 
-  // Get all files in team directory
+  // Try git status first — only return modified/untracked files
+  try {
+    const teamRelative = path.relative(projectRoot, teamDir);
+    const { stdout } = await execAsync(
+      `git status --porcelain -- "${teamRelative}"`,
+      { cwd: projectRoot }
+    );
+    if (stdout.trim().length === 0) return [];
+
+    return stdout.trim().split('\n')
+      .map(line => line.slice(3).trim()) // strip status prefix (e.g. "?? ", " M ")
+      .filter(f => f.endsWith('.json') || f.endsWith('.md'))
+      .filter(f => !f.endsWith('conventions.md'));
+  } catch {
+    // Not a git repo or git not available — fall back to walkDir
+  }
+
+  // Fallback: return all files (non-git directory)
   const files = [];
 
   async function walkDir(dir) {
@@ -33,10 +50,7 @@ async function detectUncommittedMemory(projectRoot) {
       if (entry.isDirectory()) {
         await walkDir(fullPath);
       } else if (entry.name.endsWith('.json') || entry.name.endsWith('.md')) {
-        // Skip template files like conventions.md
         if (entry.name === 'conventions.md') continue;
-
-        // Get path relative to projectRoot
         const relativePath = path.relative(projectRoot, fullPath);
         files.push(relativePath);
       }
