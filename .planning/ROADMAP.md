@@ -2687,6 +2687,28 @@ Reject → developer notified with feedback
 
 ---
 
+### Phase 85: Security Gate Runners [x]
+
+**Goal:** Replace placeholder security gate runners with real implementations. Close false-positive security bugs from Phase 84 audits.
+
+**Deliverables:**
+- [x] Remove placeholder default runners that always return `{ passed: true }`
+- [x] Real dependency runner (parses npm audit --json, configurable severity threshold)
+- [x] Real secrets runner (regex-based secret detection, exclusion patterns)
+- [x] Wire built-in runners into createSecurityGates (dependencies + secrets)
+- [x] SAST/DAST/container gates SKIP when no runner injected (not fake-pass)
+- [x] Close BUG-007, BUG-008, BUG-010 as false positives (already fixed)
+
+**Success Criteria:**
+- [x] Security gates no longer silently pass
+- [x] Dependency vulnerabilities detected via npm audit
+- [x] Hardcoded secrets detected via pattern matching
+- [x] 39 tests passing (8 dependency + 10 secrets + 21 gates)
+
+**Tests:** 18 new (8 dependency-runner + 10 secrets-runner)
+
+---
+
 ---
 
 ## Milestone: v3.0 - TLC Standalone

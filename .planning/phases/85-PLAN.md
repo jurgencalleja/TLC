@@ -11,7 +11,7 @@ Replace placeholder security gate runners with real implementations. Currently, 
 
 ## Tasks
 
-### Task 1: Remove placeholder default runners
+### Task 1: Remove placeholder default runners [x]
 
 **Goal:** Gates without real runners should SKIP, not fake-pass. Remove the `defaultRunners` object and adjust `createSecurityGates` merge logic.
 
@@ -33,7 +33,7 @@ Replace placeholder security gate runners with real implementations. Currently, 
 
 ---
 
-### Task 2: Implement dependencies runner
+### Task 2: Implement dependencies runner [x]
 
 **Goal:** Real dependency scanning via `npm audit --json`. Parses output, maps severity, returns findings.
 
@@ -62,7 +62,7 @@ Replace placeholder security gate runners with real implementations. Currently, 
 
 ---
 
-### Task 3: Implement secrets runner
+### Task 3: Implement secrets runner [x]
 
 **Goal:** Scan project files for hardcoded secrets using regex patterns. No external tools needed.
 
@@ -92,7 +92,7 @@ Replace placeholder security gate runners with real implementations. Currently, 
 
 ---
 
-### Task 4: Wire runners into createSecurityGates
+### Task 4: Wire runners into createSecurityGates [x]
 
 **Goal:** Provide built-in runners for `dependencies` and `secrets` while keeping SAST/DAST/container as injectable-only.
 
