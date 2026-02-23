@@ -2642,6 +2642,27 @@ Reject → developer notified with feedback
 
 ---
 
+### Phase 83: Server Always-On [x]
+
+**Goal:** Ensure the TLC server is always running via macOS launchd LaunchAgent. SessionStart hook acts as safety net. Port conflict detection prevents startup thrash.
+
+**Deliverables:**
+- [x] LaunchAgent plist generator (install/uninstall/status)
+- [x] Port conflict guard (detect, log, exit cleanly)
+- [x] Port guard wired into server startup
+- [x] SessionStart hook checks health + kickstarts if needed
+- [x] User-facing install/uninstall via launchd-agent module
+
+**Success Criteria:**
+- [x] Server auto-starts on login, auto-restarts on crash
+- [x] Port conflicts detected with clear error message
+- [x] SessionStart fallback starts server when LaunchAgent missing
+- [x] Server stays running between Claude sessions
+
+**Tests:** 20 (16 launchd-agent + 4 port-guard)
+
+---
+
 ---
 
 ## Milestone: v3.0 - TLC Standalone
