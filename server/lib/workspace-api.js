@@ -17,6 +17,7 @@ const { createRoadmapApi } = require('./roadmap-api');
 const { createPlanWriter } = require('./plan-writer');
 const { createBugWriter } = require('./bug-writer');
 const { createMemoryStoreAdapter } = require('./memory-store-adapter');
+const { createCaptureGuard } = require('./capture-guard');
 
 /**
  * Encode a project path to a URL-safe project ID
@@ -317,6 +318,7 @@ function createWorkspaceRouter(options = {}) {
   }
 
   const router = express.Router();
+  const captureGuard = createCaptureGuard();
 
   // =========================================================================
   // GET /config - Returns workspace configuration
@@ -869,13 +871,29 @@ function createWorkspaceRouter(options = {}) {
   // =========================================================================
   router.post('/projects/:projectId/memory/capture', async (req, res) => {
     try {
+      const projectId = req.params.projectId;
+
+      // Rate limit check
+      const rateCheck = captureGuard.checkRateLimit(projectId);
+      if (!rateCheck.ok) {
+        return res.status(rateCheck.status).json({ error: rateCheck.error });
+      }
+
+      // Payload validation (size + structure)
+      const validation = captureGuard.validate(req.body, projectId);
+      if (!validation.ok) {
+        return res.status(validation.status).json({ error: validation.error });
+      }
+
       const roots = globalConfig.getRoots();
-      const project = findProjectById(projectScanner, roots, req.params.projectId);
+      const project = findProjectById(projectScanner, roots, projectId);
       if (!project) return res.status(404).json({ error: 'Project not found' });
 
-      const { exchanges } = req.body;
-      if (!exchanges || !Array.isArray(exchanges) || exchanges.length === 0) {
-        return res.status(400).json({ error: 'exchanges array is required and must not be empty' });
+      // Deduplicate exchanges
+      const exchanges = captureGuard.deduplicate(req.body.exchanges, projectId);
+
+      if (exchanges.length === 0) {
+        return res.json({ captured: 0, deduplicated: true });
       }
 
       // Process in background — respond immediately

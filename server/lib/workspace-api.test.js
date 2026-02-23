@@ -1001,7 +1001,7 @@ describe('Workspace API', () => {
       expect(handler).not.toBeNull();
 
       const fakeId = Buffer.from('/nonexistent').toString('base64url');
-      const { req, res } = createMockReqRes('POST', `/projects/${fakeId}/memory/capture`, { exchanges: [{ role: 'user', content: 'hello' }] }, { projectId: fakeId });
+      const { req, res } = createMockReqRes('POST', `/projects/${fakeId}/memory/capture`, { exchanges: [{ user: 'hello', assistant: 'hi there' }] }, { projectId: fakeId });
       await handler(req, res);
 
       expect(res.statusCode).toBe(404);
@@ -1058,8 +1058,8 @@ describe('Workspace API', () => {
 
       const handler = getHandler(router, 'POST', '/projects/:projectId/memory/capture');
       const exchanges = [
-        { role: 'user', content: 'what is TLC?' },
-        { role: 'assistant', content: 'TLC is...' },
+        { user: 'what is TLC?', assistant: 'TLC is a test-led coding tool' },
+        { user: 'how do I use it?', assistant: 'Run /tlc to start' },
       ];
       const { req, res } = createMockReqRes('POST', `/projects/${projectId}/memory/capture`, { exchanges }, { projectId });
       await handler(req, res);
