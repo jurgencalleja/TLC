@@ -89,7 +89,13 @@ app.use(cors({ origin: true, credentials: true }));
 const globalConfig = new GlobalConfig();
 const projectScanner = new ProjectScanner();
 const { observeAndRemember } = require('./lib/memory-observer');
+const { createServerMemoryCapture } = require('./lib/memory-hooks');
 
+// Initialize server-level memory capture (auto-captures conversations)
+const memoryCapture = createServerMemoryCapture({
+  projectRoot: PROJECT_DIR,
+  observeAndRemember,
+});
 
 // Lazy-initialized memory dependencies (ESM modules loaded async)
 const memoryDeps = {
@@ -606,6 +612,16 @@ wss.on('connection', (ws) => {
   ws.on('message', (raw) => {
     try {
       const msg = JSON.parse(raw.toString());
+
+      // Memory capture: auto-observe assistant responses
+      if (msg.type === 'assistant_response' && msg.text) {
+        memoryCapture.onAssistantResponse(msg.text);
+      }
+
+      // Memory capture: TLC command events flush capture
+      if (msg.type === 'tlc_command' && msg.command) {
+        memoryCapture.onTlcCommand(msg.command);
+      }
 
       // Docker log streaming
       if (msg.type === 'docker:subscribe-logs' && dockerClient && msg.containerId) {
@@ -1201,6 +1217,9 @@ app.post('/api/commands/:command', (req, res) => {
 
   addLog('app', `Executing command: tlc:${command}${args ? ' ' + args : ''}`, 'info');
   broadcast('command-started', { id: entry.id, command });
+
+  // Flush memory capture on TLC command execution
+  memoryCapture.onTlcCommand(command);
 
   // Build the CLI command
   const cliArgs = ['tlc', command];
