@@ -2663,6 +2663,27 @@ Reject → developer notified with feedback
 
 ---
 
+### Phase 84: Wire Memory System End-to-End [x]
+
+**Goal:** Replace hardcoded memory stubs in server/index.js with real adapters. Add Ollama health checker so `/tlc` can advise users when embeddings are unavailable. Prove the full memory loop works end-to-end.
+
+**Deliverables:**
+- [x] Ollama health checker (ready/not_installed/not_running/no_model)
+- [x] Replace memoryStore stubs with createMemoryStoreAdapter
+- [x] Call initMemorySystem() on server startup
+- [x] Add Ollama + memory stats to /api/health endpoint
+- [x] E2E wiring test (exchange → observe → file → adapter reads back)
+
+**Success Criteria:**
+- [x] Memory decisions/gotchas actually stored and retrievable
+- [x] Health endpoint shows Ollama status + memory file counts
+- [x] Empty project returns empty arrays without crashing
+- [x] Actionable messages for each Ollama failure state
+
+**Tests:** 10 (6 ollama-health + 4 memory-wiring-e2e)
+
+---
+
 ---
 
 ## Milestone: v3.0 - TLC Standalone
