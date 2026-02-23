@@ -90,6 +90,18 @@ const globalConfig = new GlobalConfig();
 const projectScanner = new ProjectScanner();
 const { observeAndRemember } = require('./lib/memory-observer');
 const { createServerMemoryCapture } = require('./lib/memory-hooks');
+const { createMemoryStoreAdapter } = require('./lib/memory-store-adapter');
+const { checkOllamaHealth } = require('./lib/ollama-health');
+
+// Initialize memory directory structure (non-blocking)
+(async () => {
+  try {
+    const { initMemorySystem } = require('./lib/memory-init');
+    await initMemorySystem(PROJECT_DIR);
+  } catch (err) {
+    console.warn('[TLC] Memory directory init skipped:', err.message);
+  }
+})();
 
 // Initialize server-level memory capture (auto-captures conversations)
 const memoryCapture = createServerMemoryCapture({
@@ -163,13 +175,16 @@ const memoryApi = createMemoryApi({
     await initMemoryPipeline();
     return memoryDeps.embeddingClient ? memoryDeps.embeddingClient.embed(...args) : [];
   }},
-  memoryStore: {
-    listConversations: async () => ({ items: [], total: 0 }),
-    getConversation: async () => null,
-    listDecisions: async () => [],
-    listGotchas: async () => [],
-    getStats: async () => ({ decisions: 0, gotchas: 0, total: 0 }),
-  },
+  memoryStore: (() => {
+    const adapter = createMemoryStoreAdapter(PROJECT_DIR);
+    return {
+      listConversations: async () => ({ items: [], total: 0 }), // TODO Phase 74: rich conversation capture
+      getConversation: async () => null, // TODO Phase 74: rich conversation capture
+      listDecisions: async () => adapter.listDecisions(),
+      listGotchas: async () => adapter.listGotchas(),
+      getStats: async () => adapter.getStats(),
+    };
+  })(),
 });
 const workspaceRouter = createWorkspaceRouter({
   globalConfig,
@@ -1300,8 +1315,16 @@ app.put('/api/config', (req, res) => {
 });
 
 // GET /api/health - System health status
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
   const memUsage = process.memoryUsage();
+  const ollamaHealth = await checkOllamaHealth();
+  const adapter = createMemoryStoreAdapter(PROJECT_DIR);
+  let memoryStats;
+  try {
+    memoryStats = await adapter.getStats();
+  } catch {
+    memoryStats = { decisions: 0, gotchas: 0, total: 0 };
+  }
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -1313,6 +1336,14 @@ app.get('/api/health', (req, res) => {
     },
     appRunning: appProcess !== null || appIsDocker,
     appPort,
+    tlcMemory: {
+      ollama: ollamaHealth,
+      fileStore: {
+        decisions: memoryStats.decisions,
+        gotchas: memoryStats.gotchas,
+        total: memoryStats.total,
+      },
+    },
   });
 });
 
