@@ -5,7 +5,7 @@
 # and sends it to the TLC server for memory processing.
 # Falls back to local spool when server is unreachable.
 #
-# This script MUST exit 0 always — capture failures never block Claude.
+# This script MUST exit 0 always - capture failures never block Claude.
 
 set -o pipefail
 
@@ -16,12 +16,10 @@ INPUT=$(cat)
 [ -z "$INPUT" ] && exit 0
 
 # Use the capture-bridge Node.js module for reliable processing
-# Find the server lib directory relative to project
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 BRIDGE_SCRIPT="$PROJECT_DIR/server/lib/capture-bridge.js"
 
 if [ -f "$BRIDGE_SCRIPT" ]; then
-  # Run the Node.js bridge (non-blocking, fire-and-forget)
   echo "$INPUT" | node -e "
     const bridge = require('$BRIDGE_SCRIPT');
     let input = '';
@@ -41,7 +39,6 @@ if [ -f "$BRIDGE_SCRIPT" ]; then
         sessionId: parsed.sessionId,
       });
 
-      // Try to drain any spooled entries
       const path = require('path');
       const spoolDir = path.join(parsed.cwd || '$PROJECT_DIR', '.tlc', 'memory');
       await bridge.drainSpool(spoolDir);
@@ -49,5 +46,5 @@ if [ -f "$BRIDGE_SCRIPT" ]; then
   " 2>/dev/null
 fi
 
-# Always exit 0 — never block Claude
+# Always exit 0 - never block Claude
 exit 0
