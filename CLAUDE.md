@@ -73,6 +73,14 @@ Use `Task` tool to spawn sub-agents for independent work. Keep main conversation
 
 Claim tasks before starting: `/tlc:claim`. Release if blocked: `/tlc:release`. Check team: `/tlc:who`. Pull before claiming, push after.
 
+## Memory Auto-Capture
+
+Conversations are automatically captured via the Claude Code `Stop` hook. After each response, the hook POSTs the exchange to the TLC server's capture endpoint. The pattern detector classifies decisions, gotchas, and preferences into team memory files under `.tlc/memory/team/`.
+
+- **Resilience:** If the server is unreachable, exchanges spool to `.tlc/memory/.spool.jsonl` and drain on the next successful capture.
+- **Endpoint hardening:** Payloads are capped at 100KB, deduplicated within a 60s window, and rate-limited to 100 captures/minute per project.
+- **Disable:** Remove the `Stop` hook entry from `.claude/settings.json`.
+
 ---
 
 <!-- TLC-STANDARDS -->

@@ -2597,26 +2597,48 @@ Reject → developer notified with feedback
 
 ---
 
-### Phase 81: Memory Integration Fix [>]
+### Phase 81: Memory Integration Fix [x]
 
 **Goal:** Fix all P1/P2 bugs in the memory system found by Codex + Claude review, and wire memory hooks into the server session lifecycle to achieve the original vision: continuous autonomous decision logging without user prompting.
 
 **Deliverables:**
-- [ ] Fix vectorStore.search call signature in semantic-recall.js (P1)
-- [ ] Fix remember-command chunk.text for vector indexing (P1)
-- [ ] Wire createMemoryHooks() into server WebSocket lifecycle (P1)
-- [ ] Fix buffer race condition in capture hooks (P2)
-- [ ] Fix detectUncommittedMemory to use git status (P2)
-- [ ] Fix branch sanitization in deploy-engine git commands (P2)
+- [x] Fix vectorStore.search call signature in semantic-recall.js (P1)
+- [x] Fix remember-command chunk.text for vector indexing (P1)
+- [x] Wire createMemoryHooks() into server WebSocket lifecycle (P1)
+- [x] Fix buffer race condition in capture hooks (P2)
+- [x] Fix detectUncommittedMemory to use git status (P2)
+- [x] Fix branch sanitization in deploy-engine git commands (P2)
 
 **Success Criteria:**
-- [ ] Semantic recall returns results for matching queries
-- [ ] /tlc:remember items findable via /tlc:recall
-- [ ] WebSocket responses automatically trigger memory capture
-- [ ] No exchanges lost during async buffer processing
-- [ ] Clean repos don't trigger spurious commits
+- [x] Semantic recall returns results for matching queries
+- [x] /tlc:remember items findable via /tlc:recall
+- [x] WebSocket responses automatically trigger memory capture
+- [x] No exchanges lost during async buffer processing
+- [x] Clean repos don't trigger spurious commits
 
 **Tests:** ~25
+
+---
+
+### Phase 82: Memory Bridge [x]
+
+**Goal:** Connect Claude Code sessions to the TLC memory pipeline via the `Stop` hook. When Claude responds, the hook captures the exchange and POSTs to the server's capture endpoint. Local JSONL spool handles server downtime. This is the final piece that makes continuous autonomous memory capture work.
+
+**Deliverables:**
+- [x] Capture bridge module (server/lib/capture-bridge.js)
+- [x] Spool drain mechanism for resilience
+- [x] Stop hook registered in settings.json (timeout: 30)
+- [x] Capture guard — hardened endpoint (size limits, dedup, rate limiting)
+- [x] End-to-end integration test (capture → observe → detect → store)
+- [x] Documentation updates
+
+**Success Criteria:**
+- [x] Claude Code Stop hook triggers auto-capture without user action
+- [x] Decision patterns in exchanges create team memory files
+- [x] Capture works when server is down (spool + drain)
+- [x] Full pipeline proven: hook → parse → POST → detect → store
+
+**Tests:** 36 (19 bridge + 12 guard + 5 e2e)
 
 ---
 
