@@ -1740,6 +1740,16 @@ async function main() {
   // Initialize authentication
   await initializeAuth();
 
+  // Check for port conflicts before listening
+  const { checkPort } = require('./lib/port-guard');
+  const portCheck = await checkPort(TLC_PORT);
+  if (!portCheck.available) {
+    console.error(`\n  Port ${TLC_PORT} is already in use.`);
+    console.error('  Another TLC server may be running, or a different process holds this port.');
+    console.error('  Use TLC_PORT=<port> to choose a different port.\n');
+    process.exit(1);
+  }
+
   server.listen(TLC_PORT, () => {
     console.log(`  Dashboard: http://localhost:${TLC_PORT}`);
     console.log(`  Share:     http://${getLocalIP()}:${TLC_PORT}`);
