@@ -13,6 +13,7 @@ import {
   Map,
   Box,
   Server,
+  Brain,
 } from 'lucide-react';
 import { useWorkspaceStore } from '../../stores/workspace.store';
 
@@ -40,6 +41,7 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(
       { path: pid ? `/projects/${pid}/tests` : '/tests', label: 'Tests', icon: <TestTube className="h-5 w-5" /> },
       { path: pid ? `/projects/${pid}/bugs` : '/bugs', label: 'Bugs', icon: <Bug className="h-5 w-5" /> },
       { path: pid ? `/projects/${pid}/logs` : '/logs', label: 'Logs', icon: <ScrollText className="h-5 w-5" /> },
+      { path: pid ? `/projects/${pid}/memory` : '/memory', label: 'Memory', icon: <Brain className="h-5 w-5" /> },
       { path: '/docker', label: 'Docker', icon: <Box className="h-5 w-5" /> },
       { path: '/vps', label: 'VPS', icon: <Server className="h-5 w-5" /> },
       { path: '/settings', label: 'Settings', icon: <Settings className="h-5 w-5" /> },
