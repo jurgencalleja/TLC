@@ -50,7 +50,7 @@ Extend the TLC dashboard with memory visualization, recall interface, and conver
 
 ---
 
-### Task 2: Recall Search Panel [ ]
+### Task 2: Recall Search Panel [x]
 
 **Goal:** Dashboard component for semantic memory search. Type a question, get ranked results with similarity scores.
 
@@ -86,7 +86,7 @@ Extend the TLC dashboard with memory visualization, recall interface, and conver
 
 ---
 
-### Task 3: Conversation History Browser [ ]
+### Task 3: Conversation History Browser [x]
 
 **Goal:** Browse all captured conversations chronologically. View the detailed exchanges, decisions made, and related files.
 
@@ -127,7 +127,7 @@ Extend the TLC dashboard with memory visualization, recall interface, and conver
 
 ---
 
-### Task 4: Memory Dashboard Page [ ]
+### Task 4: Memory Dashboard Page [x]
 
 **Goal:** Dedicated `/memory` page combining recall search, conversation browser, decisions list, and vector stats.
 
@@ -169,7 +169,7 @@ Extend the TLC dashboard with memory visualization, recall interface, and conver
 
 ---
 
-### Task 5: Memory Widget for Dashboard Home [ ]
+### Task 5: Memory Widget for Dashboard Home [x]
 
 **Goal:** Compact memory widget on the main dashboard showing recent memories, quick recall, and memory health.
 

@@ -2546,18 +2546,20 @@ Reject → developer notified with feedback
 
 ---
 
-### Phase 74: Dashboard Memory & Recall UI [>]
+### Phase 74: Dashboard Memory & Recall UI [x]
 
 **Goal:** Memory visualization in dashboard: semantic search, conversation browser, decision list, vector status.
 
 **Deliverables:**
-- [ ] Memory API endpoints (search, conversations, decisions, stats, rebuild)
-- [ ] Recall search panel (semantic search with similarity scores)
-- [ ] Conversation history browser (chronological, filterable, detail view)
-- [ ] Memory dashboard page (tabbed: Recall, Conversations, Decisions, Gotchas)
-- [ ] Memory widget for dashboard home (compact status + quick search)
+- [x] Memory API endpoints (search, conversations, decisions, stats, rebuild) — 12 tests
+- [x] Recall search panel (semantic search with similarity scores) — 11 tests
+- [x] Conversation history browser (sorted, filterable, permanent badges) — 9 tests
+- [x] Memory dashboard page (decisions + gotchas + stats + search) — 9 tests + 4 useMemory
+- [x] Memory Zustand store (search results, conversations, selection) — 7 tests
+- [x] Memory widget for dashboard home (health indicator, recent decisions) — 7 tests
+- [x] Sidebar navigation with brain icon
 
-**Tests:** ~75
+**Tests:** 59 (12 API + 11 RecallPanel + 9 ConversationBrowser + 9 MemoryPage + 4 useMemory + 7 store + 7 widget)
 
 ---
 
