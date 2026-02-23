@@ -3,15 +3,38 @@ name: CI
 on:
   push:
     branches: [main]
+    paths:
+      - 'server/**'
+      - 'dashboard/**'
+      - 'dashboard-web/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/ci.yml'
   pull_request:
     branches: [main]
+    types: [opened, ready_for_review, labeled]
+    paths:
+      - 'server/**'
+      - 'dashboard/**'
+      - 'dashboard-web/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/ci.yml'
   release:
     types: [published]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    # On PRs, only run if 'ci' label is present
+    if: >-
+      github.event_name != 'pull_request' ||
+      contains(github.event.pull_request.labels.*.name, 'ci')
     defaults:
       run:
         working-directory: server
