@@ -13,7 +13,7 @@ Extend the TLC dashboard with memory visualization, recall interface, and conver
 
 ## Tasks
 
-### Task 1: Memory API Endpoints [ ]
+### Task 1: Memory API Endpoints [x]
 
 **Goal:** Server-side HTTP endpoints for memory data: search, list conversations, view decisions, vector status.
 

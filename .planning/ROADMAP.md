@@ -2428,43 +2428,44 @@ Reject → developer notified with feedback
 
 ## Milestone: v2.4 - Workspace Dashboard
 
-### Phase 70: Workspace-Level Dashboard [ ]
+### Phase 70: Workspace-Level Dashboard [x]
 
 **Goal:** Transform dashboard from single-project to multi-project workspace mode. Users configure root folder(s) via dashboard UI, TLC discovers all projects recursively, displays them in a grid with drill-down.
 
 **Deliverables:**
-- [ ] Global TLC config (`~/.tlc/config.json`) for workspace root paths
-- [ ] Recursive project scanner (discovers `.tlc.json`, `.planning/`, `package.json+.git`)
-- [ ] Workspace REST API (`/api/workspace/*`, `/api/projects/:id/*`)
-- [ ] Dashboard setup screen (first-run root folder configuration)
-- [ ] Workspace Zustand store and API client
-- [ ] Project selector and workspace-aware routing
-- [ ] Per-project data loading (hooks accept projectId)
-- [ ] WebSocket project scoping (messages include projectId)
-- [ ] Manual refresh + optional background file watcher
+- [x] Global TLC config (`~/.tlc/config.json`) for workspace root paths
+- [x] Recursive project scanner (discovers `.tlc.json`, `.planning/`, `package.json+.git`)
+- [x] Workspace REST API (`/api/workspace/*`, `/api/projects/:id/*`)
+- [x] Dashboard setup screen (first-run root folder configuration)
+- [x] Workspace Zustand store and API client
+- [x] Project selector and workspace-aware routing
+- [x] Per-project data loading (hooks accept projectId)
+- [x] WebSocket project scoping (messages include projectId)
+- [x] Manual refresh + optional background file watcher
+- [x] Workspace-aware `/tlc:init` (detects multi-repo folders)
 
 **Test Progress:**
-- [ ] global-config: ~15 tests
-- [ ] project-scanner: ~19 tests
-- [ ] workspace-api: ~16 tests
-- [ ] workspace.store: ~13 tests
-- [ ] SetupScreen: ~12 tests
-- [ ] ProjectSelector: ~12 tests
-- [ ] useWorkspace: ~12 tests
-- [ ] Per-project hooks: ~10 tests
-- [ ] WebSocket scoping: ~6 tests
-- [ ] WorkspaceToolbar: ~9 tests
+- [x] global-config: ~15 tests
+- [x] project-scanner: ~19 tests
+- [x] workspace-api: ~16 tests
+- [x] workspace.store: ~13 tests
+- [x] SetupScreen: ~12 tests
+- [x] ProjectSelector: ~12 tests
+- [x] useWorkspace: ~12 tests
+- [x] Per-project hooks: ~10 tests
+- [x] WebSocket scoping: ~6 tests
+- [x] WorkspaceToolbar: ~9 tests
 - Total: ~160 tests
 
 **Success Criteria:**
-- [ ] First launch shows setup screen asking for root folder
-- [ ] Root folder persists across server restarts
-- [ ] All TLC projects discovered recursively
-- [ ] Projects grid with search/filter/sort
-- [ ] Drill-down into any project (tasks, logs, status)
-- [ ] Manual refresh discovers new projects
-- [ ] Backward compatible with single-project mode
-- [ ] Workspace-aware `/tlc:init` (detects multi-repo folders, creates full structure with `phases/`)
+- [x] First launch shows setup screen asking for root folder
+- [x] Root folder persists across server restarts
+- [x] All TLC projects discovered recursively
+- [x] Projects grid with search/filter/sort
+- [x] Drill-down into any project (tasks, logs, status)
+- [x] Manual refresh discovers new projects
+- [x] Backward compatible with single-project mode
+- [x] Workspace-aware `/tlc:init` (detects multi-repo folders, creates full structure with `phases/`)
 
 ---
 
