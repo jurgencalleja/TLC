@@ -213,10 +213,17 @@ describe('security-gates', () => {
       expect(gates.hasRunner('custom')).toBe(true);
     });
 
-    it('provides default runners', () => {
+    it('has built-in runners for dependencies and secrets', () => {
       const gates = createSecurityGates();
-      expect(gates.hasRunner('sast')).toBe(true);
       expect(gates.hasRunner('dependencies')).toBe(true);
+      expect(gates.hasRunner('secrets')).toBe(true);
+    });
+
+    it('skips SAST/DAST/container without custom runners', () => {
+      const gates = createSecurityGates();
+      expect(gates.hasRunner('sast')).toBe(false);
+      expect(gates.hasRunner('dast')).toBe(false);
+      expect(gates.hasRunner('container')).toBe(false);
     });
   });
 });

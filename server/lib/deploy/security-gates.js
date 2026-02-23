@@ -5,6 +5,9 @@
  * running security gates during deployment validation.
  */
 
+import { createDependencyRunner } from './runners/dependency-runner.js';
+import { createSecretsRunner } from './runners/secrets-runner.js';
+
 /**
  * Gate type constants
  */
@@ -36,29 +39,13 @@ const DEFAULT_TIER_GATES = {
 };
 
 /**
- * Default security gate runners (placeholder implementations)
+ * Built-in runners for dependencies and secrets gates.
+ * SAST, DAST, and container gates require custom runner injection.
+ * Gates without runners will SKIP (not fake-pass).
  */
-const defaultRunners = {
-  sast: async (projectPath, options) => {
-    // Placeholder SAST implementation
-    return { passed: true, findings: [] };
-  },
-  dast: async (projectPath, options) => {
-    // Placeholder DAST implementation
-    return { passed: true, findings: [] };
-  },
-  dependencies: async (projectPath, options) => {
-    // Placeholder dependency scanning implementation
-    return { passed: true, findings: [] };
-  },
-  container: async (projectPath, options) => {
-    // Placeholder container scanning implementation
-    return { passed: true, findings: [] };
-  },
-  secrets: async (projectPath, options) => {
-    // Placeholder secrets scanning implementation
-    return { passed: true, findings: [] };
-  },
+const builtInRunners = {
+  dependencies: createDependencyRunner(),
+  secrets: createSecretsRunner(),
 };
 
 /**
@@ -197,8 +184,8 @@ export async function runAllGates(tier, options = {}) {
 export function createSecurityGates(config = {}) {
   const { runners = {}, gateConfig = null } = config;
 
-  // Merge custom runners with defaults
-  const allRunners = { ...defaultRunners, ...runners };
+  // Merge built-in runners with custom runners (custom overrides built-in)
+  const allRunners = { ...builtInRunners, ...runners };
 
   return {
     /**
