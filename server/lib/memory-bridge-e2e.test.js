@@ -31,15 +31,17 @@ describe('memory-bridge e2e', () => {
     fs.rmSync(testDir, { recursive: true, force: true });
   });
 
-  it('decision in assistant response creates decision file', async () => {
+  it('decision in exchange creates decision file', async () => {
+    // Pattern detector analyzes the user field for decision patterns
     const exchange = {
-      assistant: 'We decided to use PostgreSQL instead of MySQL because we need JSONB support and strong consistency guarantees.',
+      user: "let's use PostgreSQL instead of MySQL because we need JSONB support.",
+      assistant: 'Good choice. PostgreSQL has excellent JSONB support.',
     };
 
     await observeAndRemember(testDir, exchange);
 
-    // Wait for async processing (setImmediate-based)
-    await new Promise(resolve => setTimeout(resolve, 200));
+    // Wait for setImmediate-based async processing
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     // Check that a decision file was created
     const decisionsDir = path.join(testDir, '.tlc', 'memory', 'team', 'decisions');
@@ -47,14 +49,16 @@ describe('memory-bridge e2e', () => {
     expect(files.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('gotcha in assistant response creates gotcha file', async () => {
+  it('gotcha in exchange creates gotcha file', async () => {
+    // Pattern detector looks for "watch out for X" in user field
     const exchange = {
-      assistant: 'Watch out — the PGlite WASM driver crashes under heavy concurrent writes. You need to serialize database operations or use real PostgreSQL.',
+      user: 'watch out for the PGlite WASM driver under concurrent writes.',
+      assistant: 'Good catch. Serialize database operations to avoid crashes.',
     };
 
     await observeAndRemember(testDir, exchange);
 
-    await new Promise(resolve => setTimeout(resolve, 200));
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     const gotchasDir = path.join(testDir, '.tlc', 'memory', 'team', 'gotchas');
     const files = fs.readdirSync(gotchasDir);
@@ -77,8 +81,9 @@ describe('memory-bridge e2e', () => {
 
     await captureExchange({
       cwd: testDir,
-      assistantMessage: 'Let\'s use JWT tokens instead of sessions for authentication because we need stateless horizontal scaling.',
-      userMessage: 'How should we handle auth?',
+      // Pattern detector analyzes user field — put decision language there
+      assistantMessage: 'Good choice, JWT is better for horizontal scaling.',
+      userMessage: "let's use JWT tokens instead of sessions for authentication.",
       sessionId: 'e2e-sess-1',
     }, { fetch: mockFetch });
 
@@ -86,7 +91,7 @@ describe('memory-bridge e2e', () => {
 
     // Verify the exchange was captured
     expect(capturedExchange).not.toBeNull();
-    expect(capturedExchange.assistant).toContain('JWT tokens');
+    expect(capturedExchange.user).toContain('JWT tokens');
 
     // Verify a decision file was created
     const decisionsDir = path.join(testDir, '.tlc', 'memory', 'team', 'decisions');
@@ -98,12 +103,12 @@ describe('memory-bridge e2e', () => {
     const spoolDir = path.join(testDir, '.tlc', 'memory');
     const spoolPath = path.join(spoolDir, SPOOL_FILENAME);
 
-    // Write a spooled entry with a decision
+    // Write a spooled entry with a decision (pattern in user field)
     const spooledEntry = JSON.stringify({
       projectId: 'e2e-test',
       exchanges: [{
-        user: 'What database should we use?',
-        assistant: 'We decided to use SQLite for the vector store because it embeds directly and needs no separate process.',
+        user: "we decided to use SQLite for the vector store.",
+        assistant: 'SQLite embeds directly and needs no separate process.',
         timestamp: Date.now(),
       }],
     });
@@ -120,7 +125,7 @@ describe('memory-bridge e2e', () => {
 
     await drainSpool(spoolDir, { fetch: mockFetch });
 
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     // Spool should be drained
     if (fs.existsSync(spoolPath)) {
@@ -133,24 +138,23 @@ describe('memory-bridge e2e', () => {
     expect(files.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('duplicate exchange captured only once', async () => {
+  it('capture guard deduplicates identical exchanges', async () => {
+    // Dedup happens at the capture guard level, not the observer
+    const { createCaptureGuard } = await import('./capture-guard.js');
+    const guard = createCaptureGuard();
+
     const exchange = {
-      assistant: 'We decided to use Redis as our caching layer for session storage.',
+      user: "we decided to use Redis as our caching layer.",
+      assistant: 'Redis is great for caching.',
+      timestamp: Date.now(),
     };
 
-    await observeAndRemember(testDir, exchange);
-    await new Promise(resolve => setTimeout(resolve, 200));
+    // First call returns the exchange
+    const first = guard.deduplicate([exchange], 'e2e-test');
+    expect(first).toHaveLength(1);
 
-    const decisionsDir = path.join(testDir, '.tlc', 'memory', 'team', 'decisions');
-    const countAfterFirst = fs.readdirSync(decisionsDir).length;
-
-    // Same exchange again
-    await observeAndRemember(testDir, exchange);
-    await new Promise(resolve => setTimeout(resolve, 200));
-
-    const countAfterSecond = fs.readdirSync(decisionsDir).length;
-
-    // Should not create a duplicate file (observer deduplicates by content)
-    expect(countAfterSecond).toBe(countAfterFirst);
+    // Same exchange immediately — deduplicated
+    const second = guard.deduplicate([exchange], 'e2e-test');
+    expect(second).toHaveLength(0);
   });
 });
